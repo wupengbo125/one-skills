@@ -1,52 +1,6 @@
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-# ==================== Project Navigation 模板与自动注入函数 ====================
-read -r -d '' PROJECT_NAV_BLOCK << 'EOF'
-<!-- PROJECT-NAV:START -->
-## Project Navigation
-
-Before analysis or coding, check and read relevant existing files:
-
-- `user-say.md` - user instructions
-- `BLUEPRINT.md` - project blueprint, human-written context and design for AI
-- `CONTEXT.md` - project context
-- `docs/adr/` - Architecture decision records
-- `MAP.md` - Project structure & file index 
-- `docs/prd/` - Active requirements & implementation plans
-<!-- PROJECT-NAV:END -->
-EOF
-
-setup_project_nav() {
-    # 1. 创建 user-say.md
-    if [ ! -f "./user-say.md" ]; then
-        echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./user-say.md"
-        echo "已自动初始化 ./user-say.md"
-    fi
-
-    # 2. 幂等更新/注入 AGENTS.md & CLAUDE.md
-    for nav_file in "AGENTS.md" "CLAUDE.md"; do
-        if [ -f "$nav_file" ]; then
-            if grep -q "<!-- PROJECT-NAV:START -->" "$nav_file"; then
-                python3 -c '
-import sys, re
-path, block = sys.argv[1], sys.argv[2]
-with open(path, "r", encoding="utf-8") as f:
-    content = f.read()
-pattern = r"<!-- PROJECT-NAV:START -->.*?<!-- PROJECT-NAV:END -->"
-new_content = re.sub(pattern, block, content, flags=re.DOTALL)
-with open(path, "w", encoding="utf-8") as f:
-    f.write(new_content)
-' "$nav_file" "$PROJECT_NAV_BLOCK"
-            else
-                echo -e "\n$PROJECT_NAV_BLOCK" >> "$nav_file"
-            fi
-            echo "已自动更新导航区块 -> $nav_file"
-        fi
-    done
-}
-# ==============================================================================
-
 # ==================== 技能源目录配置（一行一个） ====================
 SKILL_SOURCES=(
     "$SCRIPT_DIR"
@@ -248,8 +202,22 @@ for idx in "${SELECTED_INDICES[@]}"; do
 done
 
 if [ "$dest_idx" -eq 0 ] && [ "$processed" -gt 0 ]; then
-    echo -e "\n[Project Navigation] 自动维护导航区块..."
-    setup_project_nav
+    if [ ! -f "./user-say.md" ]; then
+        echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./user-say.md"
+        echo "已自动初始化 ./user-say.md"
+    fi
+    if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
+        cp -f "$SCRIPT_DIR/one-agents.md" "./AGENTS.md"
+        cp -f "$SCRIPT_DIR/one-agents.md" "./CLAUDE.md"
+        echo "已安装 one-agents.md -> AGENTS.md, CLAUDE.md"
+    fi
+elif [ "$dest_idx" -eq 2 ] && [ "$processed" -gt 0 ]; then
+    if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
+        for t in "$HOME/.claude/CLAUDE.md" "$HOME/.gemini/GEMINI.md" "$HOME/.gemini/config/AGENTS.md" "$HOME/.gemini/antigravity/AGENTS.md" "$HOME/.config/opencode/AGENTS.md" "$HOME/.cursor/AGENTS.md" "$HOME/.copilot/copilot-instructions.md"; do
+            mkdir -p "$(dirname "$t")" && cp -f "$SCRIPT_DIR/one-agents.md" "$t"
+        done
+        echo "已安装 one-agents.md 到用户全局配置文件"
+    fi
 fi
 
 echo -e "\n完成！共处理了 $processed 个 skill(s)。"
