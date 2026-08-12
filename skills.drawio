@@ -1,0 +1,103 @@
+<mxfile host="65bd71144e">
+    <diagram id="raster2drawio" name="Page-1">
+        <mxGraphModel dx="575" dy="1738" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" style="locked=0;" parent="0"/>
+                <mxCell id="n7" value="map系统&lt;br&gt;(地图/OpenWiki，项目结构与上下文视图) 这个完全由AI出的，和代码本质上是一样的，llm直接看代码就够了，因此暂时不用这个。如果要用，就用graphify&lt;br&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="453.75" y="102" width="322.5" height="41" as="geometry"/>
+                </mxCell>
+                <mxCell id="n5" value="one-build-blueprint&lt;br&gt;(功能蓝图/白盒文档，调用自由，格式自由，可以直接基于该文档开发，此乃白盒的关键，人工控制，介绍这个项目是干啥的，啥都在哪，既有功能视图，又有map粗略能力，代码是最好的知识库，所以本技能主要是在代码前，让人和agent能大略了解代码项目，比如三个目录是我们现在用的，old里面是以前旧流程，这种东西不人工写，AI永远不知道，别人看了也不知道，代码只反映了所有目录有啥功能，不知道你的old原来竟然是旧的啊，用来供新的参考呢。&lt;br&gt;)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="-60" width="450" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="n1" value="one-grill-with-docs-pro&lt;br&gt;(交互式需求 Grilling 与分析)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="178.34" y="30" width="170" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="n2" value="产出文档&#10;(CONTEXT.md / ADR / PRD)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="173.84" y="109" width="180" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="n3" value="用户确认/阅读 PRD？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;labelBackgroundColor=none;fontColor=#46495D;rounded=1;" parent="1" vertex="1">
+                    <mxGeometry x="170.49999999999997" y="193" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" target="wb-VkNjcUJ-bbWk1ekWD-1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="240.5" y="302" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#788AA3;labelBackgroundColor=none;fontColor=default;curved=0;exitX=0.5029;exitY=1;entryX=0.5;entryY=0;" parent="1" source="n1" target="n2" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="263.84000000000003" y="86"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#788AA3;labelBackgroundColor=none;fontColor=default;curved=0;exitX=0.5;exitY=1;entryX=0.6667;entryY=0.1667;" parent="1" source="n2" target="n3" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="263.84000000000003" y="157"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e3" value="Reject / 重新研讨" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#788AA3;fontColor=default;entryX=0;entryY=0.5;entryDx=0;entryDy=0;labelBackgroundColor=none;curved=0;exitX=0.3334;exitY=0.1666;" parent="1" source="n3" target="n1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint y="-9.91" as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="217.17" y="157"/>
+                            <mxPoint x="98.84" y="157"/>
+                            <mxPoint x="98.84" y="50"/>
+                            <mxPoint x="167.34" y="50"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="e4" value="Yes / 批准" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeWidth=2;strokeColor=#788AA3;fontColor=default;labelBackgroundColor=none;curved=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="1" source="n3" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="240.49999999999997" y="247.5"/>
+                        </Array>
+                        <mxPoint x="240.5" y="272" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-5" value="yes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=0;exitY=0.5;entryX=0.5;entryY=0;exitDx=0;exitDy=0;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" source="wb-VkNjcUJ-bbWk1ekWD-1" target="wb-VkNjcUJ-bbWk1ekWD-2" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-10" value="not" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" source="wb-VkNjcUJ-bbWk1ekWD-1" target="wb-VkNjcUJ-bbWk1ekWD-3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="wb-VkNjcUJ-bbWk1ekWD-1" target="n3" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-1" value="one-implement 使用aaa触发&lt;div&gt;是否refactor&lt;/div&gt;" style="rhombus;whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;labelBackgroundColor=none;fontColor=#46495D;rounded=1;" parent="1" vertex="1">
+                    <mxGeometry x="155.5" y="260" width="170" height="122" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-12" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=0.5;exitY=1;entryX=0.5063;entryY=0;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" source="wb-VkNjcUJ-bbWk1ekWD-2" target="wb-VkNjcUJ-bbWk1ekWD-11" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-2" value="one-refactor-implement&lt;div&gt;让llm使用复制粘贴方式写代码，防止模型自己理解代码重新写出一个怪物出来&lt;/div&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="19.999999999999986" y="402.5" width="210" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=0.5;exitY=1;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" source="wb-VkNjcUJ-bbWk1ekWD-3" target="wb-VkNjcUJ-bbWk1ekWD-11" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-3" value="one-minimal-implement&lt;div&gt;让llm最小化实施，别乱加戏&lt;/div&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="410" width="170" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="wb-VkNjcUJ-bbWk1ekWD-11" value="matt/&lt;div&gt;codereview&lt;/div&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontColor=#46495D;fontStyle=1;rounded=1;labelBackgroundColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="209.99999999999997" y="570" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="one-handoff&lt;br&gt;产出交接文档，供下个会话使用，区别于matt的，这一版将交接文档放到项目根目录而非matt放到系统目录。" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="465" y="160" width="305" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="one-python-structure&lt;br&gt;python目录结构，个人python程序的框架习惯" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="250" width="310" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" value="one-simplifying&lt;br&gt;简化代码，里面有反例，有正面引导等。" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="340" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="6" value="one-llmwiki-skill&lt;br&gt;一个个人知识库，可以自己设计，不依赖任何东西&lt;br&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="430" width="300" height="55" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
