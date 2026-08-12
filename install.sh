@@ -139,7 +139,7 @@ skill_paths=()
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
         bname="$(basename "$d")"
-        if [[ "$bname" != .* ]]; then
+        if [[ "$bname" == one* ]]; then
             skill_names+=("$bname")
             skill_paths+=("$d")
         fi
