@@ -58,6 +58,7 @@ timestamp: <optional ISO 8601 datetime>
 - A single-page directory is acceptable only for a substantial, coherent boundary likely to grow.
 - Maintain `onewiki/index.md` and affected section `index.md` files directly; no runtime will generate them.
 - Each page must provide explanatory value: what the area does, why it exists, where it starts, how it relates to other areas, what can fail, what tests prove, and where to change it.
+- Refer to `../WIKI-TEMPLATE.md` as a structural template when creating a new page (keep sections as needed, strictly avoid empty or placeholder sections).
 - Keep genuinely deferred material in a concise backlog with the evidence gap or scope reason.
 
 ## Diagrams

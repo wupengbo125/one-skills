@@ -23,17 +23,22 @@ Use this path when `onewiki/` has no substantive canonical Wiki content.
 Use this path when `onewiki/` already contains substantive canonical Wiki content.
 
 1. Read `onewiki/index.md` and existing pages relevant to the request.
-2. Determine the source change set from the user's request, current Git status, commits, and diffs as available.
+2. Determine the exact source change set using Git Commit tracking (`last_ingest_commit`):
+   - Obtain `last_ingest_commit` SHA recorded in `onewiki/index.md` frontmatter (or via `git log -n 1 --format="%H" -- onewiki/`).
+   - Run `git diff --name-only <last_ingest_commit> HEAD` to get all committed changes since the last ingest.
+   - Run `git status -s` and `git diff --name-only` to get uncommitted working directory changes.
+   - Combine these paths into the target change set. For modified files, inspect `git diff -- <file>` to read only exact changed lines.
+   - Form the target change set. Only inspect changed files/diffs and their 1-hop dependencies; avoid broad scans of unchanged files.
 3. Inspect changed manifests, entrypoints, public surfaces, schemas, configuration, implementations, callers, consumers, and focused tests.
 4. Trace one hop beyond directly changed files to find affected dependencies, workflows, state ownership, contracts, failure paths, operations, and diagrams.
 5. Rebuild the full repository inventory only when structural changes or obvious coverage gaps require it.
 6. Map every materially affected fact to its canonical page and section, including changed paths and symbols, affected behavior or relationship, related pages, indexes, links, tests, and diagrams.
 7. Update every affected canonical page while preserving unrelated accurate content. Remove or correct claims invalidated by current source evidence, create a page only for a substantial new area, and update affected relationships, indexes, and diagrams.
-8. If source changes add no durable documentation value and the Wiki is already accurate, make no edits and report a no-op.
+8. If source changes add no durable documentation value and the Wiki is already accurate, update `last_ingest_commit` and report a no-op.
 9. Check one-hop dependencies and adjacent workflows revealed by the change without rewriting unrelated well-covered systems.
 
 ## Completion
 
-For either path, reconcile planned coverage with the final tree and run the completion checks in `common.md`.
+For either path, reconcile planned coverage with the final tree, perform a local `git commit` (never execute `git push`), record `last_ingest_commit: <current_commit_sha>` in `onewiki/index.md` frontmatter, and run the completion checks in `common.md`.
 
 Completion means a new engineer can navigate from intent to owning source, relationships, tests, and narrow validation without another broad repository scan.

@@ -10,7 +10,7 @@
                 <mxCell id="n5" value="one-build-blueprint&lt;br&gt;(功能蓝图/白盒文档，调用自由，格式自由，可以直接基于该文档开发，此乃白盒的关键，人工控制，介绍这个项目是干啥的，啥都在哪，既有功能视图，又有map粗略能力，代码是最好的知识库，所以本技能主要是在代码前，让人和agent能大略了解代码项目，比如三个目录是我们现在用的，old里面是以前旧流程，这种东西不人工写，AI永远不知道，别人看了也不知道，代码只反映了所有目录有啥功能，不知道你的old原来竟然是旧的啊，用来供新的参考呢。&lt;br&gt;)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="380" y="-60" width="450" height="130" as="geometry"/>
                 </mxCell>
-                <mxCell id="n1" value="one-grill-with-docs-pro&lt;br&gt;(交互式需求 Grilling 与分析)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                <mxCell id="n1" value="one-grill-with-docs-prd&lt;br&gt;(交互式需求 Grilling 与分析)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="178.34" y="30" width="170" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="n2" value="产出文档&#10;(CONTEXT.md / ADR / PRD)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
@@ -96,6 +96,24 @@
                 </mxCell>
                 <mxCell id="6" value="one-llmwiki-skill&lt;br&gt;一个个人知识库，可以自己设计，不依赖任何东西&lt;br&gt;" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
                     <mxGeometry x="490" y="430" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="one-code-wiki&lt;br&gt;代码库 Wiki 增量摄入、检索与巡检 (ingest/query/lint，生成 onewiki/)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="510" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="one-md-wiki&lt;br&gt;个人通用 Markdown 知识库处理体系" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="590" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="one-build-mermaid &amp;amp; one-build-drawio&lt;br&gt;架构时序图/流程图与 Draw.io 可视化构建" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="670" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="one-code-map&lt;br&gt;代码库结构 MAP 索引初始化、增量更新与一致性巡检 (build/update/lint)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="750" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="one-wsl-chrome&lt;br&gt;WSL 环境下通过 CDP 自动拉起与控制宿主机 Windows Chrome" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="830" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="install.sh &amp;amp; install-others.sh&lt;br&gt;交互式技能分发与部署安装/卸载体系" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" vertex="1" parent="1">
+                    <mxGeometry x="490" y="910" width="300" height="55" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

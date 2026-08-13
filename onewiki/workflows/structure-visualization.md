@@ -1,7 +1,7 @@
 ---
 type: workflow
 title: 结构映射与可视化工作流
-description: 说明 one-build-map、one-build-mermaid、one-build-drawio、one-update-maps 及 one-python-structure 的架构图表生成与规范落地。
+description: 说明 one-code-map、one-build-mermaid、one-build-drawio 及 one-python-structure 的架构图表生成与规范落地。
 ---
 
 # 结构映射与可视化工作流
@@ -10,11 +10,10 @@ description: 说明 one-build-map、one-build-mermaid、one-build-drawio、one-u
 
 ## 组成技能与职责
 
-1. [`one-build-map`](file:///home/pengbo/home/github/one-skills/one-build-map/SKILL.md)：基于模板 [`MAP-TEMPLATE.md`](file:///home/pengbo/home/github/one-skills/one-build-map/MAP-TEMPLATE.md) 扫瞄代码库并建立根目录 `MAP.md` 文件索引。
-2. [`one-update-maps`](file:///home/pengbo/home/github/one-skills/one-update-maps/SKILL.md)：增量更新代码库文件 map 索引，保持 `MAP.md` 与当前文件树实时同步。
-3. [`one-build-mermaid`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/SKILL.md)：基于模板 [`GRAPH-TEMPLATE.md`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/GRAPH-TEMPLATE.md) 生成标准 Mermaid 时序图、状态机或流程图。
-4. [`one-build-drawio`](file:///home/pengbo/home/github/one-skills/one-build-drawio/SKILL.md)：生成与编辑 Draw.io 格式架构图（如根目录下的 [`skills.drawio`](file:///home/pengbo/home/github/one-skills/skills.drawio)）。
-5. [`one-python-structure`](file:///home/pengbo/home/github/one-skills/one-python-structure/SKILL.md)：推行每个子项目的标准三件套结构（`<script.py>` + `config.yaml` + `readme.md`），以 YAML 配置为核心驱动并保留 CLI 参数支持。
+1. [`one-code-map`](file:///home/pengbo/home/github/one-skills/one-code-map/SKILL.md)：统一的代码地图管理技能（包含 `init` 全量初始化、`update` 零 Token 增量更新与 `lint` 链接一致性检查），基于模板 [`MAP-TEMPLATE.md`](file:///home/pengbo/home/github/one-skills/one-code-map/MAP-TEMPLATE.md) 维护 `MAP.md`。
+2. [`one-build-mermaid`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/SKILL.md)：基于模板 [`GRAPH-TEMPLATE.md`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/GRAPH-TEMPLATE.md) 生成标准 Mermaid 时序图、状态机或流程图。
+3. [`one-build-drawio`](file:///home/pengbo/home/github/one-skills/one-build-drawio/SKILL.md)：生成与编辑 Draw.io 格式架构图（如根目录下的 [`skills.drawio`](file:///home/pengbo/home/github/one-skills/skills.drawio)）。
+4. [`one-python-structure`](file:///home/pengbo/home/github/one-skills/one-python-structure/SKILL.md)：推行每个子项目的标准三件套结构（`<script.py>` + `config.yaml` + `readme.md`），以 YAML 配置为核心驱动并保留 CLI 参数支持。
 
 ## 标准三件套规范示意
 

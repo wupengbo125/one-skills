@@ -7,7 +7,7 @@ Compile accepted Markdown sources into the persistent personal Wiki. Use the sam
 1. Inspect every `.md` file under `raw/`, the existing `raw/<topic>/` structure, and existing pages under `onewiki/`. Ignore every non-Markdown file.
 2. Treat `.md` files directly under `raw/` as unclassified inbox items. Infer one primary topic from durable content, preferring an existing topic. Keep low-confidence items in the inbox and list candidate topics with the reason for uncertainty.
 3. If the Wiki has no substantive canonical pages, use the bootstrap path: inventory the important domains, sources, projects, people, workflows, decisions, relationships, contradictions, and open questions in all accepted evidence.
-4. Otherwise use the incremental path: compare current evidence with the Wiki and identify new durable knowledge, changed or obsolete claims, resolved or new contradictions, stale uncertainty, and relationships that need revision.
+4. Otherwise use the incremental path: run `git diff --name-only <last_ingest_commit> HEAD -- raw/` and `git status -s raw/` to inspect only changed Markdown sources under `raw/`. Compare changed evidence with the Wiki and identify new durable knowledge, changed or obsolete claims, resolved or new contradictions, stale uncertainty, and relationships that need revision. Avoid full scans when diffs are available. Update `last_ingest_commit` in `onewiki/index.md` upon completion.
 5. Inspect existing canonical pages before proposing replacements. Preserve unrelated accurate content and established terminology. Propose deleting a page only when it has no remaining evidence or independent value.
 
 ## Ingest plan
@@ -37,6 +37,6 @@ After confirmation:
 
 ## Review
 
-Reconcile the final trees against the ingest plan and inspect adjacent canonical pages revealed by the changes. Ensure accepted sources have primary topics, durable knowledge has canonical homes, obsolete claims are handled explicitly, links resolve, and navigation is complete. Remove redundancy and low-value stubs, then run the completion checks in `common.md`.
+Reconcile the final trees against the ingest plan and inspect adjacent canonical pages revealed by the changes. Ensure accepted sources have primary topics, durable knowledge has canonical homes, obsolete claims are handled explicitly, links resolve, and navigation is complete. Perform a local `git commit` (never execute `git push`) and update `last_ingest_commit` in `onewiki/index.md`. Remove redundancy and low-value stubs, then run the completion checks in `common.md`.
 
 Completion means the persistent Wiki accurately incorporates all accepted Markdown evidence without rewriting unrelated knowledge.

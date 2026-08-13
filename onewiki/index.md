@@ -1,3 +1,10 @@
+---
+type: index
+title: one-skills 架构与 Code Wiki 导航
+description: one-skills 模块化 AI Agent 技能与工作流管理仓库的核心索引与导航。
+last_ingest_commit: 64a03ddbc96df695f86f53d7a288bae3a560d61b
+---
+
 # one-skills 架构与 Code Wiki 导航
 
 `one-skills` 是一个模块化 AI Agent 技能与工作流管理仓库，包含各种面向开发、文档、图表生成、AI 编码与环境集成的 Skill 定义、安装管理脚本及代理规则。
@@ -17,7 +24,7 @@
 ### 3. AI 开发与设计工作流 (Workflows)
 - [代码实现与精简工作流](file:///home/pengbo/home/github/one-skills/onewiki/workflows/implementation-workflows.md)：包含 [`one-implement`](file:///home/pengbo/home/github/one-skills/one-implement/SKILL.md)、[`one-minimal-implement`](file:///home/pengbo/home/github/one-skills/one-minimal-implement/SKILL.md)、[`one-refactor-implement`](file:///home/pengbo/home/github/one-skills/one-refactor-implement/SKILL.md) 和 [`one-simplifying`](file:///home/pengbo/home/github/one-skills/one-simplifying/SKILL.md)，严格受暗号控制与至简原则驱动的代码修改闭环。
 - [需求讨论与设计规划工作流](file:///home/pengbo/home/github/one-skills/onewiki/workflows/design-planning-workflows.md)：涵盖 [`one-grill-with-docs-prd`](file:///home/pengbo/home/github/one-skills/one-grill-with-docs-prd/SKILL.md)、[`one-build-blueprint`](file:///home/pengbo/home/github/one-skills/one-build-blueprint/SKILL.md) 和 [`one-handoff`](file:///home/pengbo/home/github/one-skills/one-handoff/SKILL.md)，负责需求 Clarification、PRD 产出、架构蓝图绘制与交接文档生成。
-- [结构映射与可视化工作流](file:///home/pengbo/home/github/one-skills/onewiki/workflows/structure-visualization.md)：集成了 [`one-build-map`](file:///home/pengbo/home/github/one-skills/one-build-map/SKILL.md)、[`one-build-mermaid`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/SKILL.md)、[`one-build-drawio`](file:///home/pengbo/home/github/one-skills/one-build-drawio/SKILL.md)、[`one-update-maps`](file:///home/pengbo/home/github/one-skills/one-update-maps/SKILL.md) 与 [`one-python-structure`](file:///home/pengbo/home/github/one-skills/one-python-structure/SKILL.md)，负责架构图表自动化与标准子项目结构推行。
+- [结构映射与可视化工作流](file:///home/pengbo/home/github/one-skills/onewiki/workflows/structure-visualization.md)：集成了 [`one-code-map`](file:///home/pengbo/home/github/one-skills/one-code-map/SKILL.md)、[`one-build-mermaid`](file:///home/pengbo/home/github/one-skills/one-build-mermaid/SKILL.md)、[`one-build-drawio`](file:///home/pengbo/home/github/one-skills/one-build-drawio/SKILL.md) 与 [`one-python-structure`](file:///home/pengbo/home/github/one-skills/one-python-structure/SKILL.md)，负责架构图表自动化与标准子项目结构推行。
 
 ### 4. 跨环境集成 (Integrations)
 - [WSL Chrome 自动化集成](file:///home/pengbo/home/github/one-skills/onewiki/integrations/wsl-chrome.md)：由 [`one-wsl-chrome`](file:///home/pengbo/home/github/one-skills/one-wsl-chrome/SKILL.md) 与 [`chrome_pool.py`](file:///home/pengbo/home/github/one-skills/one-wsl-chrome/scripts/chrome_pool.py) 构成，通过 Playwright CDP 跨越 WSL/Windows 边界控制宿主机 Chrome 浏览器。
@@ -34,7 +41,7 @@ flowchart TD
     AgentsDir --> LLMWiki["one-llmwiki-skill"]
     AgentsDir --> Impl["one-implement 系列"]
     AgentsDir --> Grill["one-grill-with-docs-prd 系列"]
-    AgentsDir --> Vis["one-build-* 系列"]
+    AgentsDir --> Vis["one-code-map & 图表系列"]
     AgentsDir --> Chrome["one-wsl-chrome"]
     
     CodeWiki -->|解析源码与维护| OneWikiDir["onewiki/ 代码库知识库"]

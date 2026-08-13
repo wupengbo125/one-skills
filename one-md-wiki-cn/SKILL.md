@@ -1,10 +1,10 @@
 ---
-name: one-md-wiki
-description: "Use when: ingest wiki, query wiki, or lint wiki"
+name: one-md-wiki-cn
+description: "Use when: 摄入 Markdown 到个人 Wiki、查询个人 Wiki、检查 Wiki 质量 (中文版)。"
 argument-hint: "ingest | query | lint, 以及可选输出语言或问题"
 ---
 
-# Markdown Wiki
+# Markdown Wiki (中文版)
 
 从显式参数或用户意图选择一个操作：摄入 Markdown 使用 `ingest`，查询个人 Wiki 使用 `query`，健康检查使用 `lint`。`ingest` 根据 Wiki 当前状态自动初始化或增量更新。无法判断时只询问操作。
 

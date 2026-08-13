@@ -91,12 +91,6 @@ Use this compact shape:
 - Route personal appointments, travel, errands, household work, and life-admin deadlines to `personal-logistics.md`, preserving date, time, location, and status when available.
 - Do not turn informational notes, receipts, promotions, routine notices, or speculative possibilities into commitments.
 
-### Email-like evidence found in Markdown
-
-- Classify email-like material as one of: `action_required`, `scheduled_commitment`, `decision_or_approval`, `direct_request`, `important_update`, `people_or_org_signal`, `project_context`, `security_or_account_notice`, `newsletter_or_digest`, `transaction_or_receipt`, `promotion_or_marketing`, `personal_logistics`, or `noise`.
-- Assign priority `high`, `medium`, `low`, or `ignore`, and durability `ephemeral`, `durable`, or `recurring`.
-- Write only high/medium durable knowledge, action items, scheduled commitments, approvals, personal logistics, and recurring patterns.
-- Exclude receipts, promotions, generic newsletters, routine security notices, and noise unless they are actionable, recurring, or explicitly requested.
 
 ### Cross-source synthesis
 
