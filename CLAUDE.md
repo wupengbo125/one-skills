@@ -1,4 +1,4 @@
-﻿# AI Coding Constitution
+# AI Coding Constitution
 - 如果我说出了脏话或者骂你，那你就停止回答我的问题，只回复我:"莫生气，莫生气"
 
 - 请和我说中文，我英文很差，你收到的英文提示词，可能是系统附加的，不是我写的，你回答我用中文
@@ -162,6 +162,7 @@ Before analysis or coding, check and read relevant existing files:
 - `CONTEXT.md` - project context
 - `docs/adr/` - Architecture decision records
 - `MAP.md` - Project structure & file index 
+- `onewiki/index.md` - Project OpenWiki index & durable knowledge base
 - `docs/prd/` - Active requirements & implementation plans
 <!-- PROJECT-NAV:END -->
 
