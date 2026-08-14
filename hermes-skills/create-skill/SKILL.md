@@ -1,37 +1,43 @@
 ---
 name: create-skill
-description: 当用户要求更新创建、新建或修改 Skill (技能) 时触发此技能，规范创建前的 git pull 与创建后的 git commit/push 流程
+description: 规范 skill 的拉取、创建、修改流程。触发词："拉skill"/"pull skill"（拉取最新）、"创建skill"/"新建skill"（创建新 skill）、"改skill"/"更新skill"（修改现有 skill）
 ---
 
 # Create Skill
 
-本 Skill 规范了个人小助手在创建或修改 Skill 时的标准工作流，确保代码仓库同步与版本自动提交。
-
-## 适用场景
-- 用户要求"创建 skill"、"新建技能"、"添加 skill"或修改现有的 Skill。
+本 Skill 规范了个人小助手在拉取、创建或修改 Skill 时的标准工作流。
 
 ## 什么值得存 skill
 - **值得**：会重复遇到的复杂流程、踩过的坑、需要多步骤才能完成的任务
 - **不值得**：一次性改动、改完就不再需要的任务（比如目录迁移、改个路径）
 
-## 规范执行步骤
+## 操作模式
 
-### 第一步：创建前拉取最新代码
-在动笔创建或修改任何 Skill 文件**之前**，先在仓库根目录执行：
+### 模式一：拉取 skill（触发词："拉skill"、"pull skill"）
+直接在仓库执行：
 ```bash
-git pull
+cd ~/onespace/github/one-skills && git pull
+```
+拉完后告诉用户更新了哪些 skill。
+
+### 模式二：创建 skill（触发词："创建skill"、"新建skill"、"添加skill"）
+1. **先拉取最新代码**
+```bash
+cd ~/onespace/github/one-skills && git pull
+```
+2. 在 `hermes-skills/<skill-name>/` 下创建 `SKILL.md`（含 YAML frontmatter：name + description）
+3. **提交并推送**
+```bash
+git add . && git commit -m "feat(skill): add <skill-name>" && git push
 ```
 
-### 第二步：规范创建/更新 Skill
-1. 在当前项目仓库的相对路径下创建 Skill 目录（例如 `./hermes-skills/<skill-name>/`）。
-2. 创建 `SKILL.md` 文件，必须包含规范的 YAML frontmatter 头部（`name` 和 `description`）。
-3. 详细编写 Skill 的触发逻辑、执行步骤与注意事项。
-
-### 第三步：创建后提交与推送代码
-完成 Skill 的创建或修改后，自动打包提交并推送到远程仓库：
+### 模式三：修改 skill（触发词："改skill"、"更新skill"）
+1. **先拉取最新代码**
 ```bash
-git add .
-git commit -m "feat(skill): add <skill-name> skill"
-git push
-# 若系统存在 cm 命令也可直接运行 cm 快速提交推送
+cd ~/onespace/github/one-skills && git pull
+```
+2. 修改对应的 `SKILL.md`
+3. **提交并推送**
+```bash
+git add . && git commit -m "feat(skill): update <skill-name>" && git push
 ```
