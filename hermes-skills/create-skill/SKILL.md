@@ -7,6 +7,11 @@ description: 规范 skill 的拉取、创建、修改流程。触发词："拉sk
 
 本 Skill 规范了个人小助手在拉取、创建或修改 Skill 时的标准工作流。
 
+## 目录规则
+- **默认创建目录**：`~/onespace/github/one-skills/hermes-skills/<skill-name>/SKILL.md`
+- **可加载目录**：`~/onespace/github/one-skills/`（上一层）也可以加载 skill，但不是默认创建位置
+- 除非用户明确说"在大目录里创建"，否则都在 `hermes-skills/` 下创建
+
 ## 什么值得存 skill
 - **值得**：会重复遇到的复杂流程、踩过的坑、需要多步骤才能完成的任务
 - **不值得**：一次性改动、改完就不再需要的任务（比如目录迁移、改个路径）
