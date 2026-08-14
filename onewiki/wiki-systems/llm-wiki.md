@@ -1,12 +1,12 @@
 ---
 type: concept
 title: LLM Wiki 纯 Prompt 无代码知识库系统
-description: 介绍基于 one-llmwiki-skill 的全功能无代码 Wiki 知识库体系，专注于个人永久知识库 $one-llmwiki_dir/ 的增量编译与检索。
+description: 介绍基于 one-llmwiki-skill 的全功能无代码 Wiki 知识库体系，专注于个人永久知识库 $one_llmwiki_dir/ 的增量编译与检索。
 ---
 
 # LLM Wiki 纯 Prompt 无代码知识库系统
 
-`one-llmwiki-skill` 实现了纯 Prompt 驱动的全功能无代码 Wiki 知识库体系，专门服务于个人唯一永久知识库仓库（默认路径 `$one-llmwiki_dir/`）。
+`one-llmwiki-skill` 实现了纯 Prompt 驱动的全功能无代码 Wiki 知识库体系，专门服务于个人唯一永久知识库仓库（默认路径 `$one_llmwiki_dir/`）。
 
 ## 核心架构与功能模块
 
@@ -23,7 +23,7 @@ Skill 入口位于 [`one-llmwiki-skill/SKILL.md`](file://$github_dir/one-skills/
 
 ```mermaid
 flowchart TD
-    LLMWiki["one-llmwiki-skill<br/>(面向永久库 $one-llmwiki_dir/)"] 
+    LLMWiki["one-llmwiki-skill<br/>(面向永久库 $one_llmwiki_dir/)"] 
     CodeWiki["one-code-wiki<br/>(面向项目本地代码库 onewiki/)"] 
     MDWiki["one-md-wiki<br/>(面向本地 Markdown 素材)"]
 

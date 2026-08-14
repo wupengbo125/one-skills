@@ -1,23 +1,23 @@
 ---
 name: one-llmwiki-skill
-description: 纯 Prompt 驱动的全功能无代码 Wiki 知识库体系 Skill。针对个人唯一永久知识库仓库 ($one-llmwiki_dir/)，包含素材ingest与增量编译、语义 Lint 巡检、Wiki 问答检索与长文档大纲推理 4 大全套 Prompt 编排体系。当用户需要 ingest对话/ingest文件、编译 Wiki、质量巡检、检索问答或解析长文档时触发。
+description: 纯 Prompt 驱动的全功能无代码 Wiki 知识库体系 Skill。针对个人唯一永久知识库仓库 ($one_llmwiki_dir/)，包含素材ingest与增量编译、语义 Lint 巡检、Wiki 问答检索与长文档大纲推理 4 大全套 Prompt 编排体系。当用户需要 ingest对话/ingest文件、编译 Wiki、质量巡检、检索问答或解析长文档时触发。
 argument-hint: "要执行的 Wiki 任务（ingest对话/ingest文件/编译/Lint/问答/长文档索引）及对应输入内容"
 ---
 
 # 全功能 LLM Wiki 个人知识库 Skill (`one-llmwiki-skill`)
 
-本 Skill 专为管理个人永久知识库而设计，统一基于通用绝对路径 `$one-llmwiki_dir/`（自动解析当前用户家目录）。提供素材归档整理、知识库增量编译、质量巡检、问答检索与长文档推理的全流程支持。
+本 Skill 专为管理个人永久知识库而设计，统一基于通用绝对路径 `$one_llmwiki_dir/`（自动解析当前用户家目录）。提供素材归档整理、知识库增量编译、质量巡检、问答检索与长文档推理的全流程支持。
 
 ---
 
 ## 1. 个人知识库目录架构 (按主题域隔离)
 
-知识库统一绑定在通用根目录：`$one-llmwiki_dir/`
+知识库统一绑定在通用根目录：`$one_llmwiki_dir/`
 
 `raw/<主题>/` 与 `wiki/<主题>/` 一一镜像对应，每个主题拥有独立的 `index.md` 与白名单，编译与检索时按主题隔离，互不干扰。（示例结构如下，实际分类名由用户定义与命名）：
 
 ```text
-$one-llmwiki_dir/
+$one_llmwiki_dir/
 ├── index.md                   # 根索引：列出所有主题 Wiki 的入口
 ├── raw/                       # 原始知识源（按主题分类子目录）
 │   ├── AI/
@@ -55,7 +55,7 @@ updated_at: "YYYY-MM-DD"
 用于读取未分类素材、`raw/<主题>/` 中的已有素材，或直接将当前会话提炼为素材，划拨归档并增量编译为 `wiki/<主题>/` 页面，同时更新该主题 `index.md`。
 
 ### 阶段 1：前置 Git 远程拉取
-在开始扫描素材或进行任何 Wiki 编译修改前，Agent **必须先在 `$one-llmwiki_dir/` 根目录执行 `git pull`**，确保本地工作区处于最新远端状态。
+在开始扫描素材或进行任何 Wiki 编译修改前，Agent **必须先在 `$one_llmwiki_dir/` 根目录执行 `git pull`**，确保本地工作区处于最新远端状态。
 
 ### 阶段 2：素材摄入与会话提炼 (Ingest Phase)
 当用户指令包含 `ingest对话`、`ingest会话` 或常规素材摄入时触发：
@@ -118,7 +118,7 @@ updated_at: "YYYY-MM-DD"
 所有页面使用中文撰写，使用 `[[wikilinks]]` 链接相关页面。
 
 ### 阶段 6：后置 Git 自动提交与推送
-在物理写入与素材落盘全部完成后，Agent **必须自动在 `$one-llmwiki_dir/` 根目录执行提交与推送**：
+在物理写入与素材落盘全部完成后，Agent **必须自动在 `$one_llmwiki_dir/` 根目录执行提交与推送**：
 ```bash
 git add .
 git commit -m "docs: 增量编译 Wiki 页面并归档素材 [YYYY-MM-DD]"
@@ -129,7 +129,7 @@ git push
 
 ## 3. 模块二：语义 Lint 巡检与清洗 (Semantic Linter Module)
 
-用于读取 `$one-llmwiki_dir/` 目录下的所有 Wiki 页面，发现并修复死链、事实冲突与孤立概念。
+用于读取 `$one_llmwiki_dir/` 目录下的所有 Wiki 页面，发现并修复死链、事实冲突与孤立概念。
 
 ### 巡检流程
 1. 读取 `index.md` 了解整体作用域。
@@ -175,7 +175,7 @@ git push
 
 ## 6. Agent 操作流程汇总
 
-所有操作均以 `$one-llmwiki_dir/` 为根目录：
+所有操作均以 `$one_llmwiki_dir/` 为根目录：
 * **素材摄入与增量编译**：执行 `git pull`，支持常规文件或 `ingest对话`/`ingest会话` 模式，完成摘要与架构规划，生成包含完整落盘路径的《综合预案表》由用户统一拍板后，落盘/搬运素材至 `raw/<主题>/` 并写入 `wiki/<主题>/` 目录与更新 `index.md`，完成后自动执行 `git add . && git commit -m "..." && git push`。
 * **质量巡检/清洗**：审视 `index.md` 与 `wiki/` 下的各页面，输出报告并执行增量修复。
 * **提问/对话**：基于根目录 `index.md` 与 `wiki/` 页面内容回答问题。

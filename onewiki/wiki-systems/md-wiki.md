@@ -26,4 +26,4 @@ description: 介绍基于 one-md-wiki 的个人通用 Markdown 知识库组织�
 ## 相关知识库关系
 
 - [Code Wiki 源码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/code-wiki.md) 专门处理代码文件与运行时关系。
-- [LLM Wiki 纯 Prompt 知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md) 提供针对 `$one-llmwiki_dir/` 的无代码自动化扩展。
+- [LLM Wiki 纯 Prompt 知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md) 提供针对 `$one_llmwiki_dir/` 的无代码自动化扩展。
