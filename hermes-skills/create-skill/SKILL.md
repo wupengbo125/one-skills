@@ -1,6 +1,6 @@
 ---
 name: create-skill
-description: 当用户要求创建、新建或修改 Skill (技能) 时触发此技能，规范创建前的 git pull 与创建后的 git commit/push 流程
+description: 当用户要求更新创建、新建或修改 Skill (技能) 时触发此技能，规范创建前的 git pull 与创建后的 git commit/push 流程
 ---
 
 # Create Skill
