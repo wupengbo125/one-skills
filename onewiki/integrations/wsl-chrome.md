@@ -10,8 +10,8 @@ description: 详细解析 one-wsl-chrome Skill 与 chrome_pool.py 在 WSL 环境
 
 ## 架构与主要文件
 
-- [`one-wsl-chrome/SKILL.md`](file:///home/pengbo/home/github/one-skills/one-wsl-chrome/SKILL.md)：Skill 规则定义，明确触发场景（如需自动化浏览器、提取登录 Cookie、规避机器人检测等）。
-- [`chrome_pool.py`](file:///home/pengbo/home/github/one-skills/one-wsl-chrome/scripts/chrome_pool.py)：核心连接池 Python 类 `ChromePool`。
+- [`one-wsl-chrome/SKILL.md`](file://$github_dir/one-skills/one-wsl-chrome/SKILL.md)：Skill 规则定义，明确触发场景（如需自动化浏览器、提取登录 Cookie、规避机器人检测等）。
+- [`chrome_pool.py`](file://$github_dir/one-skills/one-wsl-chrome/scripts/chrome_pool.py)：核心连接池 Python 类 `ChromePool`。
 
 ## 关键实现细节
 
@@ -40,4 +40,4 @@ sequenceDiagram
 
 ## 相关知识库关系
 
-- [技能安装与管理系统](file:///home/pengbo/home/github/one-skills/onewiki/core/skill-installer.md) 将 `one-wsl-chrome` 部署至应用环境。
+- [技能安装与管理系统](file://$github_dir/one-skills/onewiki/core/skill-installer.md) 将 `one-wsl-chrome` 部署至应用环境。

@@ -6,14 +6,14 @@ description: 详细说明 install.sh 与 install-others.sh 如何管理 Agent �
 
 # 技能安装与管理分发系统
 
-`one-skills` 的核心分发机制建立在交互式 Bash 脚本 [`install.sh`](file:///home/pengbo/home/github/one-skills/install.sh) 与辅助扩展脚本 [`install-others.sh`](file:///home/pengbo/home/github/one-skills/install-others.sh) 之上。该系统负责将独立的 Skill 目录与通用 Agent 规则（如 [`AGENTS.md`](file:///home/pengbo/home/github/one-skills/AGENTS.md)）批量部署或卸载到目标环境。
+`one-skills` 的核心分发机制建立在交互式 Bash 脚本 [`install.sh`](file://$github_dir/one-skills/install.sh) 与辅助扩展脚本 [`install-others.sh`](file://$github_dir/one-skills/install-others.sh) 之上。该系统负责将独立的 Skill 目录与通用 Agent 规则（如 [`AGENTS.md`](file://$github_dir/one-skills/AGENTS.md)）批量部署或卸载到目标环境。
 
 ## 关键文件与角色
 
-- [`install.sh`](file:///home/pengbo/home/github/one-skills/install.sh)：主安装与管理入口。内置 ANSI 菜单系统（`select_menu`），支持多维技能源扫描、交互式单选/多选，支持安装/卸载到项目本地或全局环境。
-- [`install-others.sh`](file:///home/pengbo/home/github/one-skills/install-others.sh)：扩展源安装脚本，针对第三方技能库（如 `anth-skills`, `matt-skills`）提供增强的分发手段。
-- [`one-agents.md`](file:///home/pengbo/home/github/one-skills/one-agents.md)：项目规则模板源文件。在分发时拷贝为根目录下的 `AGENTS.md` / `CLAUDE.md`，或安装到全局 IDE 配置目录。
-- [`user-say.md`](file:///home/pengbo/home/github/one-skills/user-say.md)：项目本地安装初始化文件，用于记录用户对 AI 的自定义全局补充指令。
+- [`install.sh`](file://$github_dir/one-skills/install.sh)：主安装与管理入口。内置 ANSI 菜单系统（`select_menu`），支持多维技能源扫描、交互式单选/多选，支持安装/卸载到项目本地或全局环境。
+- [`install-others.sh`](file://$github_dir/one-skills/install-others.sh)：扩展源安装脚本，针对第三方技能库（如 `anth-skills`, `matt-skills`）提供增强的分发手段。
+- [`one-agents.md`](file://$github_dir/one-skills/one-agents.md)：项目规则模板源文件。在分发时拷贝为根目录下的 `AGENTS.md` / `CLAUDE.md`，或安装到全局 IDE 配置目录。
+- [`user-say.md`](file://$github_dir/one-skills/user-say.md)：项目本地安装初始化文件，用于记录用户对 AI 的自定义全局补充指令。
 
 ## 目标分发位置与路径映射
 
@@ -55,5 +55,5 @@ sequenceDiagram
 
 ## 相关知识库关系
 
-- [Code Wiki 源码知识库](file:///home/pengbo/home/github/one-skills/onewiki/wiki-systems/code-wiki.md) 用于解析本系统及其分发的各个 Skill 内容。
-- [代码实现工作流](file:///home/pengbo/home/github/one-skills/onewiki/workflows/implementation-workflows.md) 在开发修改本安装器代码时必须遵守暗号校验与规约。
+- [Code Wiki 源码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/code-wiki.md) 用于解析本系统及其分发的各个 Skill 内容。
+- [代码实现工作流](file://$github_dir/one-skills/onewiki/workflows/implementation-workflows.md) 在开发修改本安装器代码时必须遵守暗号校验与规约。
