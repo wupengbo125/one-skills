@@ -1,5 +1,5 @@
 ---
-name: summarize-chat
+name: one-summarize-chat
 description: 当用户要求“总结今天聊天”、“保存聊天记录”或输入“summarize chat”时触发，将当天的对话历史总结整理为 Markdown 文件保存到 $one_llmwiki_dir/raw 目录
 ---
 
