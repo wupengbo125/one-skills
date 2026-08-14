@@ -1,6 +1,6 @@
 ---
 name: one-summarize-chat
-description: 当用户要求“总结今天聊天”、“保存聊天记录”或输入“summarize chat”时触发，先生成结构化总结并在终端输出给用户预览确认，沟通满意后再保存到 $one_llmwiki_dir/raw 目录
+description: 当用户要求“总结聊天”、“保存聊天记录”或输入“summarize chat”时触发，先生成结构化总结并在终端输出给用户预览确认，沟通满意后再保存到 $one_llmwiki_dir/raw 目录
 ---
 
 # Summarize Chat
@@ -8,7 +8,7 @@ description: 当用户要求“总结今天聊天”、“保存聊天记录”�
 本 Skill 用于对当天的聊天/会话记录进行高信号总结。遵循“先预览、后确认、再保存”的交互机制，结合内置模板与对话要求动态调整内容。
 
 ## 适用场景与触发词
-- 触发词：“总结今天聊天”、“保存今天聊天”、“总结对话”、“summarize chat”。
+- 触发词：“总结聊天”、“保存聊天”、“总结对话”、“summarize chat”。
 
 ## 运行规则与步骤
 
@@ -21,7 +21,7 @@ description: 当用户要求“总结今天聊天”、“保存聊天记录”�
 
 ### 第三步：正式写入保存
 用户明确确认后，保存至目标位置：
-- **保存位置**：`$one_llmwiki_dir/raw/YYYY-MM-DD-chat-summary.md`（若环境变量未定义，则使用 `~/onespace/github/one-llmwiki/raw/`）。
+- **保存位置**：`$one_llmwiki_dir/raw/YYYY-MM-DD-<简短主题>.md`（例如：`2026-08-14-carefree-deploy-fix.md`，若环境变量未定义，则使用 `~/onespace/github/one-llmwiki/raw/`）。
 - 保存完成后反馈绝对路径及摘要说明。
 
 ---
