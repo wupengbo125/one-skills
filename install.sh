@@ -5,8 +5,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SKILL_SOURCES=(
     "$SCRIPT_DIR"
     "$github_dir/anth-skills/skills/skills"
-    "$github_dir/matt-skills/skills/skills/engineering"
-    "$github_dir/matt-skills/skills/skills/productivity"
     # 在下面继续追加你的技能源路径：
     # "$HOME/my-custom-skills"
 )
@@ -157,8 +155,8 @@ done
 op_options=(
     "安装到当前项目 (./.agents/skills)"
     "卸载自当前项目 (./.agents/skills)"
-    "安装到用户全局 (~/.gemini, ~/.claude)"
-    "卸载自用户全局 (~/.gemini, ~/.claude)"
+    "安装到用户全局 (~/.gemini, ~/.claude, ~/.hermes)"
+    "卸载自用户全局 (~/.gemini, ~/.claude, ~/.hermes)"
 )
 select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
 dest_idx="${SELECTED_INDICES[0]}"
@@ -171,7 +169,7 @@ if [ ${#SELECTED_INDICES[@]} -eq 0 ]; then
     exit 0
 fi
 
-USER_GLOBAL_DIRS=("$HOME/.claude/skills" "$HOME/.gemini/config/skills" "$HOME/.gemini/antigravity/skills" "$HOME/.config/opencode/skills")
+USER_GLOBAL_DIRS=("$HOME/.claude/skills" "$HOME/.gemini/config/skills" "$HOME/.gemini/antigravity/skills" "$HOME/.config/opencode/skills" "$HOME/.hermes/skills")
 USER_GLOBAL_RULES=("$HOME/.claude/CLAUDE.md" "$HOME/.gemini/GEMINI.md" "$HOME/.gemini/config/AGENTS.md" "$HOME/.gemini/antigravity/AGENTS.md" "$HOME/.config/opencode/AGENTS.md" "$HOME/.cursor/AGENTS.md" "$HOME/.copilot/copilot-instructions.md")
 
 processed=0
