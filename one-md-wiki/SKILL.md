@@ -2,6 +2,7 @@
 name: one-md-wiki
 description: "Use when: ingest wiki, query wiki, or lint wiki"
 argument-hint: "ingest | query | lint, 以及可选输出语言或问题"
+disable-model-invocation: true
 ---
 
 # Markdown Wiki

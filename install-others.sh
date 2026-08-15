@@ -6,6 +6,7 @@ COMMANDS=(
   "npx -y skills@latest add Agents365-ai/365-skills"
   "npx skills add OthmanAdi/planning-with-files --skill planning-with-files "
   "curl -fsSL https://pi.dev/install.sh | sh"
+  "npm install -g @agegr/pi-web@latest"
   "npx skills add https://github.com/juliusbrussee/caveman"
 )
 

@@ -2,6 +2,7 @@
 name: one-llmwiki-skill
 description: 纯 Prompt 驱动的全功能无代码 Wiki 知识库体系 Skill。针对个人唯一永久知识库仓库 ($one_llmwiki_dir/)，包含素材ingest与增量编译、语义 Lint 巡检、Wiki 问答检索与长文档大纲推理 4 大全套 Prompt 编排体系。当用户需要 ingest对话/ingest文件、编译 Wiki、质量巡检、检索问答或解析长文档时触发。
 argument-hint: "要执行的 Wiki 任务（ingest对话/ingest文件/编译/Lint/问答/长文档索引）及对应输入内容"
+disable-model-invocation: true
 ---
 
 # 全功能 LLM Wiki 个人知识库 Skill (`one-llmwiki-skill`)

@@ -2,6 +2,7 @@
 name: one-code-wiki-cn
 description: "Use when: 摄入代码仓库到 Wiki、查询代码 Wiki、检查并修复代码 Wiki 质量 (中文版)。"
 argument-hint: "ingest [Wiki 简要说明] | query [问题] | lint"
+disable-model-invocation: true
 ---
 
 # Code Wiki (代码 Wiki 中文版)

@@ -1,11 +1,11 @@
 ---
 name: save-doc
-description: 当用户输入 "save doc" 或要求保存文档/资料时触发，将信息、网页或文档内容保存到 wiki 目录
+description: 当用户输入 "保存到知识库","保存到wiki"或要求保存文档/资料时触发，将信息、网页或文档内容保存到 wiki 目录
 ---
 
 # Save Doc
 
-本 Skill 负责将用户提供的信息、文字、代码段或文档资料保存至 `$one_llmwiki_dir/raw/` 目录下。
+本 Skill 负责将用户提供的信息、文字、聊天记录，代码段或文档资料保存至 `$one_llmwiki_dir/raw/` 目录下。
 
 ## 运行规则与步骤
 
