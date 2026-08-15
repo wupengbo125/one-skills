@@ -76,6 +76,20 @@ except:
 result = method_a()
 ```
 
+### 严禁硬编码已有环境变量的路径
+
+凡是已有环境变量（如 `$github_dir`、`$onespace_dir`），代码和配置中必须直接引用环境变量，严禁硬编码绝对路径。
+
+反例：
+```yaml
+target_dir: "~/onespace/github"
+```
+
+改成：
+```yaml
+target_dir: "$github_dir"
+```
+
 ## 3. 精准修改 (Surgical Changes)
 
 **只动必须要动的地方。只清理自己留下的烂摊子。**
