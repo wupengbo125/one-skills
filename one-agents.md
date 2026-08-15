@@ -177,9 +177,15 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 ls -d user-say.md BLUEPRINT.md CONTEXT.md MAP.md onewiki/index.md docs/adr docs/prd 2>/dev/null
 ```
 
-**执行规则**：
-1. 仅读取上述命令实际输出（存在）的文件，严禁盲读不存在的文件。
-2. 若命令无输出，直接开始处理用户需求。
+根据上述命令的实际输出，**仅读取确认存在的文件**（严禁盲读不存在的文件）：
+
+- `user-say.md` - 用户指令与当前项目特殊规则
+- `BLUEPRINT.md` - 项目蓝图、人工编写的 AI 设计与架构上下文
+- `CONTEXT.md` - 项目背景与上下文
+- `docs/adr/` - 架构决策记录
+- `MAP.md` - 代码结构与文件索引地图
+- `onewiki/index.md` - 项目 OpenWiki 知识库索引
+- `docs/prd/` - 当前需求与实现计划
 <!-- PROJECT-NAV:END -->
 
 
