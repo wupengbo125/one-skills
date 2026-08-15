@@ -169,17 +169,20 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 
 
 <!-- PROJECT-NAV:START -->
-## Project Navigation
+## Project Navigation (项目导航)
 
-Before analysis or coding, check and read relevant existing files:
+在开始分析或编码前，严格按以下步骤获取项目上下文：
 
-- `user-say.md` - user instructions
-- `BLUEPRINT.md` - project blueprint, human-written context and design for AI
-- `CONTEXT.md` - project context
-- `docs/adr/` - Architecture decision records
-- `MAP.md` - Project structure & file index 
-- `onewiki/index.md` - Project OpenWiki index & durable knowledge base
-- `docs/prd/` - Active requirements & implementation plans
+1. **先盘点存在性**：先查看当前项目目录，确认以下候选导航文件实际存在哪些（严禁未看目录直接盲读）：
+   - `user-say.md` - 用户指令
+   - `BLUEPRINT.md` - 项目蓝图
+   - `CONTEXT.md` - 项目上下文
+   - `docs/adr/` - 架构决策记录
+   - `MAP.md` - 代码结构索引
+   - `onewiki/index.md` - 知识库索引
+   - `docs/prd/` - 当前需求与实现计划
+
+2. **依次读取存在的文件**：仅对步骤 1 中确认存在的文件依次调用读取工具，获取项目上下文。
 <!-- PROJECT-NAV:END -->
 
 
