@@ -1,21 +1,30 @@
 #!/bin/bash
-# NPX Skill 交互式多选安装脚本
+# NPX Skill & Tools 交互式多选安装脚本
 
-COMMANDS=(
-  "npx -y skills@latest add mattpocock/skills"
-  "npx -y skills@latest add Agents365-ai/365-skills"
-  "npx skills add OthmanAdi/planning-with-files --skill planning-with-files "
-  "curl -fsSL https://pi.dev/install.sh | sh"
-  "npm install -g @agegr/pi-web@latest"
-  "npx skills add https://github.com/juliusbrussee/caveman"
+ITEMS=(
+  "Matt Pocock Skills"              "npx -y skills@latest add mattpocock/skills"
+  "Agents365 Skills"                "npx -y skills@latest add Agents365-ai/365-skills"
+  "Planning with Files"             "npx skills add OthmanAdi/planning-with-files --skill planning-with-files"
+  "安装 Pi CLI"                     "curl -fsSL https://pi.dev/install.sh | sh"
+  "安装 Pi Web"                     "npm install -g @agegr/pi-web@latest"
+  "安装 Caveman"                    "npx skills add https://github.com/juliusbrussee/caveman"
+  "安装 RTK CLI"                    "curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
+  "初始化 RTK 规则 (当前目录)"      "rtk init --agent antigravity"
 )
+
+NAMES=()
+COMMANDS=()
+for ((i=0; i<${#ITEMS[@]}; i+=2)); do
+  NAMES+=( "${ITEMS[i]}" )
+  COMMANDS+=( "${ITEMS[i+1]}" )
+done
 
 # 初始化选中状态（0=未选, 1=已选）
 SELECTED=()
-for i in "${!COMMANDS[@]}"; do SELECTED+=( 0 ); done
+for i in "${!NAMES[@]}"; do SELECTED+=( 0 ); done
 
 CURSOR=0
-COUNT=${#COMMANDS[@]}
+COUNT=${#NAMES[@]}
 
 # ANSI helpers
 hide_cursor() { printf '\033[?25l'; }
@@ -35,13 +44,13 @@ draw_menu() {
   else
     printf '  %s  全选/取消全选\n' "$all_mark"
   fi
-  for i in "${!COMMANDS[@]}"; do
+  for i in "${!NAMES[@]}"; do
     local mark="[ ]"
     [[ ${SELECTED[$i]} -eq 1 ]] && mark="[x]"
     if [[ $i -eq $CURSOR ]]; then
-      printf '\033[7m  %s  %s\033[0m\n' "$mark" "${COMMANDS[$i]}"
+      printf '\033[7m  %s  %-26s (%s)\033[0m\n' "$mark" "${NAMES[$i]}" "${COMMANDS[$i]}"
     else
-      printf '  %s  %s\n' "$mark" "${COMMANDS[$i]}"
+      printf '  %s  %-26s \033[90m(%s)\033[0m\n' "$mark" "${NAMES[$i]}" "${COMMANDS[$i]}"
     fi
   done
 }
@@ -106,26 +115,26 @@ for i in "${!SELECTED[@]}"; do
 done
 
 if [[ ${#TO_RUN[@]} -eq 0 ]]; then
-  echo "未选择任何源，退出。"
+  echo "未选择任何项，退出。"
   exit 0
 fi
 
 echo "将执行以下安装："
 for i in "${TO_RUN[@]}"; do
-  echo "  - ${COMMANDS[$i]}"
+  echo "  - ${NAMES[$i]} : ${COMMANDS[$i]}"
 done
 echo ""
 
 FAILED=()
 for i in "${TO_RUN[@]}"; do
-  echo "▶ 执行: ${COMMANDS[$i]}"
+  echo "▶ 执行 [${NAMES[$i]}]: ${COMMANDS[$i]}"
   if ! eval "${COMMANDS[$i]}"; then
-    echo "✗ 失败: ${COMMANDS[$i]}"
-    FAILED+=( "${COMMANDS[$i]}" )
+    echo "✗ 失败: ${NAMES[$i]}"
+    FAILED+=( "${NAMES[$i]}" )
     echo "安装失败，已停止后续执行。"
     break
   fi
-  echo "✓ 完成: ${COMMANDS[$i]}"
+  echo "✓ 完成: ${NAMES[$i]}"
   echo ""
 done
 
@@ -133,6 +142,6 @@ echo "=============================="
 if [[ ${#FAILED[@]} -eq 0 ]]; then
   echo "✓ 全部安装成功！"
 else
-  echo "✗ 以下源安装失败: ${FAILED[*]}"
+  echo "✗ 以下项安装失败: ${FAILED[*]}"
   exit 1
 fi
