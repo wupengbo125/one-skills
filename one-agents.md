@@ -7,8 +7,6 @@
 
 - 如果你发现我用的是Windows，但请注意：我会在git bash下运行你，你也用git bash 命令干活，写sh而非ps或bat或cmd。
 
-- 执行终端 Shell 命令时优先使用 RTK（如 `rtk git ...`、`rtk cargo ...`、`rtk uv ...`）以压缩输出节省 Token。
-
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
 
