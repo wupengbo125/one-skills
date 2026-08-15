@@ -5,12 +5,10 @@
 
 - 任何时候都不要改代码，除非我说"aaa", 当我明确让你该代码, 让你实施，你都不要改代码，除非我说了暗号.而且暗号只生效一次，不能延续之前说的暗号， 但凡你要改代码，就要检查本次我有没有说暗号，如果我很明确让你干某事，但忘了说aaa，你要立即停止探索，且告知我没有aaa，不要分析完了才问我要aaa。
 
-- Python 优先使用 UV。
+- 如果你发现我用的是Windows，但请注意：我会在git bash下运行你，你也用git bash 命令干活，写sh而非ps或bat或cmd。
 
-- 如果在Windows下，禁止使用windows 命令脚本，禁止使用powershell命令，脚本，如bat，cmd，ps脚本，我会在git bash下运行你，你也用git bash 命令干活
+- 执行终端 Shell 命令时优先使用 RTK（如 `rtk git ...`、`rtk cargo ...`、`rtk uv ...`）以压缩输出节省 Token。
 
-
-减少大语言模型（LLM）常见编程错误的行為準則。请根据需要与特定项目的指南进行合并。
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
 
@@ -32,13 +30,7 @@
 * 绝不添加超出需求范围的功能。只最小化实现我的需求，额外的任何东西都别带，能用一行不用两行。
 * 绝不对仅使用一次的代码进行抽象。
 * 绝不引入未经要求的"灵活性"或"可配置性"。
-* 绝不为不可能发生的情景编写错误处理逻辑。
-* 不要为不可能发生的情况添加错误处理。
-* 当我说不要a功能了，你删了就行了，不要在代码或者文档写诸如："已经废弃a"
-一让你把a改成b，不要改完后，又添加检验是否遗留a的代码。也不要在代码写任何a相关的，包括不限于代码，文档中写诸如："a已被替换为b"
-*  实验阶段证明10个方法，只有a有用，直接在代码用a，不要为其他9个方法添加代码或测试，比如为其他永远用不到的东西添加防御性代码。
-* 严禁把最终状态要求转化为额外的防御性校验。如果我说最终配置不应包含 abc ，开发时直接从代码中删除即可。删除后，不得再新增代码检查它是否仍然存在，也不得照着配置文件逐项增加防御性检测。就像要求一组诗里不要有杜甫的诗，直接删掉杜甫的诗即可；不能删完以后，再写程序检查其中是否还有杜甫的诗。
-* 如果你写了200 行，而50行就能实现，请重写。
+
 * 和用戶对话的时候一定要简短，用户是人类，看不了那么大篇的输出，你只要把意思传达成位，但不能说简写到没有意思了。不要给用户看代码解释，你只需要回答用户的问题，一定要简单，能10个字回答的问题，不要用一篇文章解释为什么这样用户问是不是什么，你就回答是或者不是，不用拿什么什么证明用户不关心你的理由，用户是领导，只关注结果
 
 
@@ -74,6 +66,20 @@ except:
 
 # 应该直接用A，报错了就修A
 result = method_a()
+```
+
+### 严禁硬编码已有环境变量的路径
+
+凡是已有环境变量（如 `$github_dir`、`$onespace_dir`），代码和配置中必须直接引用环境变量，严禁硬编码绝对路径。
+
+反例：
+```yaml
+target_dir: "~/onespace/github"
+```
+
+改成：
+```yaml
+target_dir: "$github_dir"
 ```
 
 ## 3. 精准修改 (Surgical Changes)
@@ -146,6 +152,8 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 * 如果要安装或者写skill，请在当前项目下写或安装，不要安装到用户级。
 * 每个子项目采用标准三件套结构(<script.py> + config.yaml + readme.md)，以 YAML 配置为核心驱动，同时保留并支持 CLI 参数供 AI 灵活调用。
 * 禁止使用系统的tmp目录，如果要使tmp目录，在当前项目下创建，用完删除.
+* 修改宪法时，严禁直接改分发副本（如各项目 AGENTS.md / CLAUDE.md），宪法唯一源文件为 `$github_dir/one-skills/one-agents.md`，只改源文件。
+* 编写或修改 Skill 时，严禁直接去安装目标目录（如 `~/.gemini/config/skills/`、`./.agents/skills/`）修改，必须直接在源仓库 `$github_dir/one-skills/` 下修改。
 
 ---
 
@@ -153,17 +161,24 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 
 
 <!-- PROJECT-NAV:START -->
-## Project Navigation
+## Project Navigation (项目导航)
 
-Before analysis or coding, check and read relevant existing files:
+在开始分析或编码前，先执行以下一行命令快速盘点当前项目实际存在的导航文件：
 
-- `user-say.md` - user instructions
-- `BLUEPRINT.md` - project blueprint, human-written context and design for AI
-- `CONTEXT.md` - project context
-- `docs/adr/` - Architecture decision records
-- `MAP.md` - Project structure & file index 
-- `onewiki/index.md` - Project OpenWiki index & durable knowledge base
-- `docs/prd/` - Active requirements & implementation plans
+```bash
+ls -d user-say.md BLUEPRINT.md CONTEXT.md MAP.md .agents/rules/*.md rules/*.md onewiki/index.md docs/adr docs/prd 2>/dev/null
+```
+
+根据上述命令的实际输出，**仅读取确认存在的文件**（严禁盲读不存在的文件）：
+
+- `user-say.md` - 用户指令与当前项目特殊规则
+- `BLUEPRINT.md` - 项目蓝图、人工编写的 AI 设计与架构上下文
+- `CONTEXT.md` - 项目背景与上下文
+- `docs/adr/` - 架构决策记录
+- `MAP.md` - 代码结构与文件索引地图
+- `.agents/rules/*.md` / `rules/*.md` - 项目特定 AI 行为规则（如 RTK 规则等）
+- `onewiki/index.md` - 项目 OpenWiki 知识库索引
+- `docs/prd/` - 当前需求与实现计划
 <!-- PROJECT-NAV:END -->
 
 

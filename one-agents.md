@@ -7,6 +7,8 @@
 
 - 如果你发现我用的是Windows，但请注意：我会在git bash下运行你，你也用git bash 命令干活，写sh而非ps或bat或cmd。
 
+- 执行终端 Shell 命令时优先使用 RTK（如 `rtk git ...`、`rtk cargo ...`、`rtk uv ...`）以压缩输出节省 Token。
+
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
 
@@ -164,7 +166,7 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 在开始分析或编码前，先执行以下一行命令快速盘点当前项目实际存在的导航文件：
 
 ```bash
-ls -d user-say.md BLUEPRINT.md CONTEXT.md MAP.md onewiki/index.md docs/adr docs/prd 2>/dev/null
+ls -d user-say.md BLUEPRINT.md CONTEXT.md MAP.md .agents/rules/*.md rules/*.md onewiki/index.md docs/adr docs/prd 2>/dev/null
 ```
 
 根据上述命令的实际输出，**仅读取确认存在的文件**（严禁盲读不存在的文件）：
@@ -174,6 +176,7 @@ ls -d user-say.md BLUEPRINT.md CONTEXT.md MAP.md onewiki/index.md docs/adr docs/
 - `CONTEXT.md` - 项目背景与上下文
 - `docs/adr/` - 架构决策记录
 - `MAP.md` - 代码结构与文件索引地图
+- `.agents/rules/*.md` / `rules/*.md` - 项目特定 AI 行为规则（如 RTK 规则等）
 - `onewiki/index.md` - 项目 OpenWiki 知识库索引
 - `docs/prd/` - 当前需求与实现计划
 <!-- PROJECT-NAV:END -->

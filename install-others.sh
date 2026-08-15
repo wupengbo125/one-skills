@@ -9,7 +9,9 @@ ITEMS=(
   "安装 Pi Web"                     "npm install -g @agegr/pi-web@latest"
   "安装 Caveman"                    "npx skills add https://github.com/juliusbrussee/caveman"
   "安装 RTK CLI"                    "curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh"
-  "初始化 RTK 规则 (当前目录)"      "rtk init --agent antigravity"
+  "初始化 RTK Claude，或者支持默认的那些  "                 "rtk init"
+  "初始化 RTK 到antigravity当前项目"      "rtk init --agent antigravity"
+  "初始化 RTK 到pi 全局"             "rtk init -g --agent pi"
 )
 
 NAMES=()
