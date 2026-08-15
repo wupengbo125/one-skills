@@ -22,5 +22,4 @@ description: "把用户说的话记录到 Wiki 的 raw/ 目录，文件名带日
 - **不要**创建 summary / concept / entity 页面
 - **不要**更新 index.md
 - **不要**加 frontmatter
-- **不要**跑 git commit/push（除非用户明确要求）
-- 只做一件事：写文件到 raw/
+- 只做一件事：写文件到 raw/ 并提交推送
