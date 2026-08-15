@@ -9,10 +9,12 @@ description: "把用户说的话记录到 Wiki 的 raw/ 目录，文件名带日
 
 ## 唯一操作
 
-1. 取当前日期 `YYYY-MM-DD`
-2. 把用户内容写入 `~/onespace/github/one-llmwiki/raw/YYYY-MM-DD_<简短slug>.md`
-3. 文件内容就一行标题 + 用户原文，不要加 frontmatter、不要加任何多余结构
-4. 完成后告诉用户文件路径
+1. `cd ~/onespace/github/one-llmwiki && git pull`
+2. 取当前日期 `YYYY-MM-DD`
+3. 把用户内容写入 `raw/YYYY-MM-DD_<简短slug>.md`
+4. 文件内容就一行标题 + 用户原文，不要加 frontmatter、不要加任何多余结构
+5. `git add -A && git commit -m "note: <标题>" && git push`
+6. 告诉用户完成
 
 ## 约束
 
