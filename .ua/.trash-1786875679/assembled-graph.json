@@ -1,0 +1,1228 @@
+{
+  "version": "1.0.0",
+  "project": {
+    "name": "one-skills",
+    "languages": [
+      "drawio",
+      "json",
+      "markdown",
+      "python",
+      "shell"
+    ],
+    "frameworks": [],
+    "description": "个人 AI 助手技能与工具库，包含各类 Claude / Antigravity / Pi 扩展技能、自动化脚本与环境配置。",
+    "analyzedAt": "2026-08-16T10:21:03.196Z",
+    "gitCommitHash": "ae6b047d72ac6a4faf13dc6eee9f4467446d25c1"
+  },
+  "nodes": [
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:install-others.sh",
+      "type": "file",
+      "name": "install-others.sh",
+      "filePath": "install-others.sh",
+      "summary": "外部第三方生态技能（如 Matt Pocock、Caveman、RTK 等）的交互式选择安装脚本。",
+      "tags": [
+        "第三方技能",
+        "安装脚本",
+        "shell",
+        "生态扩展"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:install-others.sh:cleanup",
+      "type": "function",
+      "name": "cleanup",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 cleanup，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:hide_cursor",
+      "type": "function",
+      "name": "hide_cursor",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 hide_cursor，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:show_cursor",
+      "type": "function",
+      "name": "show_cursor",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 show_cursor，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:draw_menu",
+      "type": "function",
+      "name": "draw_menu",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 draw_menu，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:install.sh",
+      "type": "file",
+      "name": "install.sh",
+      "filePath": "install.sh",
+      "summary": "一键交互式安装脚本，负责将 one-skills 及各类技能分发安装到 Antigravity、Claude Code、Pi 等 AI 工具中。",
+      "tags": [
+        "安装脚本",
+        "分发工具",
+        "shell",
+        "自动化"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:install.sh:cleanup",
+      "type": "function",
+      "name": "cleanup",
+      "filePath": "install.sh",
+      "summary": "Shell 辅助函数 cleanup，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install.sh:select_menu",
+      "type": "function",
+      "name": "select_menu",
+      "filePath": "install.sh",
+      "summary": "Shell 辅助函数 select_menu，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-agents.md",
+      "type": "document",
+      "name": "one-agents.md",
+      "filePath": "one-agents.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:skills-lock.json",
+      "type": "config",
+      "name": "skills-lock.json",
+      "filePath": "skills-lock.json",
+      "summary": "Skill 技能组件定义 (skills-lock.json)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:user-say.md",
+      "type": "document",
+      "name": "user-say.md",
+      "filePath": "user-say.md",
+      "summary": "Skill 技能组件定义 (user-say.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/references/common.md",
+      "type": "document",
+      "name": "common.md",
+      "filePath": "one-code-wiki-cn/references/common.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (common.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-code-wiki-cn/references/ingest.md",
+      "type": "document",
+      "name": "ingest.md",
+      "filePath": "one-code-wiki-cn/references/ingest.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (ingest.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/references/lint.md",
+      "type": "document",
+      "name": "lint.md",
+      "filePath": "one-code-wiki-cn/references/lint.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (lint.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/references/query.md",
+      "type": "document",
+      "name": "query.md",
+      "filePath": "one-code-wiki-cn/references/query.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (query.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki/references/common.md",
+      "type": "document",
+      "name": "common.md",
+      "filePath": "one-code-wiki/references/common.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (common.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-code-wiki/references/ingest.md",
+      "type": "document",
+      "name": "ingest.md",
+      "filePath": "one-code-wiki/references/ingest.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (ingest.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki/references/lint.md",
+      "type": "document",
+      "name": "lint.md",
+      "filePath": "one-code-wiki/references/lint.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (lint.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki/references/query.md",
+      "type": "document",
+      "name": "query.md",
+      "filePath": "one-code-wiki/references/query.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (query.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki-cn/references/common.md",
+      "type": "document",
+      "name": "common.md",
+      "filePath": "one-md-wiki-cn/references/common.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (common.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki-cn/references/ingest.md",
+      "type": "document",
+      "name": "ingest.md",
+      "filePath": "one-md-wiki-cn/references/ingest.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (ingest.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki-cn/references/lint.md",
+      "type": "document",
+      "name": "lint.md",
+      "filePath": "one-md-wiki-cn/references/lint.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (lint.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki-cn/references/query.md",
+      "type": "document",
+      "name": "query.md",
+      "filePath": "one-md-wiki-cn/references/query.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (query.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki/references/common.md",
+      "type": "document",
+      "name": "common.md",
+      "filePath": "one-md-wiki/references/common.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (common.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki/references/ingest.md",
+      "type": "document",
+      "name": "ingest.md",
+      "filePath": "one-md-wiki/references/ingest.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (ingest.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki/references/lint.md",
+      "type": "document",
+      "name": "lint.md",
+      "filePath": "one-md-wiki/references/lint.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (lint.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki/references/query.md",
+      "type": "document",
+      "name": "query.md",
+      "filePath": "one-md-wiki/references/query.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (query.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/wiki-systems/code-wiki.md",
+      "type": "document",
+      "name": "code-wiki.md",
+      "filePath": "onewiki/wiki-systems/code-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (code-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/wiki-systems/llm-wiki.md",
+      "type": "document",
+      "name": "llm-wiki.md",
+      "filePath": "onewiki/wiki-systems/llm-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (llm-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/wiki-systems/md-wiki.md",
+      "type": "document",
+      "name": "md-wiki.md",
+      "filePath": "onewiki/wiki-systems/md-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (md-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/workflows/design-planning-workflows.md",
+      "type": "document",
+      "name": "design-planning-workflows.md",
+      "filePath": "onewiki/workflows/design-planning-workflows.md",
+      "summary": "OpenWiki 工作流规范 (design-planning-workflows.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/workflows/implementation-workflows.md",
+      "type": "document",
+      "name": "implementation-workflows.md",
+      "filePath": "onewiki/workflows/implementation-workflows.md",
+      "summary": "OpenWiki 工作流规范 (implementation-workflows.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/workflows/structure-visualization.md",
+      "type": "document",
+      "name": "structure-visualization.md",
+      "filePath": "onewiki/workflows/structure-visualization.md",
+      "summary": "OpenWiki 工作流规范 (structure-visualization.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.pi/skills/caveman/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": ".pi/skills/caveman/README.md",
+      "summary": "Caveman 技能定义 (README.md)，用于极端精简的极客风交互与输出。",
+      "tags": [
+        "caveman",
+        "精简交互",
+        "提示词技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.pi/skills/caveman/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": ".pi/skills/caveman/SKILL.md",
+      "summary": "Caveman 技能定义 (SKILL.md)，用于极端精简的极客风交互与输出。",
+      "tags": [
+        "caveman",
+        "精简交互",
+        "提示词技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:hermes-skills/create-skill/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "hermes-skills/create-skill/SKILL.md",
+      "summary": "Skill 技能组件定义 (hermes-skills/create-skill/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:hermes-skills/save-doc/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "hermes-skills/save-doc/SKILL.md",
+      "summary": "Skill 技能组件定义 (hermes-skills/save-doc/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:note-to-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "note-to-wiki/SKILL.md",
+      "summary": "Skill 技能组件定义 (note-to-wiki/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "type": "document",
+      "name": "BLUEPRINT-TEMPLATE.md",
+      "filePath": "one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "summary": "Skill 技能组件定义 (one-build-blueprint/BLUEPRINT-TEMPLATE.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-blueprint/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-blueprint/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-blueprint/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-build-drawio/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-drawio/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-drawio/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-mermaid/GRAPH-TEMPLATE.md",
+      "type": "document",
+      "name": "GRAPH-TEMPLATE.md",
+      "filePath": "one-build-mermaid/GRAPH-TEMPLATE.md",
+      "summary": "Skill 技能组件定义 (one-build-mermaid/GRAPH-TEMPLATE.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-build-mermaid/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-mermaid/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-mermaid/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-map/MAP-TEMPLATE.md",
+      "type": "document",
+      "name": "MAP-TEMPLATE.md",
+      "filePath": "one-code-map/MAP-TEMPLATE.md",
+      "summary": "代码地图生成与增量维护技能，维护 MAP.md 作为全局结构索引。",
+      "tags": [
+        "代码地图",
+        "结构索引",
+        "map-md",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-map/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-map/SKILL.md",
+      "summary": "代码地图生成与增量维护技能，维护 MAP.md 作为全局结构索引。",
+      "tags": [
+        "代码地图",
+        "结构索引",
+        "map-md",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-wiki-cn/SKILL.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (SKILL.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (WIKI-TEMPLATE.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-code-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-wiki/SKILL.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (SKILL.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-code-wiki/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (WIKI-TEMPLATE.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "type": "document",
+      "name": "PRD-TEMPLATE.md",
+      "filePath": "one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "summary": "需求挖掘与 PRD 产出技能，通过深度盘问将模糊需求沉淀为清晰的设计与实施计划。",
+      "tags": [
+        "需求盘问",
+        "prd设计",
+        "需求对齐",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-grill-with-docs-prd/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-grill-with-docs-prd/SKILL.md",
+      "summary": "需求挖掘与 PRD 产出技能，通过深度盘问将模糊需求沉淀为清晰的设计与实施计划。",
+      "tags": [
+        "需求盘问",
+        "prd设计",
+        "需求对齐",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-handoff/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-handoff/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-handoff/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-implement/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-implement/SKILL.md",
+      "summary": "安全实施与代码修改技能，要求在严格校验暗号后方可精准修改代码。",
+      "tags": [
+        "代码实施",
+        "暗号校验",
+        "精准修改",
+        "技能"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:one-llmwiki-skill/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-llmwiki-skill/SKILL.md",
+      "summary": "Prompt 驱动的全功能 LLM Wiki 体系技能，提供对话素材摄入、增量编译与检索问答。",
+      "tags": [
+        "llm-wiki",
+        "知识管理",
+        "无代码wiki",
+        "技能"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:one-llmwiki-skill/references/okf-template.md",
+      "type": "document",
+      "name": "okf-template.md",
+      "filePath": "one-llmwiki-skill/references/okf-template.md",
+      "summary": "Prompt 驱动的全功能 LLM Wiki 体系技能，提供对话素材摄入、增量编译与检索问答。",
+      "tags": [
+        "llm-wiki",
+        "知识管理",
+        "无代码wiki",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki-cn/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-md-wiki-cn/SKILL.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (SKILL.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (WIKI-TEMPLATE.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-md-wiki/SKILL.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (SKILL.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-python-structure/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-python-structure/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-python-structure/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-refactor-implement-cp/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-refactor-implement-cp/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-refactor-implement-cp/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-refactor-implement/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-refactor-implement/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-refactor-implement/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-simplifying/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-simplifying/SKILL.md",
+      "summary": "代码极简重构技能，指导 AI 砍掉冗余的兜底与防御性逻辑，保持代码至简。",
+      "tags": [
+        "代码重构",
+        "极简设计",
+        "代码精简",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-summarize-chat/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-summarize-chat/SKILL.md",
+      "summary": "对话历史总结与结构化归档技能，将长对话提炼并保存到本地 Wiki raw 目录。",
+      "tags": [
+        "对话总结",
+        "历史归档",
+        "知识提取",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-wsl-chrome/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-wsl-chrome/SKILL.md",
+      "summary": "WSL 环境下的 Chrome 浏览器自动化技能，利用 CDP 协议控制宿主机浏览器。",
+      "tags": [
+        "wsl自动化",
+        "chrome控制",
+        "cdp协议",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:one-wsl-chrome/scripts/chrome_pool.py",
+      "type": "file",
+      "name": "chrome_pool.py",
+      "filePath": "one-wsl-chrome/scripts/chrome_pool.py",
+      "summary": "WSL 环境下的 Chrome 浏览器自动化技能，利用 CDP 协议控制宿主机浏览器。",
+      "tags": [
+        "wsl自动化",
+        "chrome控制",
+        "cdp协议",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:onewiki/core/skill-installer.md",
+      "type": "document",
+      "name": "skill-installer.md",
+      "filePath": "onewiki/core/skill-installer.md",
+      "summary": "Skill 技能组件定义 (onewiki/core/skill-installer.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:onewiki/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "onewiki/index.md",
+      "summary": "Skill 技能组件定义 (onewiki/index.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/integrations/wsl-chrome.md",
+      "type": "document",
+      "name": "wsl-chrome.md",
+      "filePath": "onewiki/integrations/wsl-chrome.md",
+      "summary": "Skill 技能组件定义 (onewiki/integrations/wsl-chrome.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:cleanup",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:hide_cursor",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:show_cursor",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:draw_menu",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install.sh",
+      "target": "function:install.sh:cleanup",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install.sh",
+      "target": "function:install.sh:select_menu",
+      "type": "contains",
+      "weight": 1,
+      "direction": "forward"
+    },
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:one-agents.md",
+      "type": "depends_on",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:one-agents.md",
+      "type": "depends_on",
+      "weight": 0.8,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install.sh",
+      "target": "file:install-others.sh",
+      "type": "calls",
+      "weight": 0.7,
+      "direction": "forward"
+    },
+    {
+      "source": "file:install.sh",
+      "target": "document:one-agents.md",
+      "type": "configures",
+      "weight": 0.8
+    },
+    {
+      "source": "document:onewiki/wiki-systems/code-wiki.md",
+      "target": "document:one-code-wiki-cn/references/common.md",
+      "type": "related",
+      "weight": 0.7
+    },
+    {
+      "source": "document:onewiki/wiki-systems/md-wiki.md",
+      "target": "document:one-md-wiki-cn/references/common.md",
+      "type": "related",
+      "weight": 0.7
+    },
+    {
+      "source": "document:onewiki/workflows/design-planning-workflows.md",
+      "target": "document:one-grill-with-docs-prd/SKILL.md",
+      "type": "related",
+      "weight": 0.7
+    },
+    {
+      "source": "document:onewiki/workflows/implementation-workflows.md",
+      "target": "document:one-implement/SKILL.md",
+      "type": "related",
+      "weight": 0.7
+    },
+    {
+      "source": "document:onewiki/workflows/structure-visualization.md",
+      "target": "document:one-code-map/SKILL.md",
+      "type": "related",
+      "weight": 0.7
+    }
+  ],
+  "layers": [
+    {
+      "id": "layer:constitution-and-standards",
+      "name": "AI 宪法与核心规范层",
+      "description": "定义所有 AI Agent 的统一行为准则、极简原则、安全实施要求与项目导航规范。",
+      "nodeIds": [
+        "document:CLAUDE.md",
+        "document:one-agents.md"
+      ]
+    },
+    {
+      "id": "layer:installation-and-distribution",
+      "name": "技能分发与安装脚本层",
+      "description": "负责将各类内部定制技能及外部开源工具自动化分发安装到 Antigravity、Claude Code、Pi 等环境中。",
+      "nodeIds": [
+        "file:install-others.sh",
+        "function:install-others.sh:cleanup",
+        "function:install-others.sh:hide_cursor",
+        "function:install-others.sh:show_cursor",
+        "function:install-others.sh:draw_menu",
+        "file:install.sh",
+        "function:install.sh:cleanup",
+        "function:install.sh:select_menu"
+      ]
+    },
+    {
+      "id": "layer:openwiki-knowledge-system",
+      "name": "OpenWiki 知识库系统层",
+      "description": "涵盖代码库知识库 (Code Wiki)、Markdown 个人笔记知识库 (MD Wiki) 以及全套标准研讨与实施工作流。",
+      "nodeIds": [
+        "document:one-code-wiki-cn/references/common.md",
+        "document:one-code-wiki-cn/references/ingest.md",
+        "document:one-code-wiki-cn/references/lint.md",
+        "document:one-code-wiki-cn/references/query.md",
+        "document:one-code-wiki/references/common.md",
+        "document:one-code-wiki/references/ingest.md",
+        "document:one-code-wiki/references/lint.md",
+        "document:one-code-wiki/references/query.md",
+        "document:one-md-wiki-cn/references/common.md",
+        "document:one-md-wiki-cn/references/ingest.md",
+        "document:one-md-wiki-cn/references/lint.md",
+        "document:one-md-wiki-cn/references/query.md",
+        "document:one-md-wiki/references/common.md",
+        "document:one-md-wiki/references/ingest.md",
+        "document:one-md-wiki/references/lint.md",
+        "document:one-md-wiki/references/query.md",
+        "document:onewiki/wiki-systems/code-wiki.md",
+        "document:onewiki/wiki-systems/llm-wiki.md",
+        "document:onewiki/wiki-systems/md-wiki.md",
+        "document:onewiki/workflows/design-planning-workflows.md",
+        "document:onewiki/workflows/implementation-workflows.md",
+        "document:onewiki/workflows/structure-visualization.md",
+        "document:one-code-wiki-cn/SKILL.md",
+        "document:one-code-wiki-cn/WIKI-TEMPLATE.md",
+        "document:one-code-wiki/SKILL.md",
+        "document:one-code-wiki/WIKI-TEMPLATE.md",
+        "document:one-md-wiki-cn/SKILL.md",
+        "document:one-md-wiki-cn/WIKI-TEMPLATE.md",
+        "document:one-md-wiki/SKILL.md",
+        "document:onewiki/core/skill-installer.md",
+        "document:onewiki/index.md",
+        "document:onewiki/integrations/wsl-chrome.md"
+      ]
+    },
+    {
+      "id": "layer:development-workflow-skills",
+      "name": "核心开发辅助技能层",
+      "description": "包含精准代码实施 (one-implement)、极简重构 (one-simplifying)、代码地图 (one-code-map)、需求挖掘 (one-grill-with-docs-prd) 等高效开发技能。",
+      "nodeIds": [
+        "document:one-code-map/MAP-TEMPLATE.md",
+        "document:one-code-map/SKILL.md",
+        "document:one-grill-with-docs-prd/PRD-TEMPLATE.md",
+        "document:one-grill-with-docs-prd/SKILL.md",
+        "document:one-implement/SKILL.md",
+        "document:one-python-structure/SKILL.md",
+        "document:one-simplifying/SKILL.md"
+      ]
+    },
+    {
+      "id": "layer:knowledge-and-comprehension-skills",
+      "name": "知识提炼与代码理解技能层",
+      "description": "包含 Understand-Anything 代码知识图谱分析套件、LLM Wiki 知识沉淀与会话历史总结归档能力。",
+      "nodeIds": [
+        "document:note-to-wiki/SKILL.md",
+        "document:one-llmwiki-skill/SKILL.md",
+        "document:one-llmwiki-skill/references/okf-template.md",
+        "document:one-summarize-chat/SKILL.md"
+      ]
+    },
+    {
+      "id": "layer:ecosystem-and-tools",
+      "name": "生态扩展与环境集成技能层",
+      "description": "包含 WSL Chrome 浏览器控制自动化、Caveman 极简对话技能及第三方 Hermes 技能集合。",
+      "nodeIds": [
+        "document:.pi/skills/caveman/README.md",
+        "document:.pi/skills/caveman/SKILL.md",
+        "document:hermes-skills/create-skill/SKILL.md",
+        "document:hermes-skills/save-doc/SKILL.md",
+        "document:one-wsl-chrome/SKILL.md",
+        "file:one-wsl-chrome/scripts/chrome_pool.py",
+        "document:onewiki/integrations/wsl-chrome.md"
+      ]
+    }
+  ],
+  "tour": [
+    {
+      "order": 1,
+      "title": "AI 编码宪法与开发准则",
+      "description": "从项目的核心宪法 one-agents.md 开始，了解 AI 助手必须遵守的暗号实施、极简代码和精准修改原则。",
+      "nodeIds": [
+        "document:one-agents.md",
+        "document:AGENTS.md"
+      ]
+    },
+    {
+      "order": 2,
+      "title": "一键安装与多工具分发",
+      "description": "了解 install.sh 与 install-others.sh 如何将各类 Prompt/Skills 规范快速配置并注入不同的 AI 编程助手环境中。",
+      "nodeIds": [
+        "file:install.sh",
+        "file:install-others.sh"
+      ]
+    },
+    {
+      "order": 3,
+      "title": "OpenWiki 知识库与工作流规范",
+      "description": "探索 OpenWiki 架构与 Code-Wiki / MD-Wiki 的标准摄入与巡检流程，实现知识的自组织管理。",
+      "nodeIds": [
+        "document:onewiki/wiki-systems/code-wiki.md",
+        "document:onewiki/wiki-systems/md-wiki.md",
+        "document:onewiki/workflows/implementation-workflows.md"
+      ]
+    },
+    {
+      "order": 4,
+      "title": "高效研发协作技能集",
+      "description": "掌握 one-implement（安全实施）、one-simplifying（极简设计）与 one-code-map（代码地图维护）等日常高频技能。",
+      "nodeIds": [
+        "document:one-implement/SKILL.md",
+        "document:one-simplifying/SKILL.md",
+        "document:one-code-map/SKILL.md"
+      ]
+    },
+    {
+      "order": 5,
+      "title": "Understand-Anything 知识图谱分析",
+      "description": "借助 understand 系列技能，实现对复杂代码库的一键深度扫描、架构分层与可视化交互探索。",
+      "nodeIds": [
+        "document:one-llmwiki-skill/SKILL.md",
+        "document:one-wsl-chrome/SKILL.md"
+      ]
+    }
+  ]
+}

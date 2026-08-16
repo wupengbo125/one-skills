@@ -1,0 +1,84 @@
+{
+  "projectRoot": "/home/pengbo/onespace/github/one-skills",
+  "batchFiles": [
+    {
+      "path": "one-python-structure/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 34,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-refactor-implement-cp/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-refactor-implement/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 29,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-simplifying/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 60,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-summarize-chat/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 45,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-wsl-chrome/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 115,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-wsl-chrome/scripts/chrome_pool.py",
+      "language": "python",
+      "sizeLines": 127,
+      "fileCategory": "code"
+    },
+    {
+      "path": "onewiki/core/skill-installer.md",
+      "language": "markdown",
+      "sizeLines": 59,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/index.md",
+      "language": "markdown",
+      "sizeLines": 50,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/integrations/wsl-chrome.md",
+      "language": "markdown",
+      "sizeLines": 43,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "skills.drawio",
+      "language": "drawio",
+      "sizeLines": 120,
+      "fileCategory": "code"
+    }
+  ],
+  "batchImportData": {
+    "one-python-structure/SKILL.md": [],
+    "one-refactor-implement-cp/SKILL.md": [],
+    "one-refactor-implement/SKILL.md": [],
+    "one-simplifying/SKILL.md": [],
+    "one-summarize-chat/SKILL.md": [],
+    "one-wsl-chrome/SKILL.md": [],
+    "one-wsl-chrome/scripts/chrome_pool.py": [],
+    "onewiki/core/skill-installer.md": [],
+    "onewiki/index.md": [],
+    "onewiki/integrations/wsl-chrome.md": [],
+    "skills.drawio": []
+  }
+}

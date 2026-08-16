@@ -1,0 +1,172 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "one-code-wiki/references/common.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 83,
+      "nonEmptyLines": 63,
+      "sections": [
+        {
+          "heading": "Code Wiki shared contract",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Scope and evidence",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Documentation goals",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Relationship model",
+          "level": 2,
+          "line": 23
+        },
+        {
+          "heading": "OKF frontmatter",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "Structure and indexes",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "Diagrams",
+          "level": 2,
+          "line": 64
+        },
+        {
+          "heading": "Language",
+          "level": 2,
+          "line": 71
+        },
+        {
+          "heading": "Completion checks",
+          "level": 2,
+          "line": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    },
+    {
+      "path": "one-code-wiki/references/ingest.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 44,
+      "nonEmptyLines": 34,
+      "sections": [
+        {
+          "heading": "Ingest the code Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Bootstrap path",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Incremental path",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Completion",
+          "level": 2,
+          "line": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-code-wiki/references/lint.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 22,
+      "nonEmptyLines": 14,
+      "sections": [
+        {
+          "heading": "Lint the code Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Audit",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Repair",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Completion",
+          "level": 2,
+          "line": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-code-wiki/references/query.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "sections": [
+        {
+          "heading": "Query the code Wiki",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "projectRoot": "/home/pengbo/onespace/github/one-skills",
+  "batchFiles": [
+    {
+      "path": "one-md-wiki/references/common.md",
+      "language": "markdown",
+      "sizeLines": 83,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki/references/ingest.md",
+      "language": "markdown",
+      "sizeLines": 105,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki/references/lint.md",
+      "language": "markdown",
+      "sizeLines": 21,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki/references/query.md",
+      "language": "markdown",
+      "sizeLines": 12,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "one-md-wiki/references/common.md": [],
+    "one-md-wiki/references/ingest.md": [],
+    "one-md-wiki/references/lint.md": [],
+    "one-md-wiki/references/query.md": []
+  }
+}

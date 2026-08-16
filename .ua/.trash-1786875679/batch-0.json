@@ -1,0 +1,235 @@
+{
+  "batchIndex": 0,
+  "nodes": [
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": "CLAUDE.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:install-others.sh",
+      "type": "file",
+      "name": "install-others.sh",
+      "filePath": "install-others.sh",
+      "summary": "外部第三方生态技能（如 Matt Pocock、Caveman、RTK 等）的交互式选择安装脚本。",
+      "tags": [
+        "第三方技能",
+        "安装脚本",
+        "shell",
+        "生态扩展"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:install-others.sh:cleanup",
+      "type": "function",
+      "name": "cleanup",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 cleanup，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:hide_cursor",
+      "type": "function",
+      "name": "hide_cursor",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 hide_cursor，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:show_cursor",
+      "type": "function",
+      "name": "show_cursor",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 show_cursor，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install-others.sh:draw_menu",
+      "type": "function",
+      "name": "draw_menu",
+      "filePath": "install-others.sh",
+      "summary": "Shell 辅助函数 draw_menu，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:install.sh",
+      "type": "file",
+      "name": "install.sh",
+      "filePath": "install.sh",
+      "summary": "一键交互式安装脚本，负责将 one-skills 及各类技能分发安装到 Antigravity、Claude Code、Pi 等 AI 工具中。",
+      "tags": [
+        "安装脚本",
+        "分发工具",
+        "shell",
+        "自动化"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:install.sh:cleanup",
+      "type": "function",
+      "name": "cleanup",
+      "filePath": "install.sh",
+      "summary": "Shell 辅助函数 cleanup，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:install.sh:select_menu",
+      "type": "function",
+      "name": "select_menu",
+      "filePath": "install.sh",
+      "summary": "Shell 辅助函数 select_menu，用于处理自动化安装与环境配置流程。",
+      "tags": [
+        "函数",
+        "shell",
+        "安装流程"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-agents.md",
+      "type": "document",
+      "name": "one-agents.md",
+      "filePath": "one-agents.md",
+      "summary": "AI 编码宪法与核心准则，定义了无暗号不改代码、至简至上、精准修改与项目导航规范。",
+      "tags": [
+        "ai宪法",
+        "规范准则",
+        "编码规范",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:skills-lock.json",
+      "type": "config",
+      "name": "skills-lock.json",
+      "filePath": "skills-lock.json",
+      "summary": "Skill 技能组件定义 (skills-lock.json)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:user-say.md",
+      "type": "document",
+      "name": "user-say.md",
+      "filePath": "user-say.md",
+      "summary": "Skill 技能组件定义 (user-say.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:cleanup",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:hide_cursor",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:show_cursor",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "file:install-others.sh",
+      "target": "function:install-others.sh:draw_menu",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "file:install.sh",
+      "target": "function:install.sh:cleanup",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "file:install.sh",
+      "target": "function:install.sh:select_menu",
+      "type": "contains",
+      "weight": 1
+    },
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:one-agents.md",
+      "type": "depends_on",
+      "weight": 0.8
+    },
+    {
+      "source": "document:CLAUDE.md",
+      "target": "document:one-agents.md",
+      "type": "depends_on",
+      "weight": 0.8
+    },
+    {
+      "source": "file:install.sh",
+      "target": "file:install-others.sh",
+      "type": "calls",
+      "weight": 0.7
+    }
+  ]
+}

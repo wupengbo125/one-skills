@@ -1,0 +1,49 @@
+[
+  {
+    "order": 1,
+    "title": "AI 编码宪法与开发准则",
+    "description": "从项目的核心宪法 one-agents.md 开始，了解 AI 助手必须遵守的暗号实施、极简代码和精准修改原则。",
+    "nodeIds": [
+      "document:one-agents.md",
+      "document:AGENTS.md"
+    ]
+  },
+  {
+    "order": 2,
+    "title": "一键安装与多工具分发",
+    "description": "了解 install.sh 与 install-others.sh 如何将各类 Prompt/Skills 规范快速配置并注入不同的 AI 编程助手环境中。",
+    "nodeIds": [
+      "file:install.sh",
+      "file:install-others.sh"
+    ]
+  },
+  {
+    "order": 3,
+    "title": "OpenWiki 知识库与工作流规范",
+    "description": "探索 OpenWiki 架构与 Code-Wiki / MD-Wiki 的标准摄入与巡检流程，实现知识的自组织管理。",
+    "nodeIds": [
+      "document:onewiki/wiki-systems/code-wiki.md",
+      "document:onewiki/wiki-systems/md-wiki.md",
+      "document:onewiki/workflows/implementation-workflows.md"
+    ]
+  },
+  {
+    "order": 4,
+    "title": "高效研发协作技能集",
+    "description": "掌握 one-implement（安全实施）、one-simplifying（极简设计）与 one-code-map（代码地图维护）等日常高频技能。",
+    "nodeIds": [
+      "document:one-implement/SKILL.md",
+      "document:one-simplifying/SKILL.md",
+      "document:one-code-map/SKILL.md"
+    ]
+  },
+  {
+    "order": 5,
+    "title": "Understand-Anything 知识图谱分析",
+    "description": "借助 understand 系列技能，实现对复杂代码库的一键深度扫描、架构分层与可视化交互探索。",
+    "nodeIds": [
+      "document:one-llmwiki-skill/SKILL.md",
+      "document:one-wsl-chrome/SKILL.md"
+    ]
+  }
+]

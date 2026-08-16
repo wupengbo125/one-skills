@@ -1,0 +1,28 @@
+{
+  "projectRoot": "/home/pengbo/onespace/github/one-skills",
+  "batchFiles": [
+    {
+      "path": "onewiki/workflows/design-planning-workflows.md",
+      "language": "markdown",
+      "sizeLines": 41,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/workflows/implementation-workflows.md",
+      "language": "markdown",
+      "sizeLines": 50,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/workflows/structure-visualization.md",
+      "language": "markdown",
+      "sizeLines": 30,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "onewiki/workflows/design-planning-workflows.md": [],
+    "onewiki/workflows/implementation-workflows.md": [],
+    "onewiki/workflows/structure-visualization.md": []
+  }
+}

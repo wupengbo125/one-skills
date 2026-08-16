@@ -1,0 +1,131 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
+  "results": [
+    {
+      "path": "onewiki/workflows/design-planning-workflows.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 41,
+      "nonEmptyLines": 32,
+      "sections": [
+        {
+          "heading": "需求讨论与设计规划工作流",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "组成技能与职责",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "工作流转换",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 38
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "onewiki/workflows/implementation-workflows.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 50,
+      "nonEmptyLines": 38,
+      "sections": [
+        {
+          "heading": "代码实现与精简工作流",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "组成技能与职责",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "执行约束与控制流",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "核心法则",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 47
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "onewiki/workflows/structure-visualization.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 30,
+      "nonEmptyLines": 22,
+      "sections": [
+        {
+          "heading": "结构映射与可视化工作流",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "组成技能与职责",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "标准三件套规范示意",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    }
+  ]
+}

@@ -1,0 +1,197 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "one-md-wiki/references/common.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 83,
+      "nonEmptyLines": 65,
+      "sections": [
+        {
+          "heading": "Markdown Wiki shared contract",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Fixed workflow boundary",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Evidence and synthesis",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Content-driven structure",
+          "level": 2,
+          "line": 28
+        },
+        {
+          "heading": "Relationship model",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "OKF frontmatter",
+          "level": 2,
+          "line": 47
+        },
+        {
+          "heading": "Indexes, language, and diagrams",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "Completion",
+          "level": 2,
+          "line": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "one-md-wiki/references/ingest.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 105,
+      "nonEmptyLines": 74,
+      "sections": [
+        {
+          "heading": "Ingest Markdown into the Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Canonical personal knowledge model",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Open questions",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "Themes",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "Commitments and logistics",
+          "level": 3,
+          "line": 55
+        },
+        {
+          "heading": "Cross-source synthesis",
+          "level": 3,
+          "line": 62
+        },
+        {
+          "heading": "Discovery",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "Ingest plan",
+          "level": 2,
+          "line": 76
+        },
+        {
+          "heading": "Writing",
+          "level": 2,
+          "line": 90
+        },
+        {
+          "heading": "Review",
+          "level": 2,
+          "line": 101
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "one-md-wiki/references/lint.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 21,
+      "nonEmptyLines": 12,
+      "sections": [
+        {
+          "heading": "Lint the Markdown Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Audit",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Report and repair",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Review",
+          "level": 2,
+          "line": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-md-wiki/references/query.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "sections": [
+        {
+          "heading": "Query the Markdown Wiki",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

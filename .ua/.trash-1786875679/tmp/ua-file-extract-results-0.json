@@ -1,0 +1,304 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 7,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 7,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 7
+    }
+  },
+  "results": [
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 182,
+      "nonEmptyLines": 123,
+      "sections": [
+        {
+          "heading": "AI Coding Constitution",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. 动笔前先思考 (Think Before Coding)",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "2. 至简至上 (Simplicity First)",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "拒绝为确定性事物写防御性代码",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "拒绝写兜底方案",
+          "level": 3,
+          "line": 50
+        },
+        {
+          "heading": "严禁硬编码已有环境变量的路径",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "3. 精准修改 (Surgical Changes)",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "自我加戏反面教材",
+          "level": 3,
+          "line": 102
+        },
+        {
+          "heading": "4. 目标导向执行 (Goal-Driven Execution)",
+          "level": 2,
+          "line": 125
+        },
+        {
+          "heading": "5. 特殊要求",
+          "level": 2,
+          "line": 145
+        },
+        {
+          "heading": "Project Navigation (项目导航)",
+          "level": 2,
+          "line": 162
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 182,
+      "nonEmptyLines": 123,
+      "sections": [
+        {
+          "heading": "AI Coding Constitution",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. 动笔前先思考 (Think Before Coding)",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "2. 至简至上 (Simplicity First)",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "拒绝为确定性事物写防御性代码",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "拒绝写兜底方案",
+          "level": 3,
+          "line": 50
+        },
+        {
+          "heading": "严禁硬编码已有环境变量的路径",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "3. 精准修改 (Surgical Changes)",
+          "level": 2,
+          "line": 83
+        },
+        {
+          "heading": "自我加戏反面教材",
+          "level": 3,
+          "line": 102
+        },
+        {
+          "heading": "4. 目标导向执行 (Goal-Driven Execution)",
+          "level": 2,
+          "line": 125
+        },
+        {
+          "heading": "5. 特殊要求",
+          "level": 2,
+          "line": 145
+        },
+        {
+          "heading": "Project Navigation (项目导航)",
+          "level": 2,
+          "line": 162
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "install-others.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 169,
+      "nonEmptyLines": 145,
+      "functions": [
+        {
+          "name": "cleanup",
+          "startLine": 34,
+          "endLine": 37,
+          "params": []
+        },
+        {
+          "name": "hide_cursor",
+          "startLine": 40,
+          "endLine": 40,
+          "params": []
+        },
+        {
+          "name": "show_cursor",
+          "startLine": 41,
+          "endLine": 41,
+          "params": []
+        },
+        {
+          "name": "draw_menu",
+          "startLine": 45,
+          "endLine": 77,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 4,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "install.sh",
+      "language": "shell",
+      "fileCategory": "script",
+      "totalLines": 243,
+      "nonEmptyLines": 213,
+      "functions": [
+        {
+          "name": "cleanup",
+          "startLine": 13,
+          "endLine": 16,
+          "params": []
+        },
+        {
+          "name": "select_menu",
+          "startLine": 21,
+          "endLine": 97,
+          "params": []
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 2,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "one-agents.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 46,
+      "nonEmptyLines": 30,
+      "sections": [
+        {
+          "heading": "AI Coding Constitution",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. 动笔前先思考 (Think Before Coding)",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Project Navigation (项目导航)",
+          "level": 2,
+          "line": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "skills-lock.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 11,
+      "nonEmptyLines": 11,
+      "sections": [
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "skills",
+          "level": 1,
+          "line": 3
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "user-say.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 7,
+      "nonEmptyLines": 5,
+      "sections": [
+        {
+          "heading": "核心源文件规范（严禁直接改分发目标目录）",
+          "level": 2,
+          "line": 5
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

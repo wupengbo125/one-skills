@@ -1,0 +1,28 @@
+{
+  "projectRoot": "/home/pengbo/onespace/github/one-skills",
+  "batchFiles": [
+    {
+      "path": "onewiki/wiki-systems/code-wiki.md",
+      "language": "markdown",
+      "sizeLines": 40,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/wiki-systems/llm-wiki.md",
+      "language": "markdown",
+      "sizeLines": 37,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "onewiki/wiki-systems/md-wiki.md",
+      "language": "markdown",
+      "sizeLines": 29,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    "onewiki/wiki-systems/code-wiki.md": [],
+    "onewiki/wiki-systems/llm-wiki.md": [],
+    "onewiki/wiki-systems/md-wiki.md": []
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "batchIndex": 6,
+  "nodes": [
+    {
+      "id": "document:onewiki/workflows/design-planning-workflows.md",
+      "type": "document",
+      "name": "design-planning-workflows.md",
+      "filePath": "onewiki/workflows/design-planning-workflows.md",
+      "summary": "OpenWiki 工作流规范 (design-planning-workflows.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/workflows/implementation-workflows.md",
+      "type": "document",
+      "name": "implementation-workflows.md",
+      "filePath": "onewiki/workflows/implementation-workflows.md",
+      "summary": "OpenWiki 工作流规范 (implementation-workflows.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/workflows/structure-visualization.md",
+      "type": "document",
+      "name": "structure-visualization.md",
+      "filePath": "onewiki/workflows/structure-visualization.md",
+      "summary": "OpenWiki 工作流规范 (structure-visualization.md)，提供需求研讨、实施流程与结构可视化的标准工作流。",
+      "tags": [
+        "openwiki",
+        "工作流",
+        "流程规范",
+        "设计实现"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

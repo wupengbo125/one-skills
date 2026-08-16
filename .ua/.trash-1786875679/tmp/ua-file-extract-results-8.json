@@ -1,0 +1,633 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 10,
+  "filesSkipped": [
+    "skills.drawio"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 10,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 1,
+      "failed": 0,
+      "skipped": 9
+    }
+  },
+  "results": [
+    {
+      "path": "one-python-structure/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 34,
+      "nonEmptyLines": 26,
+      "sections": [
+        {
+          "heading": "Build Python Project (one-python-structure)",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "架构规范（标准三件套）",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "核心开发准则",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "流程",
+          "level": 2,
+          "line": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-refactor-implement-cp/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 30,
+      "nonEmptyLines": 23,
+      "sections": [
+        {
+          "heading": "Faithful Refactor",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "零脑补重写与剪贴板优先原则 (Clipboard-First Rule)",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "物理合并 5 步规范",
+          "level": 3,
+          "line": 20
+        },
+        {
+          "heading": "约束与验证",
+          "level": 3,
+          "line": 27
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-refactor-implement/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 29,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "Faithful Refactor",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "核心守则",
+          "level": 2,
+          "line": 12
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "one-simplifying/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 60,
+      "nonEmptyLines": 49,
+      "sections": [
+        {
+          "heading": "Simplifying",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "原则",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "成功案例：install.sh 129行 → 27行",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "之前（反例）",
+          "level": 3,
+          "line": 19
+        },
+        {
+          "heading": "之后（成功案例）",
+          "level": 3,
+          "line": 45
+        },
+        {
+          "heading": "砍掉了什么",
+          "level": 3,
+          "line": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "one-summarize-chat/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 45,
+      "nonEmptyLines": 31,
+      "sections": [
+        {
+          "heading": "Summarize Chat",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "适用场景与触发词",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "运行规则与步骤",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "第一步：提取总结并输出预览（禁止直接保存）",
+          "level": 3,
+          "line": 15
+        },
+        {
+          "heading": "第二步：与用户确认与调整",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "第三步：正式写入保存",
+          "level": 3,
+          "line": 22
+        },
+        {
+          "heading": "附录：标准总结模板（可根据对话需求灵活调整）",
+          "level": 2,
+          "line": 29
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "one-wsl-chrome/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 115,
+      "nonEmptyLines": 92,
+      "sections": [
+        {
+          "heading": "WSL Chrome Automation Skill",
+          "level": 1,
+          "line": 16
+        },
+        {
+          "heading": "Key Principle",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "Location",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Setup",
+          "level": 2,
+          "line": 31
+        },
+        {
+          "heading": "Usage",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "Common Use Cases",
+          "level": 2,
+          "line": 59
+        },
+        {
+          "heading": "1. Extract Cookies for yt-dlp (bypass YouTube/TikTok bot detection)",
+          "level": 3,
+          "line": 61
+        },
+        {
+          "heading": "2. Automate Login to a Website",
+          "level": 3,
+          "line": 81
+        },
+        {
+          "heading": "3. Multiple Isolated Chrome Instances",
+          "level": 3,
+          "line": 94
+        },
+        {
+          "heading": "How It Works",
+          "level": 2,
+          "line": 103
+        },
+        {
+          "heading": "Notes",
+          "level": 2,
+          "line": 111
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    },
+    {
+      "path": "one-wsl-chrome/scripts/chrome_pool.py",
+      "language": "python",
+      "fileCategory": "code",
+      "totalLines": 127,
+      "nonEmptyLines": 106,
+      "classes": [
+        {
+          "name": "ChromePool",
+          "startLine": 10,
+          "endLine": 127,
+          "methods": [
+            "__init__",
+            "start",
+            "cleanup",
+            "_ensure_dir",
+            "_launch_chrome",
+            "_get_ws_url",
+            "_wait_for_port"
+          ],
+          "properties": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "ChromePool",
+          "line": 10,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "start",
+          "callee": "async_playwright().start",
+          "lineNumber": 35
+        },
+        {
+          "caller": "start",
+          "callee": "async_playwright",
+          "lineNumber": 35
+        },
+        {
+          "caller": "start",
+          "callee": "self._ensure_dir",
+          "lineNumber": 42
+        },
+        {
+          "caller": "start",
+          "callee": "self._launch_chrome",
+          "lineNumber": 45
+        },
+        {
+          "caller": "start",
+          "callee": "self._pids.append",
+          "lineNumber": 46
+        },
+        {
+          "caller": "start",
+          "callee": "self._wait_for_port",
+          "lineNumber": 49
+        },
+        {
+          "caller": "start",
+          "callee": "self._get_ws_url",
+          "lineNumber": 52
+        },
+        {
+          "caller": "start",
+          "callee": "self._pw.chromium.connect_over_cdp",
+          "lineNumber": 53
+        },
+        {
+          "caller": "start",
+          "callee": "self._browsers.append",
+          "lineNumber": 54
+        },
+        {
+          "caller": "start",
+          "callee": "browser.new_context",
+          "lineNumber": 57
+        },
+        {
+          "caller": "cleanup",
+          "callee": "browser.close",
+          "lineNumber": 64
+        },
+        {
+          "caller": "cleanup",
+          "callee": "self._browsers.clear",
+          "lineNumber": 67
+        },
+        {
+          "caller": "cleanup",
+          "callee": "self._pw.stop",
+          "lineNumber": 71
+        },
+        {
+          "caller": "_ensure_dir",
+          "callee": "subprocess.run",
+          "lineNumber": 83
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "subprocess.run",
+          "lineNumber": 98
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "result.stdout.decode().strip",
+          "lineNumber": 102
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "result.stdout.decode",
+          "lineNumber": 102
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "pid_str.isdigit",
+          "lineNumber": 103
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "RuntimeError",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "result.stderr.decode().strip",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "result.stderr.decode",
+          "lineNumber": 104
+        },
+        {
+          "caller": "_launch_chrome",
+          "callee": "int",
+          "lineNumber": 105
+        },
+        {
+          "caller": "_get_ws_url",
+          "callee": "asyncio.get_event_loop",
+          "lineNumber": 111
+        },
+        {
+          "caller": "_get_ws_url",
+          "callee": "loop.run_in_executor",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_get_ws_url",
+          "callee": "urllib.request.urlopen",
+          "lineNumber": 112
+        },
+        {
+          "caller": "_get_ws_url",
+          "callee": "json.loads",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_get_ws_url",
+          "callee": "resp.read",
+          "lineNumber": 113
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "asyncio.get_event_loop().time",
+          "lineNumber": 119
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "asyncio.get_event_loop",
+          "lineNumber": 119
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "asyncio.get_event_loop().time",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "asyncio.get_event_loop",
+          "lineNumber": 120
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "socket.create_connection",
+          "lineNumber": 122
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "sock.close",
+          "lineNumber": 123
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "asyncio.sleep",
+          "lineNumber": 126
+        },
+        {
+          "caller": "_wait_for_port",
+          "callee": "TimeoutError",
+          "lineNumber": 127
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 0,
+        "classCount": 1
+      }
+    },
+    {
+      "path": "onewiki/core/skill-installer.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 59,
+      "nonEmptyLines": 47,
+      "sections": [
+        {
+          "heading": "技能安装与管理分发系统",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "关键文件与角色",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "目标分发位置与路径映射",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "运行流程",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 56
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "onewiki/index.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 50,
+      "nonEmptyLines": 38,
+      "sections": [
+        {
+          "heading": "one-skills 架构与 Code Wiki 导航",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "系统架构与核心模块",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "1. 技能管理与分发核心 (Core Installer)",
+          "level": 3,
+          "line": 16
+        },
+        {
+          "heading": "2. 三大 Wiki 知识库系统 (Wiki Systems)",
+          "level": 3,
+          "line": 19
+        },
+        {
+          "heading": "3. AI 开发与设计工作流 (Workflows)",
+          "level": 3,
+          "line": 24
+        },
+        {
+          "heading": "4. 跨环境集成 (Integrations)",
+          "level": 3,
+          "line": 29
+        },
+        {
+          "heading": "领域概念依赖拓扑",
+          "level": 2,
+          "line": 32
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "onewiki/integrations/wsl-chrome.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 43,
+      "nonEmptyLines": 32,
+      "sections": [
+        {
+          "heading": "WSL Chrome 自动化集成",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "架构与主要文件",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "关键实现细节",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "运行交互时序",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 41
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    }
+  ]
+}

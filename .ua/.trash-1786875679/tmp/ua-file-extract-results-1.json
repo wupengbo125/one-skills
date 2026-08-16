@@ -1,0 +1,172 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "one-code-wiki-cn/references/common.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 73,
+      "nonEmptyLines": 53,
+      "sections": [
+        {
+          "heading": "Code Wiki 共享契约",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "范围与凭据",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "文档目标",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "关系模型",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "OKF 前置元数据 (Frontmatter)",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "结构与索引",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "图表",
+          "level": 2,
+          "line": 56
+        },
+        {
+          "heading": "语言",
+          "level": 2,
+          "line": 62
+        },
+        {
+          "heading": "完成检查",
+          "level": 2,
+          "line": 67
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    },
+    {
+      "path": "one-code-wiki-cn/references/ingest.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 44,
+      "nonEmptyLines": 34,
+      "sections": [
+        {
+          "heading": "ingest 代码 Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Bootstrap 路径 (首次初始化)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Incremental 路径 (增量更新)",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "Completion (完成与收尾)",
+          "level": 2,
+          "line": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-code-wiki-cn/references/lint.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 22,
+      "nonEmptyLines": 14,
+      "sections": [
+        {
+          "heading": "巡检 Code Wiki 质量",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "审计 (Audit)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "修复 (Repair)",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "完成 (Completion)",
+          "level": 2,
+          "line": 18
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-code-wiki-cn/references/query.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "sections": [
+        {
+          "heading": "查询 Code Wiki",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

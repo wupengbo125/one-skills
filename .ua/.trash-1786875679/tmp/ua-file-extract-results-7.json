@@ -1,0 +1,1058 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 25,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 25,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 25
+    }
+  },
+  "results": [
+    {
+      "path": ".pi/skills/caveman/README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 48,
+      "nonEmptyLines": 33,
+      "sections": [
+        {
+          "heading": "caveman",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "What it does",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "How to invoke",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "Example output",
+          "level": 2,
+          "line": 32
+        },
+        {
+          "heading": "See also",
+          "level": 2,
+          "line": 45
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": ".pi/skills/caveman/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 88,
+      "nonEmptyLines": 63,
+      "sections": [
+        {
+          "heading": "Persistence",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "Rules",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "Intensity",
+          "level": 2,
+          "line": 38
+        },
+        {
+          "heading": "Auto-Clarity",
+          "level": 2,
+          "line": 66
+        },
+        {
+          "heading": "Boundaries",
+          "level": 2,
+          "line": 86
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "hermes-skills/create-skill/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 48,
+      "nonEmptyLines": 40,
+      "sections": [
+        {
+          "heading": "Create Skill",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "目录规则",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "什么值得存 skill",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "操作模式",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "模式一：拉取 skill（触发词：\"拉skill\"、\"pull skill\"）",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "模式二：创建 skill（触发词：\"创建skill\"、\"新建skill\"、\"添加skill\"）",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "模式三：修改 skill（触发词：\"改skill\"、\"更新skill\"）",
+          "level": 3,
+          "line": 39
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "hermes-skills/save-doc/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 25,
+      "nonEmptyLines": 18,
+      "sections": [
+        {
+          "heading": "Save Doc",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "运行规则与步骤",
+          "level": 2,
+          "line": 10
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "note-to-wiki/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 25,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Note to Wiki",
+          "level": 1,
+          "line": 6
+        },
+        {
+          "heading": "唯一操作",
+          "level": 2,
+          "line": 10
+        },
+        {
+          "heading": "约束",
+          "level": 2,
+          "line": 19
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 28,
+      "nonEmptyLines": 17,
+      "sections": [
+        {
+          "heading": "<产品/业务名称>",
+          "level": 1,
+          "line": 9
+        },
+        {
+          "heading": "1. 项目介绍（人工编写）",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "2. 功能",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "<功能名>",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "3. 界面 (可选/无UI可省)",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "<页面/视图名>",
+          "level": 3,
+          "line": 24
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "one-build-blueprint/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 61,
+      "nonEmptyLines": 41,
+      "sections": [
+        {
+          "heading": "Build Blueprint",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "核心规则",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "流程",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "1. 确定范围与位置",
+          "level": 3,
+          "line": 22
+        },
+        {
+          "heading": "2. 使用材料",
+          "level": 3,
+          "line": 33
+        },
+        {
+          "heading": "3. 生成或更新",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "4. 交付",
+          "level": 3,
+          "line": 51
+        },
+        {
+          "heading": "完成标准",
+          "level": 2,
+          "line": 55
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "one-build-drawio/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 31,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "Build Draw.io Diagram",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "流程",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Step 1: 提取流程与架构数据",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Step 2: 使用 `drawio-skill` 绘制图表",
+          "level": 3,
+          "line": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-build-mermaid/GRAPH-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 131,
+      "nonEmptyLines": 108,
+      "sections": [
+        {
+          "heading": "HTML 流程图模板",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "骨架",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Header",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "流程图区域",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "全量模式（从蓝图/代码生成）",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "变更对比模式（从 Spec 生成）",
+          "level": 3,
+          "line": 67
+        },
+        {
+          "heading": "样式指南",
+          "level": 2,
+          "line": 96
+        },
+        {
+          "heading": "调色板（命名色值）",
+          "level": 3,
+          "line": 98
+        },
+        {
+          "heading": "字体",
+          "level": 3,
+          "line": 110
+        },
+        {
+          "heading": "签名元素",
+          "level": 3,
+          "line": 116
+        },
+        {
+          "heading": "节点设计",
+          "level": 3,
+          "line": 120
+        },
+        {
+          "heading": "总体气质",
+          "level": 3,
+          "line": 126
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "one-build-mermaid/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 27,
+      "nonEmptyLines": 18,
+      "sections": [
+        {
+          "heading": "Build Flowchart",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "流程",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Step 1: 提取流程数据",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Step 2: 绘制流程图 HTML",
+          "level": 3,
+          "line": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-code-map/MAP-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 35,
+      "nonEmptyLines": 24,
+      "sections": [
+        {
+          "heading": "<项目/模块名称> 导航地图",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "核心模块索引",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "1. <模块名> ([相对路径](./path/))",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "模块依赖与流向图",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "子地图指引",
+          "level": 2,
+          "line": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "one-code-map/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 27,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Code Map (代码地图管理)",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "自动路由与执行逻辑",
+          "level": 2,
+          "line": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "one-code-wiki-cn/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 15,
+      "sections": [
+        {
+          "heading": "Code Wiki (代码 Wiki 中文版)",
+          "level": 1,
+          "line": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 51,
+      "nonEmptyLines": 36,
+      "sections": [
+        {
+          "heading": "<页面标题>",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "核心职责与源码定位",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "运行时流向与关系",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "不变式与异常处理",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "测试覆盖与验证",
+          "level": 2,
+          "line": 48
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "one-code-wiki/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 15,
+      "sections": [
+        {
+          "heading": "Code Wiki",
+          "level": 1,
+          "line": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "one-code-wiki/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 51,
+      "nonEmptyLines": 36,
+      "sections": [
+        {
+          "heading": "<page title>",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "Core responsibilities and source locations",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "Runtime flow and relationships",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "Invariants and error handling",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "Test coverage and verification",
+          "level": 2,
+          "line": 48
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 35,
+      "nonEmptyLines": 21,
+      "sections": [
+        {
+          "heading": "<需求名称>",
+          "level": 1,
+          "line": 9
+        },
+        {
+          "heading": "1. 背景与目标",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "2. 需求描述",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "3. 需求边界",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "3.1 明确包含 (In Scope)",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "3.2 明确不包含 (Out of Scope)",
+          "level": 3,
+          "line": 25
+        },
+        {
+          "heading": "4. 待确认与遗留问题",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "5. 技术实施方案",
+          "level": 2,
+          "line": 33
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "one-grill-with-docs-prd/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 17,
+      "nonEmptyLines": 14,
+      "sections": [
+        {
+          "heading": "Grill With Docs PRD",
+          "level": 1,
+          "line": 6
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "one-handoff/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 26,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "Project Handoff",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "Handoff Document Structure",
+          "level": 2,
+          "line": 12
+        },
+        {
+          "heading": "Guidelines",
+          "level": 2,
+          "line": 21
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "one-implement/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 165,
+      "nonEmptyLines": 115,
+      "sections": [
+        {
+          "heading": "代码实施守则 (Implementation Guidelines)",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "一、重构前置判定",
+          "level": 2,
+          "line": 13
+        },
+        {
+          "heading": "二、编码实施守则 (Coding Constitution)",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "1. 至简至上 (Simplicity First)",
+          "level": 3,
+          "line": 26
+        },
+        {
+          "heading": "拒绝为确定性事物写防御性代码",
+          "level": 4,
+          "line": 36
+        },
+        {
+          "heading": "拒绝写兜底方案",
+          "level": 4,
+          "line": 49
+        },
+        {
+          "heading": "严禁硬编码已有环境变量的路径",
+          "level": 4,
+          "line": 68
+        },
+        {
+          "heading": "2. 精准修改 (Surgical Changes)",
+          "level": 3,
+          "line": 82
+        },
+        {
+          "heading": "自我加戏反面教材",
+          "level": 4,
+          "line": 101
+        },
+        {
+          "heading": "3. 目标导向执行 (Goal-Driven Execution)",
+          "level": 3,
+          "line": 124
+        },
+        {
+          "heading": "4. 特殊要求",
+          "level": 3,
+          "line": 144
+        },
+        {
+          "heading": "三、验证与交付守则 (Verification & Delivery)",
+          "level": 2,
+          "line": 161
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "one-llmwiki-skill/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 183,
+      "nonEmptyLines": 141,
+      "sections": [
+        {
+          "heading": "全功能 LLM Wiki 个人知识库 Skill (`one-llmwiki-skill`)",
+          "level": 1,
+          "line": 8
+        },
+        {
+          "heading": "1. 个人知识库目录架构 (按主题域隔离)",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "页面 Frontmatter 标准",
+          "level": 3,
+          "line": 39
+        },
+        {
+          "heading": "2. 模块一：知识库增量编译与素材摄入 (Compiler Module)",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "阶段 1：前置 Git 远程拉取",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "阶段 2：素材摄入与会话提炼 (Ingest Phase)",
+          "level": 3,
+          "line": 61
+        },
+        {
+          "heading": "阶段 3：摘要提取与架构规划",
+          "level": 3,
+          "line": 68
+        },
+        {
+          "heading": "阶段 4：综合预案呈现与用户统一拍板",
+          "level": 3,
+          "line": 87
+        },
+        {
+          "heading": "阶段 5：受控写入与页面生成",
+          "level": 3,
+          "line": 107
+        },
+        {
+          "heading": "阶段 6：后置 Git 自动提交与推送",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "3. 模块二：语义 Lint 巡检与清洗 (Semantic Linter Module)",
+          "level": 2,
+          "line": 131
+        },
+        {
+          "heading": "巡检流程",
+          "level": 3,
+          "line": 135
+        },
+        {
+          "heading": "检查项",
+          "level": 3,
+          "line": 142
+        },
+        {
+          "heading": "4. 模块三：知识库问答与检索 (Query & Chat Module)",
+          "level": 2,
+          "line": 152
+        },
+        {
+          "heading": "检索策略",
+          "level": 3,
+          "line": 156
+        },
+        {
+          "heading": "5. 模块四：长文档 PageIndex 树状大纲推理 (PageIndex Reasoning Module)",
+          "level": 2,
+          "line": 166
+        },
+        {
+          "heading": "树状大纲生成与检索",
+          "level": 3,
+          "line": 170
+        },
+        {
+          "heading": "6. Agent 操作流程汇总",
+          "level": 2,
+          "line": 177
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 18
+      }
+    },
+    {
+      "path": "one-llmwiki-skill/references/okf-template.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 65,
+      "nonEmptyLines": 47,
+      "sections": [
+        {
+          "heading": "Google OKF 规范模板与参考示例",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. 全局索引模板 (`index.md`)",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "2. 概念页面模板 (`concepts/<slug>.md`)",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "3. 实体页面模板 (`entities/<slug>.md`)",
+          "level": 2,
+          "line": 53
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-md-wiki-cn/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 15,
+      "sections": [
+        {
+          "heading": "Markdown Wiki (中文版)",
+          "level": 1,
+          "line": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    },
+    {
+      "path": "one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 37,
+      "nonEmptyLines": 23,
+      "sections": [
+        {
+          "heading": "<页面标题>",
+          "level": 1,
+          "line": 10
+        },
+        {
+          "heading": "核心内容",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "关键关系与上下文",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "不确定性与开放问题",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "延伸阅读",
+          "level": 2,
+          "line": 35
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "one-md-wiki/SKILL.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 20,
+      "nonEmptyLines": 15,
+      "sections": [
+        {
+          "heading": "Markdown Wiki",
+          "level": 1,
+          "line": 8
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

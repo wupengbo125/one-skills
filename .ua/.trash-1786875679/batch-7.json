@@ -1,0 +1,345 @@
+{
+  "batchIndex": 7,
+  "nodes": [
+    {
+      "id": "document:.pi/skills/caveman/README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": ".pi/skills/caveman/README.md",
+      "summary": "Caveman 技能定义 (README.md)，用于极端精简的极客风交互与输出。",
+      "tags": [
+        "caveman",
+        "精简交互",
+        "提示词技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:.pi/skills/caveman/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": ".pi/skills/caveman/SKILL.md",
+      "summary": "Caveman 技能定义 (SKILL.md)，用于极端精简的极客风交互与输出。",
+      "tags": [
+        "caveman",
+        "精简交互",
+        "提示词技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:hermes-skills/create-skill/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "hermes-skills/create-skill/SKILL.md",
+      "summary": "Skill 技能组件定义 (hermes-skills/create-skill/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:hermes-skills/save-doc/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "hermes-skills/save-doc/SKILL.md",
+      "summary": "Skill 技能组件定义 (hermes-skills/save-doc/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:note-to-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "note-to-wiki/SKILL.md",
+      "summary": "Skill 技能组件定义 (note-to-wiki/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "type": "document",
+      "name": "BLUEPRINT-TEMPLATE.md",
+      "filePath": "one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "summary": "Skill 技能组件定义 (one-build-blueprint/BLUEPRINT-TEMPLATE.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-blueprint/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-blueprint/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-blueprint/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-build-drawio/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-drawio/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-drawio/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-build-mermaid/GRAPH-TEMPLATE.md",
+      "type": "document",
+      "name": "GRAPH-TEMPLATE.md",
+      "filePath": "one-build-mermaid/GRAPH-TEMPLATE.md",
+      "summary": "Skill 技能组件定义 (one-build-mermaid/GRAPH-TEMPLATE.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-build-mermaid/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-build-mermaid/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-build-mermaid/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-map/MAP-TEMPLATE.md",
+      "type": "document",
+      "name": "MAP-TEMPLATE.md",
+      "filePath": "one-code-map/MAP-TEMPLATE.md",
+      "summary": "代码地图生成与增量维护技能，维护 MAP.md 作为全局结构索引。",
+      "tags": [
+        "代码地图",
+        "结构索引",
+        "map-md",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-map/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-map/SKILL.md",
+      "summary": "代码地图生成与增量维护技能，维护 MAP.md 作为全局结构索引。",
+      "tags": [
+        "代码地图",
+        "结构索引",
+        "map-md",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-wiki-cn/SKILL.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (SKILL.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 中文版代码知识库指令与规范 (WIKI-TEMPLATE.md)，用于摄入代码库、架构分析与语义巡检。",
+      "tags": [
+        "code-wiki",
+        "代码知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-code-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-code-wiki/SKILL.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (SKILL.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-code-wiki/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-code-wiki/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 英文版代码知识库指令与规范 (WIKI-TEMPLATE.md)，用于代码分析与知识库构建。",
+      "tags": [
+        "code-wiki",
+        "代码分析",
+        "openwiki",
+        "知识库"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "type": "document",
+      "name": "PRD-TEMPLATE.md",
+      "filePath": "one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "summary": "需求挖掘与 PRD 产出技能，通过深度盘问将模糊需求沉淀为清晰的设计与实施计划。",
+      "tags": [
+        "需求盘问",
+        "prd设计",
+        "需求对齐",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-grill-with-docs-prd/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-grill-with-docs-prd/SKILL.md",
+      "summary": "需求挖掘与 PRD 产出技能，通过深度盘问将模糊需求沉淀为清晰的设计与实施计划。",
+      "tags": [
+        "需求盘问",
+        "prd设计",
+        "需求对齐",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-handoff/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-handoff/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-handoff/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-implement/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-implement/SKILL.md",
+      "summary": "安全实施与代码修改技能，要求在严格校验暗号后方可精准修改代码。",
+      "tags": [
+        "代码实施",
+        "暗号校验",
+        "精准修改",
+        "技能"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:one-llmwiki-skill/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-llmwiki-skill/SKILL.md",
+      "summary": "Prompt 驱动的全功能 LLM Wiki 体系技能，提供对话素材摄入、增量编译与检索问答。",
+      "tags": [
+        "llm-wiki",
+        "知识管理",
+        "无代码wiki",
+        "技能"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:one-llmwiki-skill/references/okf-template.md",
+      "type": "document",
+      "name": "okf-template.md",
+      "filePath": "one-llmwiki-skill/references/okf-template.md",
+      "summary": "Prompt 驱动的全功能 LLM Wiki 体系技能，提供对话素材摄入、增量编译与检索问答。",
+      "tags": [
+        "llm-wiki",
+        "知识管理",
+        "无代码wiki",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-md-wiki-cn/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-md-wiki-cn/SKILL.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (SKILL.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "type": "document",
+      "name": "WIKI-TEMPLATE.md",
+      "filePath": "one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "summary": "OpenWiki 中文版个人 Markdown 知识库规范 (WIKI-TEMPLATE.md)，包含素材摄入、增量编译与质量检查。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "中文规范"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-md-wiki/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-md-wiki/SKILL.md",
+      "summary": "OpenWiki 英文版 Markdown 知识库规范 (SKILL.md)，用于个人笔记与知识管理。",
+      "tags": [
+        "md-wiki",
+        "markdown知识库",
+        "openwiki",
+        "笔记系统"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

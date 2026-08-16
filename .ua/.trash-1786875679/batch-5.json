@@ -1,0 +1,48 @@
+{
+  "batchIndex": 5,
+  "nodes": [
+    {
+      "id": "document:onewiki/wiki-systems/code-wiki.md",
+      "type": "document",
+      "name": "code-wiki.md",
+      "filePath": "onewiki/wiki-systems/code-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (code-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/wiki-systems/llm-wiki.md",
+      "type": "document",
+      "name": "llm-wiki.md",
+      "filePath": "onewiki/wiki-systems/llm-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (llm-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/wiki-systems/md-wiki.md",
+      "type": "document",
+      "name": "md-wiki.md",
+      "filePath": "onewiki/wiki-systems/md-wiki.md",
+      "summary": "OpenWiki 知识库子系统架构说明 (md-wiki.md)，阐述该知识库体系的设计哲学与数据流。",
+      "tags": [
+        "openwiki",
+        "架构设计",
+        "知识库子系统",
+        "文档"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

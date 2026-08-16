@@ -1,0 +1,104 @@
+[
+  {
+    "id": "layer:constitution-and-standards",
+    "name": "AI 宪法与核心规范层",
+    "description": "定义所有 AI Agent 的统一行为准则、极简原则、安全实施要求与项目导航规范。",
+    "nodeIds": [
+      "document:CLAUDE.md",
+      "document:one-agents.md"
+    ]
+  },
+  {
+    "id": "layer:installation-and-distribution",
+    "name": "技能分发与安装脚本层",
+    "description": "负责将各类内部定制技能及外部开源工具自动化分发安装到 Antigravity、Claude Code、Pi 等环境中。",
+    "nodeIds": [
+      "file:install-others.sh",
+      "function:install-others.sh:cleanup",
+      "function:install-others.sh:hide_cursor",
+      "function:install-others.sh:show_cursor",
+      "function:install-others.sh:draw_menu",
+      "file:install.sh",
+      "function:install.sh:cleanup",
+      "function:install.sh:select_menu"
+    ]
+  },
+  {
+    "id": "layer:openwiki-knowledge-system",
+    "name": "OpenWiki 知识库系统层",
+    "description": "涵盖代码库知识库 (Code Wiki)、Markdown 个人笔记知识库 (MD Wiki) 以及全套标准研讨与实施工作流。",
+    "nodeIds": [
+      "document:one-code-wiki-cn/references/common.md",
+      "document:one-code-wiki-cn/references/ingest.md",
+      "document:one-code-wiki-cn/references/lint.md",
+      "document:one-code-wiki-cn/references/query.md",
+      "document:one-code-wiki/references/common.md",
+      "document:one-code-wiki/references/ingest.md",
+      "document:one-code-wiki/references/lint.md",
+      "document:one-code-wiki/references/query.md",
+      "document:one-md-wiki-cn/references/common.md",
+      "document:one-md-wiki-cn/references/ingest.md",
+      "document:one-md-wiki-cn/references/lint.md",
+      "document:one-md-wiki-cn/references/query.md",
+      "document:one-md-wiki/references/common.md",
+      "document:one-md-wiki/references/ingest.md",
+      "document:one-md-wiki/references/lint.md",
+      "document:one-md-wiki/references/query.md",
+      "document:onewiki/wiki-systems/code-wiki.md",
+      "document:onewiki/wiki-systems/llm-wiki.md",
+      "document:onewiki/wiki-systems/md-wiki.md",
+      "document:onewiki/workflows/design-planning-workflows.md",
+      "document:onewiki/workflows/implementation-workflows.md",
+      "document:onewiki/workflows/structure-visualization.md",
+      "document:one-code-wiki-cn/SKILL.md",
+      "document:one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "document:one-code-wiki/SKILL.md",
+      "document:one-code-wiki/WIKI-TEMPLATE.md",
+      "document:one-md-wiki-cn/SKILL.md",
+      "document:one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "document:one-md-wiki/SKILL.md",
+      "document:onewiki/core/skill-installer.md",
+      "document:onewiki/index.md",
+      "document:onewiki/integrations/wsl-chrome.md"
+    ]
+  },
+  {
+    "id": "layer:development-workflow-skills",
+    "name": "核心开发辅助技能层",
+    "description": "包含精准代码实施 (one-implement)、极简重构 (one-simplifying)、代码地图 (one-code-map)、需求挖掘 (one-grill-with-docs-prd) 等高效开发技能。",
+    "nodeIds": [
+      "document:one-code-map/MAP-TEMPLATE.md",
+      "document:one-code-map/SKILL.md",
+      "document:one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "document:one-grill-with-docs-prd/SKILL.md",
+      "document:one-implement/SKILL.md",
+      "document:one-python-structure/SKILL.md",
+      "document:one-simplifying/SKILL.md"
+    ]
+  },
+  {
+    "id": "layer:knowledge-and-comprehension-skills",
+    "name": "知识提炼与代码理解技能层",
+    "description": "包含 Understand-Anything 代码知识图谱分析套件、LLM Wiki 知识沉淀与会话历史总结归档能力。",
+    "nodeIds": [
+      "document:note-to-wiki/SKILL.md",
+      "document:one-llmwiki-skill/SKILL.md",
+      "document:one-llmwiki-skill/references/okf-template.md",
+      "document:one-summarize-chat/SKILL.md"
+    ]
+  },
+  {
+    "id": "layer:ecosystem-and-tools",
+    "name": "生态扩展与环境集成技能层",
+    "description": "包含 WSL Chrome 浏览器控制自动化、Caveman 极简对话技能及第三方 Hermes 技能集合。",
+    "nodeIds": [
+      "document:.pi/skills/caveman/README.md",
+      "document:.pi/skills/caveman/SKILL.md",
+      "document:hermes-skills/create-skill/SKILL.md",
+      "document:hermes-skills/save-doc/SKILL.md",
+      "document:one-wsl-chrome/SKILL.md",
+      "file:one-wsl-chrome/scripts/chrome_pool.py",
+      "document:onewiki/integrations/wsl-chrome.md"
+    ]
+  }
+]

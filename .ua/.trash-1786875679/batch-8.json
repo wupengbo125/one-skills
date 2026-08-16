@@ -1,0 +1,140 @@
+{
+  "batchIndex": 8,
+  "nodes": [
+    {
+      "id": "document:one-python-structure/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-python-structure/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-python-structure/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-refactor-implement-cp/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-refactor-implement-cp/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-refactor-implement-cp/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-refactor-implement/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-refactor-implement/SKILL.md",
+      "summary": "Skill 技能组件定义 (one-refactor-implement/SKILL.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-simplifying/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-simplifying/SKILL.md",
+      "summary": "代码极简重构技能，指导 AI 砍掉冗余的兜底与防御性逻辑，保持代码至简。",
+      "tags": [
+        "代码重构",
+        "极简设计",
+        "代码精简",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:one-summarize-chat/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-summarize-chat/SKILL.md",
+      "summary": "对话历史总结与结构化归档技能，将长对话提炼并保存到本地 Wiki raw 目录。",
+      "tags": [
+        "对话总结",
+        "历史归档",
+        "知识提取",
+        "技能"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:one-wsl-chrome/SKILL.md",
+      "type": "document",
+      "name": "SKILL.md",
+      "filePath": "one-wsl-chrome/SKILL.md",
+      "summary": "WSL 环境下的 Chrome 浏览器自动化技能，利用 CDP 协议控制宿主机浏览器。",
+      "tags": [
+        "wsl自动化",
+        "chrome控制",
+        "cdp协议",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:one-wsl-chrome/scripts/chrome_pool.py",
+      "type": "file",
+      "name": "chrome_pool.py",
+      "filePath": "one-wsl-chrome/scripts/chrome_pool.py",
+      "summary": "WSL 环境下的 Chrome 浏览器自动化技能，利用 CDP 协议控制宿主机浏览器。",
+      "tags": [
+        "wsl自动化",
+        "chrome控制",
+        "cdp协议",
+        "技能"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:onewiki/core/skill-installer.md",
+      "type": "document",
+      "name": "skill-installer.md",
+      "filePath": "onewiki/core/skill-installer.md",
+      "summary": "Skill 技能组件定义 (onewiki/core/skill-installer.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:onewiki/index.md",
+      "type": "document",
+      "name": "index.md",
+      "filePath": "onewiki/index.md",
+      "summary": "Skill 技能组件定义 (onewiki/index.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:onewiki/integrations/wsl-chrome.md",
+      "type": "document",
+      "name": "wsl-chrome.md",
+      "filePath": "onewiki/integrations/wsl-chrome.md",
+      "summary": "Skill 技能组件定义 (onewiki/integrations/wsl-chrome.md)，提供特定的 AI 自动化辅助能力。",
+      "tags": [
+        "skill定义",
+        "ai辅助",
+        "自动化"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": []
+}

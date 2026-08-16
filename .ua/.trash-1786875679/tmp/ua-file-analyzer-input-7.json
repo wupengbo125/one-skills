@@ -1,0 +1,182 @@
+{
+  "projectRoot": "/home/pengbo/onespace/github/one-skills",
+  "batchFiles": [
+    {
+      "path": ".pi/skills/caveman/README.md",
+      "language": "markdown",
+      "sizeLines": 48,
+      "fileCategory": "docs"
+    },
+    {
+      "path": ".pi/skills/caveman/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 87,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "hermes-skills/create-skill/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 48,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "hermes-skills/save-doc/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 25,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "note-to-wiki/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 25,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 28,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-build-blueprint/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 61,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-build-drawio/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 31,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-build-mermaid/GRAPH-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 131,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-build-mermaid/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 27,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-map/MAP-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 35,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-map/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 27,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-wiki-cn/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 51,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-wiki/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-code-wiki/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 51,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 35,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-grill-with-docs-prd/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 17,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-handoff/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 26,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-implement/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 165,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-llmwiki-skill/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 183,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-llmwiki-skill/references/okf-template.md",
+      "language": "markdown",
+      "sizeLines": 65,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki-cn/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "language": "markdown",
+      "sizeLines": 37,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "one-md-wiki/SKILL.md",
+      "language": "markdown",
+      "sizeLines": 20,
+      "fileCategory": "docs"
+    }
+  ],
+  "batchImportData": {
+    ".pi/skills/caveman/README.md": [],
+    ".pi/skills/caveman/SKILL.md": [],
+    "hermes-skills/create-skill/SKILL.md": [],
+    "hermes-skills/save-doc/SKILL.md": [],
+    "note-to-wiki/SKILL.md": [],
+    "one-build-blueprint/BLUEPRINT-TEMPLATE.md": [],
+    "one-build-blueprint/SKILL.md": [],
+    "one-build-drawio/SKILL.md": [],
+    "one-build-mermaid/GRAPH-TEMPLATE.md": [],
+    "one-build-mermaid/SKILL.md": [],
+    "one-code-map/MAP-TEMPLATE.md": [],
+    "one-code-map/SKILL.md": [],
+    "one-code-wiki-cn/SKILL.md": [],
+    "one-code-wiki-cn/WIKI-TEMPLATE.md": [],
+    "one-code-wiki/SKILL.md": [],
+    "one-code-wiki/WIKI-TEMPLATE.md": [],
+    "one-grill-with-docs-prd/PRD-TEMPLATE.md": [],
+    "one-grill-with-docs-prd/SKILL.md": [],
+    "one-handoff/SKILL.md": [],
+    "one-implement/SKILL.md": [],
+    "one-llmwiki-skill/SKILL.md": [],
+    "one-llmwiki-skill/references/okf-template.md": [],
+    "one-md-wiki-cn/SKILL.md": [],
+    "one-md-wiki-cn/WIKI-TEMPLATE.md": [],
+    "one-md-wiki/SKILL.md": []
+  }
+}

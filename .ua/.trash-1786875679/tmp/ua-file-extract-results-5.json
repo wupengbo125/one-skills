@@ -1,0 +1,131 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
+  "results": [
+    {
+      "path": "onewiki/wiki-systems/code-wiki.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 40,
+      "nonEmptyLines": 29,
+      "sections": [
+        {
+          "heading": "Code Wiki 源码知识库系统",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "模块结构与约定",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "核心操作与流程",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "约束与规范",
+          "level": 2,
+          "line": 30
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 36
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 5
+      }
+    },
+    {
+      "path": "onewiki/wiki-systems/llm-wiki.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 37,
+      "nonEmptyLines": 26,
+      "sections": [
+        {
+          "heading": "LLM Wiki 纯 Prompt 无代码知识库系统",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "核心架构与功能模块",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "与其他 Wiki 系统的协作",
+          "level": 2,
+          "line": 22
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 34
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "onewiki/wiki-systems/md-wiki.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 29,
+      "nonEmptyLines": 20,
+      "sections": [
+        {
+          "heading": "Markdown Wiki 个人文档库系统",
+          "level": 1,
+          "line": 7
+        },
+        {
+          "heading": "模块结构与组件",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "典型操作",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "相关知识库关系",
+          "level": 2,
+          "line": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    }
+  ]
+}

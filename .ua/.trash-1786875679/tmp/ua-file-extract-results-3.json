@@ -1,0 +1,197 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 4
+    }
+  },
+  "results": [
+    {
+      "path": "one-md-wiki-cn/references/common.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 89,
+      "nonEmptyLines": 71,
+      "sections": [
+        {
+          "heading": "Markdown Wiki 共享契约",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "固定工作流边界",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "证据与合成",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "内容驱动的结构",
+          "level": 2,
+          "line": 30
+        },
+        {
+          "heading": "关系模型与链接规范",
+          "level": 2,
+          "line": 40
+        },
+        {
+          "heading": "OKF 前置元数据 (Frontmatter)",
+          "level": 2,
+          "line": 51
+        },
+        {
+          "heading": "索引、语言与 LLM 合成要求",
+          "level": 2,
+          "line": 72
+        },
+        {
+          "heading": "完成 (Completion)",
+          "level": 2,
+          "line": 82
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 8
+      }
+    },
+    {
+      "path": "one-md-wiki-cn/references/ingest.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 108,
+      "nonEmptyLines": 76,
+      "sections": [
+        {
+          "heading": "将 Markdown 摄入到 Wiki 中",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "规范个人知识模型",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "开放问题 (Open questions)",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "主题 (Themes)",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "承诺与后勤 (Commitments and logistics)",
+          "level": 3,
+          "line": 55
+        },
+        {
+          "heading": "跨源合成 (Cross-source synthesis)",
+          "level": 3,
+          "line": 62
+        },
+        {
+          "heading": "发现 (Discovery)",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "摄入计划 (Ingest plan)",
+          "level": 2,
+          "line": 76
+        },
+        {
+          "heading": "写入 (Writing)",
+          "level": 2,
+          "line": 90
+        },
+        {
+          "heading": "复核与自动推送 (Review)",
+          "level": 2,
+          "line": 102
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 10
+      }
+    },
+    {
+      "path": "one-md-wiki-cn/references/lint.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 21,
+      "nonEmptyLines": 12,
+      "sections": [
+        {
+          "heading": "巡检 Markdown Wiki 质量",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "审计 (Audit)",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "报告与修复 (Report and repair)",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "复核 (Review)",
+          "level": 2,
+          "line": 17
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 4
+      }
+    },
+    {
+      "path": "one-md-wiki-cn/references/query.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 12,
+      "nonEmptyLines": 9,
+      "sections": [
+        {
+          "heading": "查询 Markdown Wiki",
+          "level": 1,
+          "line": 1
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 1
+      }
+    }
+  ]
+}

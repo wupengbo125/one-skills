@@ -1,0 +1,752 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "ae6b047d72ac6a4faf13dc6eee9f4467446d25c1",
+  "generatedAt": "2026-08-16T10:21:09.759Z",
+  "files": {
+    ".pi/skills/caveman/README.md": {
+      "filePath": ".pi/skills/caveman/README.md",
+      "contentHash": "9369b69197e5d07e0c56679f9fc346f3539f58537c17f4e804a44612f086dc73",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    ".pi/skills/caveman/SKILL.md": {
+      "filePath": ".pi/skills/caveman/SKILL.md",
+      "contentHash": "daf9cec496ebd039809d8236f99f17fa1b4beaadf8ce4e2d532d0da51d70afce",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 88,
+      "hasStructuralAnalysis": true
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "ca2c85f09ea10c5c84e66554eb4431f7fab87212b754ae73e944171c67b9edf1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 183,
+      "hasStructuralAnalysis": true
+    },
+    "CLAUDE.md": {
+      "filePath": "CLAUDE.md",
+      "contentHash": "ca2c85f09ea10c5c84e66554eb4431f7fab87212b754ae73e944171c67b9edf1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 183,
+      "hasStructuralAnalysis": true
+    },
+    "hermes-skills/create-skill/SKILL.md": {
+      "filePath": "hermes-skills/create-skill/SKILL.md",
+      "contentHash": "90ca4ffbb10b590bb492a41b0e3560acc88c8b24319142928eab7376c6507bb5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "hermes-skills/save-doc/SKILL.md": {
+      "filePath": "hermes-skills/save-doc/SKILL.md",
+      "contentHash": "ffe166bbc9ad6d8bc7b07d8aab4b0273ccd9134d6b1cbd834a23116290d2c484",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "install-others.sh": {
+      "filePath": "install-others.sh",
+      "contentHash": "1e849d88d8399c7c86ae69f3ddae56bae2db38a433e0a26975e5afe2345cf945",
+      "functions": [
+        {
+          "name": "cleanup",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "hide_cursor",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "show_cursor",
+          "params": [],
+          "exported": false,
+          "lineCount": 1
+        },
+        {
+          "name": "draw_menu",
+          "params": [],
+          "exported": false,
+          "lineCount": 33
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 169,
+      "hasStructuralAnalysis": true
+    },
+    "install.sh": {
+      "filePath": "install.sh",
+      "contentHash": "6e26aed2c831ff6a84d244c3ab8041fec15983fb95aef329451e62df581eb370",
+      "functions": [
+        {
+          "name": "cleanup",
+          "params": [],
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "select_menu",
+          "params": [],
+          "exported": false,
+          "lineCount": 77
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 244,
+      "hasStructuralAnalysis": true
+    },
+    "note-to-wiki/SKILL.md": {
+      "filePath": "note-to-wiki/SKILL.md",
+      "contentHash": "6985d12eaca56eff455e3ce521bffab0f2a644eb31ca65bf665352dcbdfa5651",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 26,
+      "hasStructuralAnalysis": true
+    },
+    "one-agents.md": {
+      "filePath": "one-agents.md",
+      "contentHash": "662d537b38914135295e910670082691ed0b7ae5ba064c8faf3b379a47c12471",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "one-build-blueprint/BLUEPRINT-TEMPLATE.md": {
+      "filePath": "one-build-blueprint/BLUEPRINT-TEMPLATE.md",
+      "contentHash": "3eec05f4b72aa52efb5634779f2d11ca03b1aa17361bba92ac09333eb3d413dc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "one-build-blueprint/SKILL.md": {
+      "filePath": "one-build-blueprint/SKILL.md",
+      "contentHash": "c9d6299f1efac940d4734d354bf03e5b4ee26bbdb5414208e1913b64d9c461c6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 62,
+      "hasStructuralAnalysis": true
+    },
+    "one-build-drawio/SKILL.md": {
+      "filePath": "one-build-drawio/SKILL.md",
+      "contentHash": "b6ac53fd6ed1074c2dcd252a5767ad2ba53b9aad2efb131c70537b1cccdfbfae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 32,
+      "hasStructuralAnalysis": true
+    },
+    "one-build-mermaid/GRAPH-TEMPLATE.md": {
+      "filePath": "one-build-mermaid/GRAPH-TEMPLATE.md",
+      "contentHash": "7036a33a0306499c03b7250a6ec8b79dddbf563bb8ebc54a6bb05e6840abca94",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 132,
+      "hasStructuralAnalysis": true
+    },
+    "one-build-mermaid/SKILL.md": {
+      "filePath": "one-build-mermaid/SKILL.md",
+      "contentHash": "32f3d8df35a8dfb2fdac64973b6ad74b8f1c9c4e4b23a82ae1c6548671c9d9d6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-map/MAP-TEMPLATE.md": {
+      "filePath": "one-code-map/MAP-TEMPLATE.md",
+      "contentHash": "94d8e9e260456cd9f8a0f550baa19574c1b86ed1819139ac039c536ed8b0c74a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-map/SKILL.md": {
+      "filePath": "one-code-map/SKILL.md",
+      "contentHash": "db30b9651cbf79cebbffbbecf10c4ba9f8d67ee6a3c3a24aad271295c865bfa8",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/SKILL.md": {
+      "filePath": "one-code-wiki-cn/SKILL.md",
+      "contentHash": "acd68b49769ff99a4ff8fb9d0b5bfa0735b178c2da406c713eae35665ae8d27d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/WIKI-TEMPLATE.md": {
+      "filePath": "one-code-wiki-cn/WIKI-TEMPLATE.md",
+      "contentHash": "21aa0e6e75e8ef287ab10b6325f63c4692a27e7f5e58231d5984b0b26525181d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/references/common.md": {
+      "filePath": "one-code-wiki-cn/references/common.md",
+      "contentHash": "a395dc774680e17a31546534466022d0ef368ea1846f39722fc21086fd79f5ef",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 74,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/references/ingest.md": {
+      "filePath": "one-code-wiki-cn/references/ingest.md",
+      "contentHash": "37d1c739489e47e338ef86c767b9c4dd74293d137f48843ab86e525be30cf068",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/references/lint.md": {
+      "filePath": "one-code-wiki-cn/references/lint.md",
+      "contentHash": "ab71fef2c69bf4ce7191592c7ccc84d7c5e9b7c5712826da5a810c51d70e4123",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki-cn/references/query.md": {
+      "filePath": "one-code-wiki-cn/references/query.md",
+      "contentHash": "961062e442827be11fcd6ee5afcbe2b6657a9cbd5caa495e4e1122f34fffdd4c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/SKILL.md": {
+      "filePath": "one-code-wiki/SKILL.md",
+      "contentHash": "a4e66809dc816c0806fa2a65d487f7b8347e009c544d1d62106f442a3f10897a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/WIKI-TEMPLATE.md": {
+      "filePath": "one-code-wiki/WIKI-TEMPLATE.md",
+      "contentHash": "792d9bd25bb1265b6e5201b26d028a1b19e1063dabe83123efb1ace2cac72d47",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 52,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/references/common.md": {
+      "filePath": "one-code-wiki/references/common.md",
+      "contentHash": "54618ed0fcd712ba3a08d2c1a46e885b08ecbed6cdd40de1feb450086ad32356",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/references/ingest.md": {
+      "filePath": "one-code-wiki/references/ingest.md",
+      "contentHash": "d10e105488c4c60a954557cc2f967c9fece9d8ae5a2c649a6b923ea0788598b4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 45,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/references/lint.md": {
+      "filePath": "one-code-wiki/references/lint.md",
+      "contentHash": "ae5b4949086f1f51e68810457348806d1d201436f66079b12d2d0bd4b4de267b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "one-code-wiki/references/query.md": {
+      "filePath": "one-code-wiki/references/query.md",
+      "contentHash": "e85aef20034b07c44ca9c13d130d150874ef180132b077beda05e6d69288573e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "one-grill-with-docs-prd/PRD-TEMPLATE.md": {
+      "filePath": "one-grill-with-docs-prd/PRD-TEMPLATE.md",
+      "contentHash": "d42ae5b293308b6dede3bb473e6e5d2d49fde60ac00ebad26cb9bee4053821fb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 36,
+      "hasStructuralAnalysis": true
+    },
+    "one-grill-with-docs-prd/SKILL.md": {
+      "filePath": "one-grill-with-docs-prd/SKILL.md",
+      "contentHash": "55ca7d99fca5c8a6f3f744f5f69882ae5b9953012bd2bfbca1e3db82faaf080f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "one-handoff/SKILL.md": {
+      "filePath": "one-handoff/SKILL.md",
+      "contentHash": "5a933e92168ae1203f1cb5c5518701fcc694c37c2ed6b8c65826b737c2519696",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
+      "hasStructuralAnalysis": true
+    },
+    "one-implement/SKILL.md": {
+      "filePath": "one-implement/SKILL.md",
+      "contentHash": "6fdaf3fcad352d3e570cab22886793f757acc2136aa1f30d09842de7e3560583",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 166,
+      "hasStructuralAnalysis": true
+    },
+    "one-llmwiki-skill/SKILL.md": {
+      "filePath": "one-llmwiki-skill/SKILL.md",
+      "contentHash": "70415305c7e2b7f4a620633077896d617d12652c53c1acac363ceffb60b378f6",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 184,
+      "hasStructuralAnalysis": true
+    },
+    "one-llmwiki-skill/references/okf-template.md": {
+      "filePath": "one-llmwiki-skill/references/okf-template.md",
+      "contentHash": "60240ece43f56abcb1ea7a4f3eb928e92969c9bd1a4d6b10cb6423924aecea50",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 66,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/SKILL.md": {
+      "filePath": "one-md-wiki-cn/SKILL.md",
+      "contentHash": "5265d12e8ea8e6c294082ab2a51ab8ef445c7e7290f479d6ea8ff3aa0893660d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/WIKI-TEMPLATE.md": {
+      "filePath": "one-md-wiki-cn/WIKI-TEMPLATE.md",
+      "contentHash": "738d92abcfeef681529ef12fa76933369804bb70b288ee831e5496c2bf8e8b12",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/references/common.md": {
+      "filePath": "one-md-wiki-cn/references/common.md",
+      "contentHash": "1493a7fb65838df20a9d64ebc9bd97e96969bb558c8027acf7bbc4b60fdb52f4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/references/ingest.md": {
+      "filePath": "one-md-wiki-cn/references/ingest.md",
+      "contentHash": "efe53fbb6c59b95c15bf2c974ea852ac0d7f73b4f2031f3f4445412bffcbca1f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 109,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/references/lint.md": {
+      "filePath": "one-md-wiki-cn/references/lint.md",
+      "contentHash": "def60bb3777e70bb956038eb798fef3fdfe4af6ee20b4bca09cf9a837bfa9895",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki-cn/references/query.md": {
+      "filePath": "one-md-wiki-cn/references/query.md",
+      "contentHash": "05897295899f8f4881a894807f11cafccc3502476ca98406a6ed8c43c421c03b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki/SKILL.md": {
+      "filePath": "one-md-wiki/SKILL.md",
+      "contentHash": "9528c3eba3cf3e992372fc8e5733974381b520b11083961beaf0ce529c7c0984",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 21,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki/references/common.md": {
+      "filePath": "one-md-wiki/references/common.md",
+      "contentHash": "70beaa6613b087513ddf200b9e191cffbc8a402e897ec47345fabc82b4c176d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki/references/ingest.md": {
+      "filePath": "one-md-wiki/references/ingest.md",
+      "contentHash": "892c31a5de3d9a6dbf6141243d36f7e82e4583f3a5af353ef5157feff036d09c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 106,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki/references/lint.md": {
+      "filePath": "one-md-wiki/references/lint.md",
+      "contentHash": "8c99be34bd4b135fd034615f399543a322cb79ec514f66b089ce8b585e7ce73d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 22,
+      "hasStructuralAnalysis": true
+    },
+    "one-md-wiki/references/query.md": {
+      "filePath": "one-md-wiki/references/query.md",
+      "contentHash": "31bf7788508b67478e1535ac926e89a7544666f5fd7d00aa4a9207ba50345550",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 13,
+      "hasStructuralAnalysis": true
+    },
+    "one-python-structure/SKILL.md": {
+      "filePath": "one-python-structure/SKILL.md",
+      "contentHash": "39c873cf98d5644852b229546784603236c0395c101610b32036840d6846d901",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 35,
+      "hasStructuralAnalysis": true
+    },
+    "one-refactor-implement-cp/SKILL.md": {
+      "filePath": "one-refactor-implement-cp/SKILL.md",
+      "contentHash": "364254466f453b210bf297b51c8ab2e4d3a380b233e8617ebba15b9860f8f716",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "one-refactor-implement/SKILL.md": {
+      "filePath": "one-refactor-implement/SKILL.md",
+      "contentHash": "ad489df29d33075a614a5f0dd78f393dd0f6f29e68a27884898c54dd8b806386",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "one-simplifying/SKILL.md": {
+      "filePath": "one-simplifying/SKILL.md",
+      "contentHash": "b243a60e87bfa8284dc01a8e7e7013b3013fa66934e54e80bd2527bee7d3b7b5",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 61,
+      "hasStructuralAnalysis": true
+    },
+    "one-summarize-chat/SKILL.md": {
+      "filePath": "one-summarize-chat/SKILL.md",
+      "contentHash": "42fdcdf3f17fb11944955d39ac190613f55ccc7e8819b9aa702bad5fb0334bc4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "one-wsl-chrome/SKILL.md": {
+      "filePath": "one-wsl-chrome/SKILL.md",
+      "contentHash": "e3bb332126c17210f8bc05b256092f8453cde0534573963b864344ca42f5644e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 116,
+      "hasStructuralAnalysis": true
+    },
+    "one-wsl-chrome/scripts/chrome_pool.py": {
+      "filePath": "one-wsl-chrome/scripts/chrome_pool.py",
+      "contentHash": "f23e11fa058cf72786fce9bfdf67156a10fd25a75e6e73f9e552ab12a042c2a3",
+      "functions": [],
+      "classes": [
+        {
+          "name": "ChromePool",
+          "methods": [
+            "__init__",
+            "start",
+            "cleanup",
+            "_ensure_dir",
+            "_launch_chrome",
+            "_get_ws_url",
+            "_wait_for_port"
+          ],
+          "properties": [],
+          "exported": true,
+          "lineCount": 118
+        }
+      ],
+      "imports": [
+        {
+          "source": "asyncio",
+          "specifiers": [
+            "asyncio"
+          ]
+        },
+        {
+          "source": "subprocess",
+          "specifiers": [
+            "subprocess"
+          ]
+        },
+        {
+          "source": "socket",
+          "specifiers": [
+            "socket"
+          ]
+        },
+        {
+          "source": "json",
+          "specifiers": [
+            "json"
+          ]
+        },
+        {
+          "source": "urllib.request",
+          "specifiers": [
+            "urllib.request"
+          ]
+        },
+        {
+          "source": "playwright.async_api",
+          "specifiers": [
+            "async_playwright",
+            "Browser",
+            "BrowserContext"
+          ]
+        }
+      ],
+      "exports": [
+        "ChromePool"
+      ],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/core/skill-installer.md": {
+      "filePath": "onewiki/core/skill-installer.md",
+      "contentHash": "1953f95ae68482d1aa2dc679426baa7b187f36f0cbbc4cb6d4723da40467dd38",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 60,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/index.md": {
+      "filePath": "onewiki/index.md",
+      "contentHash": "e3b8c814bdd25b8e79fd862e4c02b00f7ee16815f382b4cb1896ecd89287839c",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/integrations/wsl-chrome.md": {
+      "filePath": "onewiki/integrations/wsl-chrome.md",
+      "contentHash": "6b7f247429fa6983ec0958f8972cf5fc94ef8e7482fa01ff0e7d62931c0efac3",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 44,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/wiki-systems/code-wiki.md": {
+      "filePath": "onewiki/wiki-systems/code-wiki.md",
+      "contentHash": "8b78926a480183f62e0f618b01129bdd5f9af245dc7a481455d3c1e562169982",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 41,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/wiki-systems/llm-wiki.md": {
+      "filePath": "onewiki/wiki-systems/llm-wiki.md",
+      "contentHash": "c9b7280a46077c833621066c0a185b68aff3428b7da88a60dc9b4ef91841e10b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/wiki-systems/md-wiki.md": {
+      "filePath": "onewiki/wiki-systems/md-wiki.md",
+      "contentHash": "b91c9e49d32f87ea7b7217ec3b69ad9bc3f93bfd6f03895cbfee4045c1337938",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 30,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/workflows/design-planning-workflows.md": {
+      "filePath": "onewiki/workflows/design-planning-workflows.md",
+      "contentHash": "0c3517a942fc5ab942655b4f959cf28342dacf151fffe3e70410e0f29e20e918",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 42,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/workflows/implementation-workflows.md": {
+      "filePath": "onewiki/workflows/implementation-workflows.md",
+      "contentHash": "e4081a825fac801affcdc9ffd8b82621e332df620c9c4c9d437090a8b7507824",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 51,
+      "hasStructuralAnalysis": true
+    },
+    "onewiki/workflows/structure-visualization.md": {
+      "filePath": "onewiki/workflows/structure-visualization.md",
+      "contentHash": "82224ba9a0f8ee07d9a52957d0d8d19d4cdaa72845da13f9050945761cd6bc30",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 31,
+      "hasStructuralAnalysis": true
+    },
+    "skills-lock.json": {
+      "filePath": "skills-lock.json",
+      "contentHash": "d953c7d0f270cb722b10a6ed7c5059a9bc2f35f12c35c3f7f0fdc55ab17118c9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    "skills.drawio": {
+      "filePath": "skills.drawio",
+      "contentHash": "ea160988237059d12a4518d980172fad4b066222467068014e30a075a7035529",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 121,
+      "hasStructuralAnalysis": false
+    },
+    "user-say.md": {
+      "filePath": "user-say.md",
+      "contentHash": "89a604d048c2c8fc5bbb01d97dd912bec7e1893411e34d5b96a01603508ced87",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    }
+  }
+}
