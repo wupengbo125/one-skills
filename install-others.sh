@@ -14,6 +14,7 @@ ITEMS=(
   "初始化 RTK 到pi 全局"             "rtk init -g --agent pi"
   "understande anything skill"           "curl -fsSL https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/install.sh | bash"
   "把 understande anything skill 从 .gemini 移动到 skill 文件夹下"            "cp -r ~/.agents/skills/und* ./.agents/skills"
+  "graphify to antigravity"         "graphify antigravity install"
 )
 
 NAMES=()

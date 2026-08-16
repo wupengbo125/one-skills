@@ -6,6 +6,12 @@
       "sourceType": "github",
       "skillPath": "skills/caveman/SKILL.md",
       "computedHash": "59e1fe0d3eeb4189ee5c467efde567672e5cacb41f157c477a6152ca907d44ea"
+    },
+    "drawio-skill": {
+      "source": "Agents365-ai/365-skills",
+      "sourceType": "github",
+      "skillPath": "plugins/drawio/skills/drawio-skill/SKILL.md",
+      "computedHash": "0cc2f76bafe46796691efba4ece4e1efefd328d7e6502a08faae10377aac596e"
     }
   }
 }
