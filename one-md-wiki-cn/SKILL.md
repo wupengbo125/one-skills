@@ -2,7 +2,6 @@
 name: one-md-wiki-cn
 description: "Use when: 摄入 Markdown 到个人 Wiki、查询个人 Wiki、检查 Wiki 质量 (中文版)。"
 argument-hint: "ingest | query | lint, 以及可选输出语言或问题"
-disable-model-invocation: true
 ---
 
 # Markdown Wiki (中文版)
