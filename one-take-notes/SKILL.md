@@ -1,9 +1,9 @@
 ---
-name: save-doc
-description: 当用户输入 "记笔记"，"保存到知识库"，"知识库"，或要求保存文档/资料时触发，将信息、网页或文档内容保存到 wiki 目录
+name: one-take-notes
+description: 记笔记、记知识、存笔记、存资料、保存到知识库、保存到wiki、归档文档，或输入“take notes”等任何记录/保存内容到知识库时触发
 ---
 
-# Save Doc
+# Take Notes
 
 本 Skill 负责将用户提供的信息、文字、聊天记录，代码段或文档资料保存至 `$one_llmwiki_dir/raw/` 目录下。
 
