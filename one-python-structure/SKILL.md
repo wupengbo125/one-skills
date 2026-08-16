@@ -25,7 +25,7 @@ disable-model-invocation: true
 
 ## 流程
 
-1. **前置实施准则**：调用 `/one-minimal-implement`，在整个项目构建过程中贯彻极简代码与 0->1 精准交付规范。
+1. **前置实施准则**：调用 `/one-implement`，在整个项目构建过程中贯彻极简代码与 0->1 精准交付规范。
 2. **结构初始化**：在目标路径下创建项目文件夹，建立标准三件套：`<script.py>`、`config.yaml`、全小写 `readme.md`。
 3. **构建 YAML 配置**：编写 `config.yaml`，将核心运行参数与默认值结构化写入。
 4. **实现脚本逻辑**：编写 `<script.py>`，核心逻辑由 `config.yaml` 驱动，同时暴露 `--config` 参数接口。
