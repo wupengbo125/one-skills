@@ -1,25 +1,36 @@
 ---
 name: one-take-notes
-description: 记笔记、记知识、存笔记、存资料、保存到知识库、保存到wiki、归档文档，或输入“take notes”等任何记录/保存内容到知识库时触发
+description: 记笔记、存资料、qqq、Qqq、记录到Wiki/知识库，或输入“take notes”时触发。将内容直接存入 $one_llmwiki_dir/raw/ 并同步 Git
 ---
 
-# Take Notes
+# Take Notes (Note to Wiki)
 
-本 Skill 负责将用户提供的信息、文字、聊天记录，代码段或文档资料保存至 `$one_llmwiki_dir/raw/` 目录下。
+本 Skill 负责将用户提供的信息、文字、口述、代码段或文档资料直接记录并保存至个人 Wiki 的 `$one_llmwiki_dir/raw/` 目录下，并自动执行 Git 提交与推送。
 
 ## 运行规则与步骤
 
-1. **确定目标目录**：
-   - 优先使用环境变量 `$one_llmwiki_dir` 的值，保存目录为 `$one_llmwiki_dir/raw`。
-   - 若变量未设置，使用默认路径 `~/onespace/github/one-llmwiki/raw`。
+1. **前置拉取**：
+   - 进入 `$one_llmwiki_dir` 目录执行 `git pull`，确保本地为最新状态。
 
-2. **文件命名规则**：
-   - 格式：`YYYY-MM-DD-<简短描述/主题>.md`（或相应扩展名）。
+2. **确定文件名**：
+   - 取当前日期 `YYYY-MM-DD`。
+   - 文件路径：`$one_llmwiki_dir/raw/YYYY-MM-DD-<简短slug>.md`。
    - 文件名全小写，空格替换为连字符 `-`。
 
 3. **保存与写入**：
    - 若目标目录不存在，先创建目录。
-   - 将用户提供的内容写入文件，保留 Markdown 格式及关键上下文信息（如来源 URL、添加时间等元数据）。
+   - 将用户提供的内容写入文件。文件内容只需标题 + 用户原文/上下文，保持简洁。
 
-4. **确认反馈**：
-   - 保存完成后，输出保存的文件路径及简短总结。
+4. **Git 提交与推送**：
+   - 执行 `git add -A && git commit -m "note: <简短描述>" && git push`。
+
+5. **确认反馈**：
+   - 告诉用户已完成，并反馈文件路径及简要说明。
+
+## 约束
+
+- **不要**创建分类子目录（直接写入 `raw/` 根层级）。
+- **不要**创建 summary / concept / entity 页面。
+- **不要**更新 index.md。
+- **不要**加复杂的 frontmatter。
+- 只做一件事：写文件到 raw/ 并提交推送。
