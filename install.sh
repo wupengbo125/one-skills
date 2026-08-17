@@ -139,6 +139,9 @@ if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
     skill_paths+=("$SCRIPT_DIR/one-agents.md")
 fi
 
+skill_names+=("[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)")
+skill_paths+=("SPECIAL_GITIGNORE_AGENTS")
+
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
         bname="$(basename "$d")"
@@ -201,6 +204,30 @@ for idx in "${SELECTED_INDICES[@]}"; do
                     rm -f "$t"
                 done
                 echo "已从用户全局卸载 AGENTS 规则"
+                ;;
+        esac
+    elif [ "$src" == "SPECIAL_GITIGNORE_AGENTS" ]; then
+        case "$dest_idx" in
+            0) # 安装到当前项目
+                for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
+                    if [ -f "./.gitignore" ]; then
+                        grep -qF "$ig" "./.gitignore" || echo "$ig" >> "./.gitignore"
+                    else
+                        echo "$ig" >> "./.gitignore"
+                    fi
+                done
+                echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
+                ;;
+            1) # 卸载自当前项目
+                if [ -f "./.gitignore" ]; then
+                    for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
+                        sed -i "/^$ig/d" "./.gitignore"
+                    done
+                    echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
+                fi
+                ;;
+            2|3) # 用户全局
+                echo "全局操作跳过项目级 .gitignore"
                 ;;
         esac
     else
