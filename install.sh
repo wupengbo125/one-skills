@@ -177,8 +177,20 @@ USER_GLOBAL_RULES=("$HOME/.claude/CLAUDE.md" "$HOME/.gemini/GEMINI.md" "$HOME/.g
 
 processed=0
 
+# 收集特殊项和常规 skills
+special_indices=()
+skill_indices=()
 for idx in "${SELECTED_INDICES[@]}"; do
-    name="${skill_names[idx]}"
+    src="${skill_paths[idx]}"
+    if [ "$src" == "$SCRIPT_DIR/one-agents.md" ] || [ "$src" == "SPECIAL_GITIGNORE_AGENTS" ]; then
+        special_indices+=("$idx")
+    else
+        skill_indices+=("$idx")
+    fi
+done
+
+# 先处理特殊项（逐个）
+for idx in "${special_indices[@]}"; do
     src="${skill_paths[idx]}"
 
     if [ "$src" == "$SCRIPT_DIR/one-agents.md" ]; then
@@ -206,6 +218,7 @@ for idx in "${SELECTED_INDICES[@]}"; do
                 echo "已从用户全局卸载 AGENTS 规则"
                 ;;
         esac
+        processed=$((processed + 1))
     elif [ "$src" == "SPECIAL_GITIGNORE_AGENTS" ]; then
         case "$dest_idx" in
             0) # 安装到当前项目
@@ -230,35 +243,46 @@ for idx in "${SELECTED_INDICES[@]}"; do
                 echo "全局操作跳过项目级 .gitignore"
                 ;;
         esac
-    else
-        case "$dest_idx" in
-            0) # 安装到当前项目
-                mkdir -p "./.agents/skills/$name"
-                cp -rf "$src"/* "./.agents/skills/$name/"
-                echo "已安装到当前项目: $name"
-                ;;
-            1) # 卸载自当前项目
-                rm -rf "./.agents/skills/$name"
-                echo "已从当前项目卸载: $name"
-                ;;
-            2) # 安装到用户全局
-                for g in "${USER_GLOBAL_DIRS[@]}"; do
-                    mkdir -p "$g/$name"
-                    cp -rf "$src"/* "$g/$name/"
-                done
-                echo "已安装到用户全局: $name"
-                ;;
-            3) # 卸载自用户全局
-                for g in "${USER_GLOBAL_DIRS[@]}"; do
-                    rm -rf "$g/$name"
-                done
-                echo "已从用户全局卸载: $name"
-                ;;
-        esac
+        processed=$((processed + 1))
     fi
-
-    processed=$((processed + 1))
 done
+
+# 再整体处理常规 skills
+if [ ${#skill_indices[@]} -gt 0 ]; then
+    case "$dest_idx" in
+        0) # 安装到当前项目 - 整体复制
+            mkdir -p "./.agents/skills"
+            for idx in "${skill_indices[@]}"; do
+                cp -rf "${skill_paths[idx]}" "./.agents/skills/"
+            done
+            echo "已整体安装到当前项目: ${#skill_indices[@]} 个 skills"
+            ;;
+        1) # 卸载自当前项目 - 整体删除
+            for idx in "${skill_indices[@]}"; do
+                rm -rf "./.agents/skills/${skill_names[idx]}"
+            done
+            echo "已从当前项目整体卸载: ${#skill_indices[@]} 个 skills"
+            ;;
+        2) # 安装到用户全局 - 整体复制
+            for g in "${USER_GLOBAL_DIRS[@]}"; do
+                mkdir -p "$g"
+                for idx in "${skill_indices[@]}"; do
+                    cp -rf "${skill_paths[idx]}" "$g/"
+                done
+            done
+            echo "已整体安装到用户全局: ${#skill_indices[@]} 个 skills"
+            ;;
+        3) # 卸载自用户全局 - 整体删除
+            for g in "${USER_GLOBAL_DIRS[@]}"; do
+                for idx in "${skill_indices[@]}"; do
+                    rm -rf "$g/${skill_names[idx]}"
+                done
+            done
+            echo "已从用户全局整体卸载: ${#skill_indices[@]} 个 skills"
+            ;;
+    esac
+    processed=$((processed + ${#skill_indices[@]}))
+fi
 
 if [ "$dest_idx" -eq 0 ] && [ "$processed" -gt 0 ]; then
     if [ ! -f "./user-say.md" ]; then
