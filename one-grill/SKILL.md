@@ -1,5 +1,5 @@
 ---
-name: one-gril
+name: one-grill
 description: Use when user say "讨论需求" or "grill" or "prd".
 ---
 

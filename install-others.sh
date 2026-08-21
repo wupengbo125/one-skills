@@ -39,8 +39,8 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-hide_cursor() { printf '\033[?25l'; }
-show_cursor() { printf '\033[?25h'; }
+hide_cursor() { tput civis 2>/dev/null || printf '\033[?25l'; }
+show_cursor() { tput cnorm 2>/dev/null || printf '\033[?25h'; }
 
 LINES=$(( COUNT + 3 ))
 

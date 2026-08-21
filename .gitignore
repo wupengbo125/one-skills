@@ -1,2 +1,6 @@
 # Ignore skills in .agent directory
 .agents
+.agents/
+.claude/
+.ua/
+.pi/
