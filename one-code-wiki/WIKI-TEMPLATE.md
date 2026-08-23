@@ -1,51 +1,51 @@
 ---
 type: concept
-title: <page title>
-description: <one or two retrieval-oriented sentences>
-resource: <optional canonical URI>
-tags: [<optional English tags>]
-timestamp: <optional ISO 8601 datetime>
+title: <页面标题>
+description: <一到两句面向检索的描述>
+resource: <可选规范 URI>
+tags: [<可选英文标签>]
+timestamp: <可选 ISO 8601 日期时间>
 ---
 
-# <page title>
+# <页面标题>
 
-> <summary overview and scope boundaries>
-
----
-
-## Core responsibilities and source locations
-
-- **Core responsibilities**: <brief description of component/feature role>
-- **Primary sources**: [<filename>](file://<absolute path>)
-- **Key symbols/APIs**: `<class/function/symbol>`
+> <概要说明与责任边界>
 
 ---
 
-## Runtime flow and relationships
+## 核心职责与源码定位
+
+- **核心职责**：<简述该模块/功能的定位与职责>
+- **主要源码**：[<文件名>](file://<绝对路径>)
+- **关键符号/API**：`<类名/函数名/符号>`
+
+---
+
+## 运行时流向与关系
 
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as Caller
-    participant Core as Core Component
-    participant Service as Dependent Service
+    actor User as 调用方
+    participant Core as 核心组件
+    participant Service as 依赖服务
 
-    User->>Core: Request
-    Core->>Service: Processing
-    Service-->>Core: Response
-    Core-->>User: Output
+    User->>Core: 发起请求
+    Core->>Service: 处理逻辑
+    Service-->>Core: 返回结果
+    Core-->>User: 响应输出
 ```
 
 ---
 
-## Invariants and error handling
+## 不变式与异常处理
 
-- **Core Invariants**: <rules and state constraints that must hold true>
-- **Failures and retries**: <error paths, cleanup logic, and retry strategies>
+- **核心 Invariants**：<必须保证成立的规则与状态约束>
+- **失败与重试**：<异常路径、清理逻辑与重试策略>
 
 ---
 
-## Test coverage and verification
+## 测试覆盖与验证
 
-- **Test coverage**: [<test file>](file://<absolute path>)
-- **Verification command**: `<test or build command>`
+- **覆盖测试**：[<测试文件名>](file://<绝对路径>)
+- **验证命令**：`<测试或构建命令>`

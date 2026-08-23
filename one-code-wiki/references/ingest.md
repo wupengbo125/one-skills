@@ -1,44 +1,44 @@
-# Ingest the code Wiki
+# ingest 代码 Wiki
 
-Maintain the source-grounded Code Wiki under `onewiki/`. Select the internal path from the current Wiki state.
+维护位于 `onewiki/` 目录下基于真实源码的代码库 Wiki。根据当前 Wiki 状态选择内部路径。
 
-## Bootstrap path
+## Bootstrap 路径 (首次初始化)
 
-Use this path when `onewiki/` has no substantive canonical Wiki content.
+当 `onewiki/` 尚无实质性 Wiki 内容时使用此路径。
 
-1. Inspect repository and workspace manifests, applications, services, packages, runtime entrypoints, public APIs, schemas, persistence, queues, caches, operational configuration, deployment definitions, generated contracts, and representative tests.
-2. Identify major domains and cross-system workflows. Follow imports, symbols, runtime calls, shared data, and tests across directory boundaries.
-3. For every substantial area, inspect representative implementation symbols, at least one important caller or consumer, and focused tests covering normal behavior, invariants, and failure paths.
-4. Look for registration and export chains, authentication and authorization boundaries, configuration precedence, retries, partial failure, concurrency, cleanup, background jobs, migrations, and operational workflows when present.
-5. Inspect existing `onewiki/` pages and preserve useful accurate material.
-6. Build an internal repository inventory before drafting. For every substantial component and workflow, record its responsibility, entrypoints, dependencies, consumers, state, contracts, invariants, tests, operational evidence, and canonical wiki page or explicit evidence-blocked disposition.
-7. Rank documentation areas by runtime importance, dependency centrality, public surface, operational risk, and test ownership. Do not use page count or source directory count as the target.
-8. Create `onewiki/index.md` with a high-level overview and links to every major Wiki area, then write the planned substantive pages.
-9. Explain cross-cutting behavior and cross-system flows explicitly. Add source paths, symbols, semantic links, and grounded diagrams where they materially improve change navigation.
-10. Maintain affected section indexes and the root index.
-11. Reconcile the final wiki tree against the inventory. Give every substantial service, package, API family, domain, workflow, boundary, invariant, extension surface, operational concern, and focused test an adequate canonical home or explicit evidence gap.
+1. 检查仓库和工作区 Manifests、应用、服务、包、运行时入口点、公共 API、Schema、持久化、队列、缓存、运维配置、部署定义、生成的契约以及代表性测试。
+2. 识别主要领域和跨系统工作流。跨越目录边界追踪导入、符号、运行时调用、共享数据和测试。
+3. 对于每个实质性区域，检查代表性实现符号、重要调用方或消费者，以及覆盖正常行为、invariants 和失败路径的聚焦测试。
+4. 查找注册和导出链、身份验证与授权边界、配置优先级、重试、部分失败、并发、清理、后台作业、迁移和运维工作流（如果存在）。
+5. 检查现有的 `onewiki/` 页面并保留有用的准确材料。
+6. 在起草前构建内部仓库盘点表。记录职责、入口点、依赖项、消费者、状态、契约、invariants、测试、运维证据与规范 Wiki 页面。
+7. 按运行时重要性、依赖中心性、公共表面、运维风险和测试所有权对文档区域进行排序。
+8. 创建带有高级概述以及指向每个主要 Wiki 区域链接的 `onewiki/index.md`，然后参考 `WIKI-TEMPLATE.md` 编写计划好的实质性页面。
+9. 显式解释横切行为和跨系统流。添加源码路径、符号、语义链接和建立了事实基础的 Mermaid 图表。
+10. 维护受影响的章节索引和根索引。
+11. 将最终的 Wiki 树与盘点表进行对齐。为每个实质性服务、包、API 家族、领域、工作流、边界、invariant、扩展表面、运维关注点和聚焦测试提供适当的规范归宿或显式证据缺口。
 
-## Incremental path
+## Incremental 路径 (增量更新)
 
-Use this path when `onewiki/` already contains substantive canonical Wiki content.
+当 `onewiki/` 已包含实质性 Wiki 内容时使用此路径。
 
-1. Read `onewiki/index.md` and existing pages relevant to the request.
-2. Determine the exact source change set using Git Commit tracking (`last_ingest_commit`):
-   - Obtain `last_ingest_commit` SHA recorded in `onewiki/index.md` frontmatter (or via `git log -n 1 --format="%H" -- onewiki/`).
-   - Run `git diff --name-only <last_ingest_commit> HEAD` to get all committed changes since the last ingest.
-   - Run `git status -s` and `git diff --name-only` to get uncommitted working directory changes.
-   - Combine these paths into the target change set. For modified files, inspect `git diff -- <file>` to read only exact changed lines.
-   - Form the target change set. Only inspect changed files/diffs and their 1-hop dependencies; avoid broad scans of unchanged files.
-3. Inspect changed manifests, entrypoints, public surfaces, schemas, configuration, implementations, callers, consumers, and focused tests.
-4. Trace one hop beyond directly changed files to find affected dependencies, workflows, state ownership, contracts, failure paths, operations, and diagrams.
-5. Rebuild the full repository inventory only when structural changes or obvious coverage gaps require it.
-6. Map every materially affected fact to its canonical page and section, including changed paths and symbols, affected behavior or relationship, related pages, indexes, links, tests, and diagrams.
-7. Update every affected canonical page while preserving unrelated accurate content. Remove or correct claims invalidated by current source evidence, create a page only for a substantial new area, and update affected relationships, indexes, and diagrams.
-8. If source changes add no durable documentation value and the Wiki is already accurate, update `last_ingest_commit` and report a no-op.
-9. Check one-hop dependencies and adjacent workflows revealed by the change without rewriting unrelated well-covered systems.
+1. 读取 `onewiki/index.md` 以及与请求相关的现有页面。
+2. 使用 Git 提交追踪（`last_ingest_commit`）确定精确的源码变更集：
+   - 获取 `onewiki/index.md` frontmatter 中记录的 `last_ingest_commit` SHA（或通过 `git log -n 1 --format="%H" -- onewiki/`）。
+   - 运行 `git diff --name-only <last_ingest_commit> HEAD` 以获取自上次 ingest 以来的所有已提交变更。
+   - 运行 `git status -s` 和 `git diff --name-only` 以获取未提交的工作区变更。
+   - 将这些路径合并为目标变更集。对于受修改的文件，检查 `git diff -- <file>` 以仅读取精确的修改行。
+   - 形成目标变更集。仅检查变更的文件/Diff 及其 1 跳依赖；避免对未变更文件进行大范围扫描。
+3. 检查变更的 Manifests、入口点、公共 API、Schema、配置、实现、调用方、消费者和聚焦测试。
+4. 沿着直接变更的文件追踪一跳之外的受影响依赖项、工作流、状态所有权、契约、失败路径、运维和图表。
+5. 仅当结构性变更或明显覆盖缺口需要时，才重新构建完整的仓库盘点表。
+6. 映射受影响的事实到规范页面和章节，包括变更的路径与符号。
+7. 更新受影响的规范页面（参考 `WIKI-TEMPLATE.md` 格式），同时保留无关的准确内容。删除或修正被当前源码证据作废的断言，仅为实质性新区域创建页面，并更新受影响的关系、索引和图表。
+8. 如果源码变更未添加持久文档价值且 Wiki 已经准确，更新 `last_ingest_commit` 并报告 No-op。
+9. 检查变更揭示的一跳依赖项和相邻工作流，而不重写无关且覆盖良好的系统。
 
-## Completion
+## Completion (完成与收尾)
 
-For either path, reconcile planned coverage with the final tree, perform a local `git commit` (never execute `git push`), record `last_ingest_commit: <current_commit_sha>` in `onewiki/index.md` frontmatter, and run the completion checks in `common.md`.
+无论哪条路径，完成写入后，执行本地 `git commit`（绝不自动执行 `git push`），在 `onewiki/index.md` frontmatter 中记录 `last_ingest_commit: <current_commit_sha>`，并运行 `common.md` 中的 completion 检查。
 
-Completion means a new engineer can navigate from intent to owning source, relationships, tests, and narrow validation without another broad repository scan.
+完成意味着新工程师无需再次进行大范围仓库扫描即可从意图导航到归属源码、关系、测试和精确验证。

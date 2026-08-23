@@ -19,7 +19,7 @@ last_ingest_commit: 64a03ddbc96df695f86f53d7a288bae3a560d61b
 ### 2. 三大 Wiki 知识库系统 (Wiki Systems)
 - [Code Wiki 源码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/code-wiki.md)：由 [`one-code-wiki`](file://$github_dir/one-skills/one-code-wiki/SKILL.md) 驱动，实现以源码和测试为凭据的轻量级、确定性代码库 Wiki 增量摄入与维护 (`ingest`, `query`, `lint`)。
 - [Markdown Wiki 个人文档库](file://$github_dir/one-skills/onewiki/wiki-systems/md-wiki.md)：由 [`one-md-wiki`](file://$github_dir/one-skills/one-md-wiki/SKILL.md) 驱动，聚焦个人通用 Markdown 知识库的结构化组织与一致性校验。
-- [LLM Wiki 纯 Prompt 无代码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md)：由 [`one-llmwiki-skill`](file://$github_dir/one-skills/one-llmwiki-skill/SKILL.md) 驱动，为 `$one_llmwiki_dir/` 提供纯 Prompt 的无代码编排巡检与检索问答体系。
+- [LLM Wiki 纯 Prompt 无代码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md)：由 [`one-wiki`](file://$github_dir/one-skills/one-wiki/SKILL.md) 驱动，为 `$one_llmwiki_dir/` 提供纯 Prompt 的无代码编排巡检与检索问答体系。
 
 ### 3. AI 开发与设计工作流 (Workflows)
 - [代码实现与精简工作流](file://$github_dir/one-skills/onewiki/workflows/implementation-workflows.md)：包含 [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md)、[`one-minimal-implement`](file://$github_dir/one-skills/one-minimal-implement/SKILL.md)、[`one-refactor-implement`](file://$github_dir/one-skills/one-refactor-implement/SKILL.md) 和 [`one-simplifying`](file://$github_dir/one-skills/one-simplifying/SKILL.md)，严格受暗号控制与至简原则驱动的代码修改闭环。
@@ -38,7 +38,7 @@ flowchart TD
     
     AgentsDir --> CodeWiki["one-code-wiki"]
     AgentsDir --> MDWiki["one-md-wiki"]
-    AgentsDir --> LLMWiki["one-llmwiki-skill"]
+    AgentsDir --> LLMWiki["one-wiki"]
     AgentsDir --> Impl["one-implement 系列"]
     AgentsDir --> Grill["one-grill-with-docs-prd 系列"]
     AgentsDir --> Vis["one-code-map & 图表系列"]

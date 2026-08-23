@@ -1,13 +1,16 @@
 ---
 name: one-code-wiki
-description: "Use when: 摄入代码仓库到 Wiki、查询代码 Wiki、检查并修复代码 Wiki 质量。"
-argument-hint: "ingest [Wiki brief] | query [问题] | lint"
+description: "Use when: ingest代码、查询代码 Wiki、lint wiki。"
+argument-hint: "ingest [Wiki 简要说明] | query [问题] | lint"
 disable-model-invocation: true
 ---
 
-# Code Wiki
+# Code Wiki (代码 Wiki 中文版)
 
-从显式参数或用户意图选择一个操作：摄入或维护代码 Wiki 使用 `ingest`，查询代码 Wiki 使用 `query`，健康检查使用 `lint`。无法判断时只询问操作。
+从显式参数或用户意图选择一个操作：ingest（摄入代码或维护代码）、query（查询代码 Wiki）、lint（检查 Wiki 质量）。无法判断时只询问操作。
+
+当前仓库为源码根目录，生成文档仅允许保存在 `onewiki/` 目录下。
+
 
 每次调用只读取以下两个文件：
 

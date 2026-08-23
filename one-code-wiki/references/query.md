@@ -1,12 +1,12 @@
-# Query the code Wiki
+# 查询 Code Wiki
 
-Answer engineering questions from the repository Wiki.
+从仓库 Wiki 中回答工程问题。
 
-1. Read `onewiki/index.md` and the smallest set of linked pages that can answer the question.
-2. Follow semantic links across related systems when the question crosses a runtime, data, ownership, security, or lifecycle boundary.
-3. Answer from Wiki evidence first. Preserve exact code identifiers, source paths, symbols, commands, and tests recorded there.
-4. If the Wiki is incomplete or contradictory, inspect only the narrow source and focused tests needed to resolve the question. Distinguish current source evidence from existing Wiki content and identify the documentation gap.
-5. State uncertainty and evidence limits instead of inventing behavior.
-6. Do not modify repository or Wiki files. If the answer reveals a durable documentation gap, recommend `ingest`.
+1. 读取 `onewiki/index.md` 以及能够回答该问题的最小链接页面集合。
+2. 当问题跨越运行时、数据、所有权、安全或生命周期边界时，沿着跨相关系统的语义链接进行追踪。
+3. 优先根据 Wiki 证据回答。保留其中记录的精确代码标识符、源码路径、符号、命令和测试。
+4. 如果 Wiki 不完整或存在矛盾，仅检查解决问题所需的狭窄源码和聚焦测试。将当前源码证据与现有 Wiki 内容区分开来，并识别文档缺口。
+5. 陈述不确定性和证据限制，而不是捏造行为。
+6. 不要修改仓库或 Wiki 文件。如果答案揭示了持久的文档缺口，推荐执行 `ingest`。
 
-Completion means the answer is direct, traceable, and useful for a concrete maintenance, debugging, or extension task.
+完成意味着答案是直接的、可追溯的，并且对具体的维护、调试或扩展任务有用。

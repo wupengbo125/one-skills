@@ -1,22 +1,22 @@
-# Lint the code Wiki
+# 巡检 Code Wiki 质量
 
-Health-check the Code Wiki under `onewiki/`. This is documentation maintenance, not source-code static analysis.
+对 `onewiki/` 目录下的 Code Wiki 进行健康检查。这是文档维护，而不是源码静态分析。
 
-## Audit
+## 审计 (Audit)
 
-1. Read `onewiki/index.md`, affected section indexes, and the canonical pages needed to assess Wiki consistency. Read narrow source and focused tests only to verify a concrete Wiki claim.
-2. Find contradictions, stale or unsupported claims, unresolved internal links and heading anchors, orphan pages, duplicate canonical explanations, inconsistent terminology or frontmatter, index drift, stale diagrams, and material coverage gaps.
-3. Distinguish confirmed defects from gaps that need unavailable evidence. For unavailable evidence, record the gap; do not invent a repair.
+1. 读取 `onewiki/index.md`、受影响的章节索引以及评估 Wiki 一致性所需的规范页面。仅检查狭窄的源码和聚焦测试以验证具体的 Wiki 断言。
+2. 查找矛盾、陈旧或不受支持的断言、未解析的内部链接和标题锚点、孤立页面、重复的规范解释、不一致的术语或 frontmatter、索引漂移、陈旧的图表以及实质性覆盖缺口。
+3. 将已确认的缺陷与需要不可用证据的缺口区分开来。对于不可用的证据，记录缺口；不要捏造修复。
 
-## Repair
+## 修复 (Repair)
 
-1. Repair confirmed defects only under `onewiki/`.
-2. Update every affected canonical page, semantic link, index, frontmatter block, and diagram together.
-3. Preserve unrelated accurate content and avoid formatting-only churn.
-4. If no confirmed defect exists, report a no-op and write nothing.
+1. 仅在 `onewiki/` 下修复已确认的缺陷。
+2. 一起更新每个受影响的规范页面、语义链接、索引、frontmatter 块和图表。
+3. 保留无关的准确内容并避免仅格式化的动荡。
+4. 如果不存在已确认的缺陷，报告No-op且不写入任何内容。
 
-## Completion
+## 完成 (Completion)
 
-Re-run the affected checks, resolve links, and run the completion checks in `common.md`.
+重新运行受影响的检查，解析链接，并运行 `common.md` 中的完成检查。
 
-Completion means every confirmed quality defect found in this run is repaired or reported as evidence-blocked.
+完成意味着本次运行中发现的每个确认质量缺陷均已修复或报告为证据受阻。
