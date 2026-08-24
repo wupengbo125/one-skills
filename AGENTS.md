@@ -36,8 +36,8 @@ ls -d one-context.md CONTEXT.md .agents/rules/*.md rules/*.md onewiki/index.md d
 
 根据上述命令的实际输出，**仅读取确认存在的文件**（严禁盲读不存在的文件）：
 
-- `one-context.md` - 用户指令与当前项目特殊规则
-- `CONTEXT.md` - **项目统一上下文**（替代旧的 BLUEPRINT.md 和 MAP.md）。包含项目是什么、主要部分在哪、设计原因、当前状态、怎么跑。优先读这个。
+- `one-context.md` - **项目全景总纲与上下文**。包含项目是什么、核心业务规则、代码结构地图、雷区避坑与运行指南（优先读这个）。
+- `CONTEXT.md` - **领域模型与术语词汇表**（DDD 统一语言与业务概念定义）。
 - `docs/adr/` - 架构决策记录
 - `.agents/rules/*.md` / `rules/*.md` - 项目特定 AI 行为规则（如 RTK 规则等）
 - `onewiki/index.md` - 项目 OpenWiki 知识库索引
