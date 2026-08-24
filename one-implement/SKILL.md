@@ -147,7 +147,7 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 * 创建或修改文档时，必须使用全小写文件名 readme.md，严禁使用 README.md。
 * 在文档中或者跟我聊的时候，要用uv run代替python
 * 如果要安装或者写skill，请在当前项目下写或安装，不要安装到用户级。
-* 每个子项目采用标准三件套结构(<script.py> + config.yaml + readme.md)，以 YAML 配置为核心驱动，同时保留并支持 CLI 参数供 AI 灵活调用。
+* 每个子项目采用标准三件套结构(<script.py> + 配置文件(.env或config.yaml) + readme.md)，扁平/API凭证类自适应选择 .env（直通系统环境变量），复杂结构选择 config.yaml，同时保留并支持 CLI 参数供 AI 灵活调用。
 * 禁止使用系统的tmp目录，如果要使tmp目录，在当前项目下创建，用完删除.
 * 修改宪法时，严禁直接改分发副本（如各项目 AGENTS.md / CLAUDE.md），宪法唯一源文件为 `$github_dir/one-skills/one-agents.md`，只改源文件。
 * 编写或修改 Skill 时，严禁直接去安装目标目录（如 `~/.gemini/config/skills/`、`./.agents/skills/`）修改，必须直接在源仓库 `$github_dir/one-skills/` 下修改。

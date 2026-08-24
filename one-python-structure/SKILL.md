@@ -1,6 +1,6 @@
 ---
 name: one-python-structure
-description: 创建标准的 Python 工具子项目。采用 YAML 配置驱动与三件套结构 (<script.py> + config.yaml + readme.md)。
+description: 创建标准的 Python 工具子项目。采用标准三件套结构 (<script.py> + 配置文件 + readme.md)，由 AI 根据参数复杂度自适应选择 .env 或 config.yaml。
 argument-hint: "子项目名称，以及要实现的 Python 功能描述"
 disable-model-invocation: true
 ---
@@ -12,23 +12,25 @@ disable-model-invocation: true
 ## 架构规范（标准三件套）
 
 每一个 Python 工具项目必须遵循以下三件套结构：
-1. **`<script.py>`**（脚本逻辑主程序）：核心逻辑代码。默认读取当前目录下的 `config.yaml`，同时必须支持通过 `--config` 参数指定其他配置文件路径（如 `--config custom.yaml`，未指定时自动回退为默认 `config.yaml`），且保留 CLI 参数覆盖能力。
-2. **`config.yaml`**（核心驱动配置）：默认配置文件，存放项目的所有运行参数、路径配置与默认值。
-3. **`readme.md`**（项目说明文档）：**文件名必须严格全小写 `readme.md`**（严禁使用 `README.md`）。记录项目定位、配置项说明与 `uv run` 运行指令。
+1. **`<script.py>`**（脚本逻辑主程序）：核心逻辑代码。支持通过 `--config` / `--env` 参数指定配置文件，且保留 CLI 参数覆盖能力。
+2. **配置文件**（自适应二选一）：
+   - **扁平/API凭证驱动型**：使用 **`.env`**，直接与系统环境变量互通（支持自动展开系统 `$VAR`），开箱即用。
+   - **结构化/多层嵌套型**（含列表、多角色、复杂字典）：使用 **`config.yaml`**。
+3. **`readme.md`**（极简项目说明文档）：**文件名必须严格全小写 `readme.md`**（严禁使用 `README.md`）。仅需记录极简定位与 `uv run` 运行指令，拒绝长篇大论与重复配置罗列。
 
 ## 核心开发准则
 
 - **包管理与运行**：优先使用 `uv`，运行与测试统一使用 `uv run <script.py>` 代替直接调用 `python`。
-- **配置驱动**：以 `config.yaml` 为核心驱动，代码默认读取 YAML 配置，并提供 CLI 参数重载。
+- **配置驱动**：扁平参数用 `.env`（直通系统环境变量），复杂层级用 `config.yaml`，并提供 CLI 参数重载。
 - **临时文件控制**：临时文件与目录必须在当前项目路径内部创建（如 `./.tmp/`），并在使用完毕后立即清理删除。
 - **代码至简**：拒绝兜底方案与投机性防御代码，用最少的代码精准解决问题。
 
 ## 流程
 
 1. **前置实施准则**：调用 `/one-implement`，在整个项目构建过程中贯彻极简代码与 0->1 精准交付规范。
-2. **结构初始化**：在目标路径下创建项目文件夹，建立标准三件套：`<script.py>`、`config.yaml`、全小写 `readme.md`。
-3. **构建 YAML 配置**：编写 `config.yaml`，将核心运行参数与默认值结构化写入。
-4. **实现脚本逻辑**：编写 `<script.py>`，核心逻辑由 `config.yaml` 驱动，同时暴露 `--config` 参数接口。
-5. **编写说明文档**：编写全小写 `readme.md`，记录配置说明与 `uv run <script.py>` 运行范例。
+2. **结构初始化**：在目标路径下创建项目文件夹，建立标准三件套：`<script.py>`、自适应配置文件（`.env` 或 `config.yaml`）、极简全小写 `readme.md`。
+3. **编写配置**：扁平/API 类编写 `.env`；复杂嵌套类编写 `config.yaml`。
+4. **实现脚本逻辑**：编写 `<script.py>`，核心逻辑由配置驱动，同时暴露 CLI 参数接口。
+5. **编写说明文档**：编写极简全小写 `readme.md`，记录 `uv run <script.py>` 运行范例。
 6. **验证运行**：
    - **完成标准**：运行 `uv run <script.py>` 成功执行并产生预期输出，三件套文件均已就绪且格式符合规范。

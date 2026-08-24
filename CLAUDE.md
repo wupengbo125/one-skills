@@ -8,6 +8,7 @@
 - 如果你发现我用的是Windows，但请注意：我会在git bash下运行你，你也用git bash 命令干活，写sh而非ps或bat或cmd。
 
 - 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
+- Skill 源码库在: ~/onespace/github/one-skills，创建或修改 Skill 均在此处操作
 
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
@@ -30,12 +31,12 @@
 在开始分析或编码前，先执行以下一行命令快速盘点当前项目实际存在的导航文件：
 
 ```bash
-ls -d user-say.md CONTEXT.md .agents/rules/*.md rules/*.md onewiki/index.md docs/adr docs/prd 2>/dev/null
+ls -d ai-guide.md CONTEXT.md .agents/rules/*.md rules/*.md onewiki/index.md docs/adr docs/prd 2>/dev/null
 ```
 
 根据上述命令的实际输出，**仅读取确认存在的文件**（严禁盲读不存在的文件）：
 
-- `user-say.md` - 用户指令与当前项目特殊规则
+- `ai-guide.md` - 用户指令与当前项目特殊规则
 - `CONTEXT.md` - **项目统一上下文**（替代旧的 BLUEPRINT.md 和 MAP.md）。包含项目是什么、主要部分在哪、设计原因、当前状态、怎么跑。优先读这个。
 - `docs/adr/` - 架构决策记录
 - `.agents/rules/*.md` / `rules/*.md` - 项目特定 AI 行为规则（如 RTK 规则等）
