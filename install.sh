@@ -196,7 +196,7 @@ for idx in "${special_indices[@]}"; do
     if [ "$src" == "$SCRIPT_DIR/one-agents.md" ]; then
         case "$dest_idx" in
             0) # 安装到当前项目
-                [ ! -f "./project.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./project.md"
+                [ ! -f "./one-context.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
                 cp -f "$src" "./AGENTS.md"
                 cp -f "$src" "./CLAUDE.md"
                 echo "已安装 AGENTS 规则 -> ./AGENTS.md, ./CLAUDE.md"
@@ -285,9 +285,9 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
 fi
 
 if [ "$dest_idx" -eq 0 ] && [ "$processed" -gt 0 ]; then
-    if [ ! -f "./project.md" ]; then
-        echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./project.md"
-        echo "已自动初始化 ./project.md"
+    if [ ! -f "./one-context.md" ]; then
+        echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
+        echo "已自动初始化 ./one-context.md"
     fi
 fi
 
