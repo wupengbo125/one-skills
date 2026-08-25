@@ -1,10 +1,8 @@
 ---
 name: one-ebbiii
-description: 自动向 ebbiii 记忆系统添加、检索和管理问答闪卡/笔记。当用户要求记录卡片、记入温故、添加闪卡、或者沉淀问答知识时触发。
-disable-model-invocation: true
+description: 当用户提到艾宾浩斯的时候触发
 ---
 # ebbiii 闪卡与问答记忆管理 Skill
-
 用于让 AI Agent 自动化读取环境变量，将对话中的核心知识点沉淀为 **问答卡片 (Flashcards)** 存入用户的 ebbiii  艾宾浩斯复习系统。
 
 ## 环境变量依赖
@@ -12,8 +10,7 @@ disable-model-invocation: true
 在调用 API 前，确保环境中已配置以下变量：
 
 - `EBBIII_API_TOKEN`: 用户在 ebbiii「个人设置页」生成的专属长期 API Token。
-- `EBBIII_BASE_URL`: ebbiii 部署实例的基础 URL（如 `https://ebbiii.<your-account>.workers.dev` 或 `http://localhost:3000`）。若未设置，默认回退至 `http://localhost:3000`。
-
+- `EBBIII_BASE_URL`: 
 ```bash
 # 环境变量检查
 if [ -z "$EBBIII_API_TOKEN" ]; then

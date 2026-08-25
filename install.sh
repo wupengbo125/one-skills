@@ -145,7 +145,7 @@ skill_paths+=("SPECIAL_GITIGNORE_AGENTS")
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
         bname="$(basename "$d")"
-        if [[ "$bname" == one* ]]; then
+        if [[ "$bname" == one-* ]]; then
             skill_names+=("$bname")
             skill_paths+=("$d")
         fi
@@ -158,12 +158,13 @@ done
 op_options=(
     "安装到当前项目 (./.agents/skills)"
     "卸载自当前项目 (./.agents/skills)"
+    "更新到当前项目 (先删除后安装)"
     "安装到用户全局 (~/.gemini, ~/.claude)"
     "卸载自用户全局 (~/.gemini, ~/.claude)"
+    "更新到用户全局 (先删除后安装)"
 )
 select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
 dest_idx="${SELECTED_INDICES[0]}"
-
 # 4. 选择要处理的项目 (多选/勾选)
 select_menu "第三步：选择要处理的 Skills / 规则" "multi" "${skill_names[@]}"
 
@@ -205,17 +206,31 @@ for idx in "${special_indices[@]}"; do
                 rm -f "./AGENTS.md" "./CLAUDE.md"
                 echo "已从当前项目卸载 AGENTS 规则"
                 ;;
-            2) # 安装到用户全局
+            2) # 更新到当前项目 (先删后装)
+                rm -f "./AGENTS.md" "./CLAUDE.md"
+                [ ! -f "./one-context.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
+                cp -f "$src" "./AGENTS.md"
+                cp -f "$src" "./CLAUDE.md"
+                echo "已更新 AGENTS 规则 -> ./AGENTS.md, ./CLAUDE.md (先删后装)"
+                ;;
+            3) # 安装到用户全局
                 for t in "${USER_GLOBAL_RULES[@]}"; do
                     mkdir -p "$(dirname "$t")" && cp -f "$src" "$t"
                 done
                 echo "已安装 AGENTS 规则到用户全局配置文件"
                 ;;
-            3) # 卸载自用户全局
+            4) # 卸载自用户全局
                 for t in "${USER_GLOBAL_RULES[@]}"; do
                     rm -f "$t"
                 done
                 echo "已从用户全局卸载 AGENTS 规则"
+                ;;
+            5) # 更新到用户全局 (先删后装)
+                for t in "${USER_GLOBAL_RULES[@]}"; do
+                    rm -f "$t"
+                    mkdir -p "$(dirname "$t")" && cp -f "$src" "$t"
+                done
+                echo "已更新 AGENTS 规则到用户全局配置文件 (先删后装)"
                 ;;
         esac
         processed=$((processed + 1))
@@ -239,7 +254,22 @@ for idx in "${special_indices[@]}"; do
                     echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
                 fi
                 ;;
-            2|3) # 用户全局
+            2) # 更新到当前项目
+                if [ -f "./.gitignore" ]; then
+                    for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
+                        sed -i "/^$ig/d" "./.gitignore"
+                    done
+                fi
+                for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
+                    if [ -f "./.gitignore" ]; then
+                        grep -qF "$ig" "./.gitignore" || echo "$ig" >> "./.gitignore"
+                    else
+                        echo "$ig" >> "./.gitignore"
+                    fi
+                done
+                echo "已刷新 .gitignore 中的忽略规则"
+                ;;
+            3|4|5) # 用户全局
                 echo "全局操作跳过项目级 .gitignore"
                 ;;
         esac
@@ -263,7 +293,15 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
             done
             echo "已从当前项目整体卸载: ${#skill_indices[@]} 个 skills"
             ;;
-        2) # 安装到用户全局 - 整体复制
+        2) # 更新到当前项目 - 先删后装
+            mkdir -p "./.agents/skills"
+            for idx in "${skill_indices[@]}"; do
+                rm -rf "./.agents/skills/${skill_names[idx]}"
+                cp -rf "${skill_paths[idx]}" "./.agents/skills/"
+            done
+            echo "已更新当前项目: ${#skill_indices[@]} 个 skills (先删后装)"
+            ;;
+        3) # 安装到用户全局 - 整体复制
             for g in "${USER_GLOBAL_DIRS[@]}"; do
                 mkdir -p "$g"
                 for idx in "${skill_indices[@]}"; do
@@ -272,7 +310,7 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
             done
             echo "已整体安装到用户全局: ${#skill_indices[@]} 个 skills"
             ;;
-        3) # 卸载自用户全局 - 整体删除
+        4) # 卸载自用户全局 - 整体删除
             for g in "${USER_GLOBAL_DIRS[@]}"; do
                 for idx in "${skill_indices[@]}"; do
                     rm -rf "$g/${skill_names[idx]}"
@@ -280,15 +318,24 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
             done
             echo "已从用户全局整体卸载: ${#skill_indices[@]} 个 skills"
             ;;
+        5) # 更新到用户全局 - 先删后装
+            for g in "${USER_GLOBAL_DIRS[@]}"; do
+                mkdir -p "$g"
+                for idx in "${skill_indices[@]}"; do
+                    rm -rf "$g/${skill_names[idx]}"
+                    cp -rf "${skill_paths[idx]}" "$g/"
+                done
+            done
+            echo "已更新用户全局: ${#skill_indices[@]} 个 skills (先删后装)"
+            ;;
     esac
     processed=$((processed + ${#skill_indices[@]}))
 fi
 
-if [ "$dest_idx" -eq 0 ] && [ "$processed" -gt 0 ]; then
+if ([ "$dest_idx" -eq 0 ] || [ "$dest_idx" -eq 2 ]) && [ "$processed" -gt 0 ]; then
     if [ ! -f "./one-context.md" ]; then
         echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
         echo "已自动初始化 ./one-context.md"
     fi
 fi
-
 echo -e "\n完成！共处理了 $processed 项。"
