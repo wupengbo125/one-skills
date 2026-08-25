@@ -1,6 +1,6 @@
 ---
 name: one-openviking
-description: "通过 OpenViking (ov) 显式管理长期记忆、知识资源与技能。当用户要求记忆、查询历史、回忆、搜索知识库或管理 OpenViking 资源时触发。"
+description: "通过 OpenViking (ov) 显式管理长期记忆、知识资源与技能。当用户要求记忆、回忆、或管理 OpenViking 资源时触发。"
 ---
 
 # One OpenViking (显式上下文与记忆管理)
