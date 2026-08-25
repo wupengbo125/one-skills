@@ -1,16 +1,6 @@
 ---
 name: one-wsl-chrome
-description: |
-  Use this skill whenever you need to control or automate a browser in this WSL environment.
-  Since WSL does not have a native Linux Chrome installation, this skill provides a way to 
-  launch and connect to the Windows Chrome browser from WSL using Playwright CDP (Chrome DevTools Protocol).
-  
-  Trigger this skill when:
-  - You need to automate a web browser (login, click, fill forms, scrape pages, take screenshots)
-  - You need to extract cookies from a logged-in Chrome session (e.g. to bypass bot detection for yt-dlp)
-  - A task requires browser automation and `playwright install` would fail because there is no GUI/Chromium in WSL
-  - The user says "open Chrome", "use the browser", "extract cookies", "log into the website automatically"
-  - Any tool or script reports that Chrome/browser is not available in WSL
+description: WSL 环境下控制 Windows Chrome 进行网页自动化、操作或提取 Cookie 时使用。
 ---
 
 # WSL Chrome Automation Skill
