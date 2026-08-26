@@ -36,5 +36,4 @@ flowchart LR
 ## 相关知识库关系
 
 - [技能安装与管理系统](file://$github_dir/one-skills/onewiki/core/skill-installer.md) 负责将 `one-code-wiki` 部署至应用环境。
-- [Markdown Wiki 个人文档库](file://$github_dir/one-skills/onewiki/wiki-systems/md-wiki.md) 处理非代码仓库的通用 Markdown 文档体系。
-- [LLM Wiki 纯 Prompt 知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md) 关注全自动无代码纯 Prompt 知识库积累。
+- [LLM Wiki 纯 Prompt 知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md) 负责个人全局知识库 `$one_llmwiki_dir/` 的维护与问答检索。

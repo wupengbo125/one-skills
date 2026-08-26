@@ -100,7 +100,7 @@
                 <mxCell id="7" value="one-code-wiki &amp;amp; one-code-wiki-cn&lt;br&gt;代码库 Wiki 增量摄入、检索与巡检 (ingest/query/lint，中英文双语支持)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="490" y="510" width="300" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="8" value="one-md-wiki &amp;amp; one-md-wiki-cn&lt;br&gt;个人通用 Markdown 知识库处理体系 (ingest/query/lint，中英文双语支持)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                <mxCell id="8" value="one-wiki&lt;br&gt;个人通用 LLM 知识库处理体系 (ingest/query/lint/parse)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="490" y="590" width="300" height="55" as="geometry"/>
                 </mxCell>
                 <mxCell id="9" value="one-build-mermaid &amp;amp; one-build-drawio&lt;br&gt;架构时序图/流程图与 Draw.io 可视化构建" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">

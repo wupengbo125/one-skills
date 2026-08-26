@@ -20,16 +20,14 @@ Skill 入口位于 [`one-wiki/SKILL.md`](file://$github_dir/one-skills/one-wiki/
 ## 与其他 Wiki 系统的协作
 
 ```mermaid
-flowchart TD
-    LLMWiki["one-wiki<br/>(面向永久库 $one_llmwiki_dir/)"]
+flowchart LR
+    LLMWiki["one-wiki<br/>(面向个人永久知识库 $one_llmwiki_dir/)"]
     CodeWiki["one-code-wiki<br/>(面向项目本地代码库 onewiki/)"]
-    MDWiki["one-md-wiki<br/>(面向本地 Markdown 素材)"]
 
-    MDWiki -->|提供通用文档| LLMWiki
-    CodeWiki -->|提供代码库架构知识| LLMWiki
+    CodeWiki -.->|代码库上下文| LLMWiki
 ```
 
 ## 相关知识库关系
 
 - [Code Wiki 源码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/code-wiki.md) 专注当前 repository 代码维度的 Wiki。
-- [Markdown Wiki 个人文档库](file://$github_dir/one-skills/onewiki/wiki-systems/md-wiki.md) 处理通用 Markdown 内容。
+- [技能安装与管理系统](file://$github_dir/one-skills/onewiki/core/skill-installer.md) 负责将 `one-wiki` 部署至应用环境。
