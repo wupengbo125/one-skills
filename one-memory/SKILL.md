@@ -1,31 +1,41 @@
 ---
 name: one-memory
-description: "Use when: 记住/存入记忆、回忆/想一下、维护 one-memory 长期记忆库时使用。"
+description: "Use when: 记住/存入记忆、回忆/想一下用户画像与偏好、维护 one-memory 记忆库时使用。"
 argument-hint: "recall | remember | lint"
 ---
 
-# One Memory 长期记忆库
+# One Memory 专属长期记忆库
 
-长期记忆库存储路径：`~/onespace/github/one-memory/`
+专门用于存储和检索**用户画像、行为偏好/铁律、本地基础设施与服务凭证**的长期记忆中枢。
+
+记忆仓库根路径：`~/onespace/github/one-memory/`
+
+---
+
+## 记忆分层结构
+
+* `memories/profile.md`：用户画像（技术流派、投资关注领域、宏观视野）
+* `memories/preferences.md`：行为偏好与铁律（极简结论、暗号 aaa、中文交互、Skill 极简原则）
+* `memories/infra/`：基础设施与凭据（omniroute 代理、服务端口、局域网 IP 等）
 
 ---
 
 ## 核心操作
 
 ### 1. recall（回忆 / 想一下）
-当用户说“想一下…”、“回忆一下…”或需要查找过往记忆时使用。
-1. 读取 `INDEX.md` 总索引文件。
-2. 根据索引中的描述和标签，精准定位到对应的 `memories/<file>.md`。
-3. 仅读取该目标文件，提取关键信息并回答用户。
+当用户说“想一下…”、“回忆一下…”或需要查询个人偏好与环境配置时：
+1. 读取 `INDEX.md` 总索引。
+2. 依据索引定位到 `profile.md` / `preferences.md` / `infra/*.md`。
+3. 仅读取对应目标文件提取关键信息并回答。
 
 ### 2. remember（记住 / 存入记忆）
-当用户说“记住这个…”、“存到记忆库…”时使用。
-1. 在 `memories/` 目录下创建或更新对应的 `xxx.md` 记忆文件。
-2. 在 `INDEX.md` 表格中追加或更新单行描述与标签。
-3. 执行 Git 提交并推送到远程仓库：
+当用户明确要求“记住这个…”、“存入记忆库…”时：
+1. 识别属于【画像】/【偏好】/【基础设施】，归入对应文件。
+2. 更新 `INDEX.md` 索引说明。
+3. 自动执行 Git 提交与远程推送：
    ```bash
-   cd ~/onespace/github/one-memory && git add . && git commit -m "feat(memory): add/update <name>" && git push
+   cd ~/onespace/github/one-memory && git add . && git commit -m "feat(memory): update <category>" && git push
    ```
 
-### 3. lint（记忆库巡检）
-检查 `INDEX.md` 中的链接与 `memories/` 目录下的实际文件是否完全一致，清理死链或补齐遗漏索引。
+### 3. lint（巡检）
+检查 `INDEX.md` 与实际文件是否一一对应无死链。
