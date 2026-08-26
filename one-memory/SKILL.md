@@ -4,46 +4,41 @@ description: "Use when: 记住/存入记忆、回忆/想一下分层记忆与画
 argument-hint: "recall | remember | lint"
 ---
 
-# One Memory 树状分层长期记忆中枢
+# One Memory 分级地图记忆导航系统
 
-专门存储和维护**用户画像、多领域知识记忆 (金融/英语/数学等)、架构决策与本地资产**的长期记忆系统。
+本系统采用**“全国地图 ➔ 省地图 ➔ 市地图 ➔ 门牌号”**的分级下钻检索机制，实现超低 Token 消耗与零歧义检索。
 
-仓库根路径：`~/onespace/github/one-memory/`
-
----
-
-## 树状记忆分层结构 (Hierarchical Layout)
-
-```text
-one-memory/
-├── INDEX.md                         # 顶层树状总索引导航
-└── memories/
-    ├── system/                      # 【系统层】profile.md (画像), preferences.md (铁律)
-    ├── finance/                     # 【金融层】macro/ (宏观), sectors/ (板块), strategies/ (策略)
-    ├── learning/                    # 【学科层】english/ (英语), math/ (数学/量化)
-    ├── infra/                       # 【资产层】omniroute-api.md, worldmonitor.md, servers.md
-    └── meta/                        # 【元认知】lessons.md (踩坑), decisions.md (决策)
-```
+记忆仓库根路径：`~/onespace/github/one-memory/`
 
 ---
 
-## 核心操作与执行逻辑
+## 核心操作与导航协议
 
-### 1. recall（回忆 / 想一下 / 逐级下钻）
-当用户说“想一下…”、“回忆一下…”或需要查询特定领域记忆时：
-1. **第 1 级（看大类）**：读取 `INDEX.md`，根据问题意图瞬间锁定所属领域（如金融宏观、股票策略、AI配置、交互铁律）。
-2. **第 2 级（定位卡片）**：从大类表格中提取具体的 `memories/<domain>/<subpath>.md`。
-3. **第 3 级（精准装载）**：仅读取该目标卡片文件并作答，**严禁跨大类全库扫描**。
+### 1. recall（回忆 / 想一下 / 分级地图寻路）
+当用户说“想一下…”、“回忆一下…”或查询某领域记忆时，**严格执行逐级寻路，禁止跨级通读**：
 
-### 2. remember（记住 / 树状沉淀）
-当用户说“记住这个…”、“把关于 [某领域] 的结论存入记忆库…”时：
-1. **定位层级**：判断属于现有大类（system/finance/learning/infra/meta）或按需建立新子分类目录。
-2. **提炼写入**：执行“睡眠提炼法”，将内容萃取为 3~5 条高密度断言，写入对应 `memories/<domain>/<subpath>.md`。
-3. **挂载索引**：在 `INDEX.md` 对应的大类表格中追加单行说明与标签。
+1. **第一步：看全国地图**
+   * 读取 `INDEX.md`，根据意图锁定领域省份（如 `memories/finance/`、`memories/infra/` 等）。
+2. **第二步：看省地图（与市地图）**
+   * 读取对应 `memories/<domain>/README.md`。
+   * 若存在更深子方向（如 `finance/macro/`），继续读取市地图 `README.md`。
+3. **第三步：直达门牌号并装载**
+   * 锁定目标卡片文件（如 `global-macro-transmission.md`），仅读取该单文件提取高密度事实并作答。
+
+---
+
+### 2. remember（记住 / 树状分级沉淀）
+当用户说“记住这个…”、“存入记忆库…”时：
+
+1. **寻径与建档**：通过地图层级定位目标子目录（必要时建立新子目录与对应 `README.md` 市地图）。
+2. **睡眠提炼**：萃取当前对话为 3~5 条高密度断言，写入目标 `xxx.md` 卡片。
+3. **更新地图**：在对应层级的 `README.md` 中注册该卡片描述；若是新大类，同步在 `INDEX.md` 挂载。
 4. **Git 同步**：
    ```bash
    cd ~/onespace/github/one-memory && git add . && git commit -m "feat(memory): add <domain>/<name>" && git push
    ```
 
-### 3. lint（巡检）
-校验 `INDEX.md` 的大类树与物理目录、文件是否完全一致无死链。
+---
+
+### 3. lint（地图完整性巡检）
+检查从 `INDEX.md` 到各级 `README.md` 的所有路径引用与实际物理卡片文件是否 100% 连通无断链。
