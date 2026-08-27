@@ -16,6 +16,7 @@ ITEMS=(
   "把 understande anything skill 从 .gemini 移动到 skill 文件夹下"            "cp -r ~/.agents/skills/und* ./.agents/skills"
   "graphify to antigravity"         "graphify antigravity install"
 "herdr,替代tmux"                             "curl -fsSL https://herdr.dev/install.sh | sh"
+"一个画架构图的                       npx skills add tt-a1i/archify -g"
 )
 
 NAMES=()

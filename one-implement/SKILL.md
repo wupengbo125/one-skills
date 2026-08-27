@@ -1,6 +1,6 @@
 ---
 name: one-implement
-description: 当要改代码时候使用，当用户说 "aaa" 时候调用
+description: 当要改代码时候使用，当用户说 "aaa" 或 "哈基米" 时候调用
 argument-hint: "实施目标、重构说明或需求文档路径"
 ---
 

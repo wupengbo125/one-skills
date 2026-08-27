@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "One Super-Me & Hippocampus 数字化身认知架构",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "locale": "zh-CN",
+    "views": [
+      {
+        "id": "ghost-possession",
+        "label": "附体与意图消歧链路",
+        "focus": ["user", "super_me", "llm_kernel", "hot_mem"],
+        "note": "用户输入后，超级我附体大模型并秒查 HOT.md 消除模糊输入歧义。"
+      },
+      {
+        "id": "memory-triad",
+        "label": "三层器官物理寻址",
+        "focus": ["super_me", "project_ctx", "hippocampus", "human_wiki"],
+        "note": "根据第一性原理，将记忆分别沉淀至项目就地、海马体私密仓库与人类知识库。"
+      }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户交互", "sublabel": "自然语言 / 短语", "pos": [40, 180], "size": [130, 56] },
+    { "id": "super_me", "type": "security", "label": "One Super-Me", "sublabel": "灵魂协议 / 意志中枢", "pos": [240, 180], "size": [150, 58], "tag": "Ghost 附体" },
+    { "id": "llm_kernel", "type": "backend", "label": "大模型算力大脑", "sublabel": "Claude / Gemini / GPT", "pos": [470, 180], "size": [150, 58] },
+    { "id": "hot_mem", "type": "database", "label": "海马体热记忆", "sublabel": "HOT.md / 意图消歧", "pos": [470, 50], "size": [150, 54], "tag": "3~7天焦点" },
+    { "id": "project_ctx", "type": "frontend", "label": "项目就地记忆", "sublabel": "./one-context.md", "pos": [240, 320], "size": [150, 54], "tag": "事前避坑" },
+    { "id": "hippocampus", "type": "database", "label": "全局海马体仓库", "sublabel": "one-hippocampus", "pos": [470, 320], "size": [150, 54], "tag": "私密超体记忆" },
+    { "id": "human_wiki", "type": "cloud", "label": "人类深度知识库", "sublabel": "one-wiki-v2", "pos": [700, 320], "size": [150, 54], "tag": "人类本我读物" }
+  ],
+  "boundaries": [
+    { "kind": "security-group", "label": "超级我数字化身 (Digital Alter-Ego)", "wraps": ["super_me", "llm_kernel", "hot_mem"] },
+    { "kind": "region", "label": "物理认知介质与存储体系 (Physical Memory & Knowledge)", "wraps": ["project_ctx", "hippocampus", "human_wiki"] }
+  ],
+  "connections": [
+    { "id": "user-input", "from": "user", "to": "super_me", "label": "自然语言", "variant": "emphasis" },
+    { "id": "possession", "from": "super_me", "to": "llm_kernel", "label": "夺舍附体", "variant": "security" },
+    { "id": "hot-lookup", "from": "llm_kernel", "to": "hot_mem", "label": "热记忆消歧", "fromSide": "top", "toSide": "bottom", "labelDy": -40 },
+    { "id": "project-defense", "from": "super_me", "to": "project_ctx", "label": "就地避坑", "fromSide": "bottom", "toSide": "top", "labelDy": 42 },
+    { "id": "engram-sync", "from": "llm_kernel", "to": "hippocampus", "label": "吞吐私密印迹", "fromSide": "bottom", "toSide": "top", "labelDy": 42 },
+    { "id": "wiki-digest", "from": "llm_kernel", "to": "human_wiki", "label": "消化客观研报", "variant": "dashed", "fromSide": "right", "toSide": "top" }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "数字化身 (Ghost)",
+      "items": [
+        "寄生于 Skill 目录，反向夺舍大模型作为计算大脑",
+        "携带用户交互铁律 (aaa 暗号、极简、工程审美)"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "海马体与热记忆",
+      "items": [
+        "HOT.md 实时锁定近 3~7 天业务焦点，秒级消歧短语",
+        "one-hippocampus 零成本海量吞吐私密配置与流水"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "就地感知与知识库",
+      "items": [
+        "one-context.md 随代码流转，事前避坑防御",
+        "one-wiki-v2 专供人类深度阅读，保持绝对纯净"
+      ]
+    }
+  ]
+}
