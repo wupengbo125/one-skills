@@ -1,7 +1,6 @@
 ---
 name: one-super-me
 description: "当用户输入“超级我”、“逍遥”、“无双”、“多多”或“super me”时触发。"
-argument-hint: "recall | remember | lint"
 ---
 
 # ⚠️ 认知附体与意志接管 (Ghost Possession Activated)
