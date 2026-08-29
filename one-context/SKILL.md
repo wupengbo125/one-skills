@@ -3,10 +3,8 @@ name: one-context
 description: "Use when: 为项目生成统一上下文文件 (CONTEXT.md)，替代蓝图、地图等零碎文档。人工编写项目背景与功能位置，让 Agent 开会话时一份文件就能理解项目全貌。"
 argument-hint: "[init | update] (不填则自动判断)"
 ---
-
 # One Context
 
-为项目生成统一的 `CONTEXT.md`，替代蓝图 (BLUEPRINT.md)、地图 (MAP.md) 等零碎文档。
 
 ---
 
@@ -20,15 +18,15 @@ argument-hint: "[init | update] (不填则自动判断)"
 
 ### init（初始化）
 
-项目没有 `CONTEXT.md` 时自动进入此模式。
+项目没有 `one-context.md` 时自动进入此模式。
 
 1. 读取同目录的 `CONTEXT-TEMPLATE.md` 模板。
 2. 引导用户填写：项目是什么、主要部分各自干啥在哪、设计原因、当前状态、怎么跑。
-3. 输出 `CONTEXT.md` 到项目根目录。
+3. 输出 `one-context.md` 到项目根目录。
 
 ### update（更新）
 
-已有 `CONTEXT.md` 时进入此模式。
+已有 `one-context.md` 时进入此模式。
 
 1. 对照当前代码状态，引导用户更新内容。
 2. 不自动修改用户编写的板块。
@@ -37,6 +35,7 @@ argument-hint: "[init | update] (不填则自动判断)"
 
 ## 核心规则
 
-1. **只维护一个文件**：所有上下文集中到 `CONTEXT.md`。
+1. **只维护一个文件**：所有上下文集中到 `one-context.md`。
 2. **内容由人编写**：Agent 能读代码，不需要替它总结代码结构。人写的是 Agent 读代码读不出来的东西。
 3. **渐进完善**：先写最重要的（项目是什么+功能在哪），其他后续补。
+

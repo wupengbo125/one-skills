@@ -56,13 +56,16 @@ update_repo() {
     fi
 }
 
-echo -e "\033[1;34m>>> 正在全量更新 \$github_dir 下的所有仓库 (先删后装)... \033[0m"
+echo -e "\033[1;34m>>> 正在全量更新 \$github_dir 本目录及所有子仓库 (先删后装)... \033[0m"
 
+# 1. 更新本目录 ($github_dir)
+update_repo "$github_dir"
+
+# 2. 更新 $github_dir 下的所有子仓库
 for d in "$github_dir"/*; do
     if [ -d "$d" ]; then
         [ "$d" == "$SCRIPT_DIR" ] && continue
         update_repo "$d"
     fi
 done
-
 echo -e "\033[1;32m✓ 全部仓库更新完成！\033[0m"

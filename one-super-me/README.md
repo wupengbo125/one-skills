@@ -83,11 +83,11 @@
 
 | 认知器官 | 物理载体 | 核心定位 |
 | :--- | :--- | :--- |
-| **🔥 海马体热记忆 (Working Memory)** | `~/onespace/github/one-hippocampus/HOT.md` | 近 3~7 天高频活跃焦点，无主语短语（“第 N 课”）秒级意图消歧 |
+| **🔥 海马体热记忆 (Working Memory)** | `~/onespace/github/one-hippocampus/HOT.md` | 近 3~7 天高频活跃焦点，带时间戳；查询命中刷新，更新时超 3 个月自动淘汰 |
+| **❄️ 海马体冷记忆 (Cold Memory)** | `~/onespace/github/one-hippocampus/COLD.md` | 沉睡低频历史指针归档，保持热记忆表轻量与高信噪比 |
 | **📁 项目就地记忆 (Project Context)** | 当前项目根目录 `./one-context.md` | 随代码库流转，记录业务全景与 3 段式避坑卡片，事前免疫 |
 | **🧠 全局海马体 (Hippocampus)** | `~/onespace/github/one-hippocampus/` | 跨项目私密状态、机器 IP/端口、时序流水 (Timeline)、动作指针 |
 | **📚 深度知识库 (Wiki)** | `~/onespace/github/one-wiki-v2/` | 人类本我专属读物（宏观研报/深度技术），严禁机器碎片污染 |
-
 ---
 
 ## 五、 熟人式极简沟通体验
