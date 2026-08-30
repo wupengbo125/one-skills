@@ -8,8 +8,8 @@
 - 如果你发现我用的是Windows，但请注意：我会在git bash下运行你，你也用git bash 命令干活，写sh而非ps或bat或cmd。
 
 - 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
-- Skill 源码库与宪法源文件在: ~/onespace/github/one-skills（修改宪法编辑 one-agents.md 并执行 update-to-repos.sh 同步）
-- 每次修改代码后必须在本地执行 git commit 提交保存记录，但不要 git push。
+- 宪法源文件在: ~/onespace/github/one-skills/one-agents.md（改后跑 update-to-repos.sh）
+- 改代码须本地 git commit，严禁 git push。
 
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
