@@ -9,7 +9,7 @@
 
 - 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
 - 宪法源文件在: ~/onespace/github/one-skills/one-agents.md（改后跑 update-to-repos.sh）
-- 改代码须本地 git commit，严禁 git push。
+- 每次修改代码都要本地 commit，不 push，保持本地有记录。
 
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
