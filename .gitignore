@@ -1,8 +1,7 @@
 # Ignore skills in .agent directory
-.agents
+__pycache__/
+*.py[cod]
 .agents/
 .claude/
 .ua/
 .pi/
-__pycache__/
-*.py[cod]

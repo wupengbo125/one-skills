@@ -1,7 +1,7 @@
 # AI Coding Agents
 
 - **行为宪法**：行为准则与交互底线严格执行 `~/onespace/github/one-hippocampus/system/constitution.md`（中文交互、动笔前先思考、本地 commit 不 push、极简答复）。
-- **全局热记忆**：动笔与分析前，必读海马体 `~/onespace/github/one-hippocampus/hot.md` 与 `~/onespace/github/one-hippocampus/recent.md`（所有全局路由、动态知识与资产以此为准）。
+- **全局热记忆**：动笔与分析前，必读海马体 `~/onespace/github/one-hippocampus/hot.md`（所有全局路由、动态知识与资产以此为准）。
 
 <!-- PROJECT-NAV:START -->
 
