@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-exec python3 /home/ctyun/onespace/github/one-skills/one-super-me/scripts/super_me.py "$@"
