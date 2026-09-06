@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "One Super-Me 双链路记忆中枢架构",
-    "output": "one-super-me/architecture.html",
+    "output": "one-super-me/docs/architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
     "quality_profile": "showcase",
