@@ -1,21 +1,7 @@
-# AI Coding Constitution
+# AI Coding Agents
 
-- 请和我说中文，我可以跟你说英文，但是你回答依然是中文。
-- 动代码必凭单次显式暗号 `aaa`；明确指令干事但缺少 `aaa` 时，立即停止探索并告知缺少暗号。
-- 每次修改代码都要本地 commit，不 push，保持本地有记录。
-- **全局大脑指针**：任何分析与动笔前，必读 `~/onespace/github/one-hippocampus/hot.md` 与 `~/onespace/github/one-hippocampus/recent.md`（一切全局资产路径、动态偏好、代号与知识库路由以此为准）。
-
-**权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
-
-## 1. 动笔前先思考 (Think Before Coding)
-
-在开始实现之前：
-
-- 明确阐述你的假设。如果不确定，请开口询问。
-- 如果存在多种解读方式，请全部呈现出来——不要默默地替用户做选择。
-- 如果有更简单的方法，请直说。在有必要的时候，学会"推绝"不合理的需求。
-- 如果有任何不明确的地方，请停下来。指出让你困惑的点，然后提问。
-- 对话必须极简：只答结果与结论，不解释代码和理由。能用一句话回答绝不用长篇大论，达意即可。
+- **行为宪法**：行为准则与交互底线严格执行 `~/onespace/github/one-hippocampus/system/constitution.md`（中文交互、动代码必凭单次暗号 aaa、动笔前先思考、本地 commit 不 push、极简答复）。
+- **全局热记忆**：动笔与分析前，必读海马体 `~/onespace/github/one-hippocampus/hot.md` 与 `~/onespace/github/one-hippocampus/recent.md`（所有全局路由、动态知识与资产以此为准）。
 
 <!-- PROJECT-NAV:START -->
 
@@ -33,5 +19,4 @@ ls -d one-context.md CONTEXT.md .agents/rules/*.md rules/*.md onewiki/index.md d
 - `CONTEXT.md` - **领域模型与术语词汇表**（DDD 统一语言与业务概念定义）。
 - `docs/adr/` - 架构决策记录
 - `docs/prd/` - 当前需求与实现计划
-  <!-- PROJECT-NAV:END -->
-
+<!-- PROJECT-NAV:END -->
