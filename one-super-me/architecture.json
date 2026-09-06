@@ -2,64 +2,418 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "One Super-Me 伴随式记忆中枢架构",
+    "title": "One Super-Me 双链路记忆中枢架构",
     "output": "one-super-me/architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
     "quality_profile": "showcase",
     "views": [
       {
-        "id": "companion-flow",
-        "label": "伴随式记忆沉淀链路",
-        "focus": ["developer", "constitution", "agent_runtime", "skill_super_me", "doc_memory"],
-        "note": "会话中自然伴随感知，跑通实操即时随手落盘。"
+        "id": "explicit-flow",
+        "label": "显式记录链路 (记东西/避坑手册)",
+        "focus": [
+          "developer",
+          "mode_explicit",
+          "doc_onewiki",
+          "cli_engine",
+          "fts_db"
+        ],
+        "note": "人类明确指令帮我记东西，撰写单层平铺避坑长文并增量同步入库。"
       },
       {
-        "id": "fast-search",
-        "label": "BM25 极速检索链路",
-        "focus": ["skill_super_me", "cli_super_me", "fts_database", "system_profile"],
-        "note": "零 Token 消耗、毫秒级全文检索与代号消歧。"
+        "id": "wrapup-flow",
+        "label": "无脑收工链路 (防垃圾门禁与四维提炼)",
+        "focus": [
+          "developer",
+          "constitution",
+          "gate_filter",
+          "mode_wrapup",
+          "doc_system",
+          "doc_memory",
+          "doc_recent",
+          "cli_engine",
+          "fts_db"
+        ],
+        "note": "会话结束随手收工，首道防垃圾门禁阻断闲聊，有新知才落盘四维认知并写库治理。"
       },
       {
-        "id": "governance",
-        "label": "海马体治理与生命周期",
-        "focus": ["cli_super_me", "fts_database", "doc_memory", "doc_onewiki", "recent_governance"],
-        "note": "纯数据仓与双阈值（60天/100条）自动化清理。"
+        "id": "storage-architecture",
+        "label": "分立数据仓与 BM25 极速引擎",
+        "focus": [
+          "cli_engine",
+          "fts_db",
+          "doc_system",
+          "doc_memory",
+          "doc_onewiki",
+          "doc_recent"
+        ],
+        "note": "严格区隔 system/ 与 memory/，统一由 super-me CLI 驱动 BM25 检索与双阈值清理。"
       }
     ]
   },
   "components": [
-    { "id": "developer", "type": "external", "label": "人类开发者", "sublabel": "自然语言意图", "pos": [40, 160], "size": [130, 56] },
-    { "id": "constitution", "type": "security", "label": "AI Coding 宪法", "sublabel": "one-agents.md 约束", "pos": [40, 280], "size": [130, 56], "tag": "规则层" },
-    { "id": "agent_runtime", "type": "frontend", "label": "Agent 宿主环境", "sublabel": "Claude / OMP / Pi", "pos": [240, 220], "size": [140, 60], "tag": "执行宿主" },
-    { "id": "skill_super_me", "type": "backend", "label": "One Super-Me", "sublabel": "伴随感知与决策中枢", "pos": [450, 160], "size": [160, 60], "tag": "应用层" },
-    { "id": "cli_super_me", "type": "backend", "label": "super-me CLI", "sublabel": "统一检索与治理引擎", "pos": [450, 280], "size": [160, 60], "tag": "本地算法" },
-    { "id": "system_profile", "type": "database", "label": "系统画像与代号", "sublabel": "profile.md / aliases.md", "pos": [710, 110], "size": [170, 56], "tag": "数据仓" },
-    { "id": "doc_memory", "type": "database", "label": "四维伴随文档池", "sublabel": "methods / locations / facts", "pos": [710, 220], "size": [170, 56], "tag": "全中文命名" },
-    { "id": "fts_database", "type": "database", "label": "SQLite FTS5 库", "sublabel": ".fts.db (BM25 毫秒查)", "pos": [710, 330], "size": [170, 56], "tag": "本地索引" },
-    { "id": "doc_onewiki", "type": "database", "label": "onewiki 实操手册", "sublabel": "独家避坑手册 (单层平铺)", "pos": [970, 165], "size": [170, 56], "tag": "手册专区" },
-    { "id": "recent_governance", "type": "database", "label": "近期活跃流水", "sublabel": "recent.md (双阈值淘汰)", "pos": [970, 280], "size": [170, 56], "tag": "生命周期" }
+    {
+      "id": "developer",
+      "type": "external",
+      "label": "人类开发者",
+      "sublabel": "记东西 / 随手喊收工",
+      "pos": [
+        40,
+        170
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "constitution",
+      "type": "security",
+      "label": "AI 宪法分流",
+      "sublabel": "双链路路由与防垃圾",
+      "pos": [
+        40,
+        310
+      ],
+      "size": [
+        130,
+        60
+      ],
+      "tag": "规则层"
+    },
+    {
+      "id": "mode_explicit",
+      "type": "backend",
+      "label": "显式记录处理器",
+      "sublabel": "记到文档 / 避坑手册",
+      "pos": [
+        300,
+        75
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "tag": "显式链路"
+    },
+    {
+      "id": "gate_filter",
+      "type": "security",
+      "label": "防垃圾过滤门禁",
+      "sublabel": "宁缺毋滥 (无新知阻断)",
+      "pos": [
+        300,
+        210
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "tag": "收工首道防线"
+    },
+    {
+      "id": "mode_wrapup",
+      "type": "backend",
+      "label": "四维认知提炼器",
+      "sublabel": "画像/方法/位置/流水",
+      "pos": [
+        580,
+        210
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "tag": "收工提炼"
+    },
+    {
+      "id": "cli_engine",
+      "type": "backend",
+      "label": "super-me CLI",
+      "sublabel": "BM25 检索 / sync / clean",
+      "pos": [
+        580,
+        370
+      ],
+      "size": [
+        150,
+        60
+      ],
+      "tag": "统一工具"
+    },
+    {
+      "id": "doc_onewiki",
+      "type": "database",
+      "label": "onewiki/ 实操手册",
+      "sublabel": "单层平铺避坑长文",
+      "pos": [
+        870,
+        75
+      ],
+      "size": [
+        180,
+        60
+      ],
+      "tag": "显式记录产物"
+    },
+    {
+      "id": "doc_system",
+      "type": "database",
+      "label": "system/ 画像与代号",
+      "sublabel": "profile.md / aliases.md",
+      "pos": [
+        870,
+        155
+      ],
+      "size": [
+        180,
+        54
+      ],
+      "tag": "画像仓"
+    },
+    {
+      "id": "doc_memory",
+      "type": "database",
+      "label": "memory/ 四维知识库",
+      "sublabel": "methods/ locations/ facts/",
+      "pos": [
+        870,
+        235
+      ],
+      "size": [
+        180,
+        54
+      ],
+      "tag": "方法仓"
+    },
+    {
+      "id": "doc_recent",
+      "type": "database",
+      "label": "recent.md 活跃流水",
+      "sublabel": "双阈值淘汰 (60天/100条)",
+      "pos": [
+        870,
+        315
+      ],
+      "size": [
+        180,
+        54
+      ],
+      "tag": "实操流水"
+    },
+    {
+      "id": "fts_db",
+      "type": "database",
+      "label": "SQLite FTS5 库",
+      "sublabel": ".fts.db (BM25 极速秒查)",
+      "pos": [
+        870,
+        405
+      ],
+      "size": [
+        180,
+        56
+      ],
+      "tag": "本地索引"
+    }
   ],
   "boundaries": [
-    { "kind": "security-group", "label": "用户与交互约束", "wraps": ["developer", "constitution"], "pad": 20 },
-    { "kind": "region", "label": "Super-Me 应用层 (one-skills/one-super-me/)", "wraps": ["agent_runtime", "skill_super_me", "cli_super_me"], "pad": 20 },
-    { "kind": "region", "label": "海马体纯数据仓 (one-hippocampus/)", "wraps": ["system_profile", "doc_memory", "fts_database", "doc_onewiki", "recent_governance"], "pad": 20 },
-    { "kind": "security-group", "label": "中文实操知识池", "wraps": ["doc_memory", "doc_onewiki"], "pad": 12 }
+    {
+      "kind": "security-group",
+      "label": "用户交互与规则分流",
+      "wraps": [
+        "developer",
+        "constitution"
+      ],
+      "pad": 15
+    },
+    {
+      "kind": "region",
+      "label": "Super-Me 双链路应用中枢 (one-skills/one-super-me/)",
+      "wraps": [
+        "mode_explicit",
+        "gate_filter",
+        "mode_wrapup",
+        "cli_engine"
+      ],
+      "pad": 20
+    },
+    {
+      "kind": "region",
+      "label": "海马体纯数据仓 (one-hippocampus/)",
+      "wraps": [
+        "doc_onewiki",
+        "doc_system",
+        "doc_memory",
+        "doc_recent",
+        "fts_db"
+      ],
+      "pad": 20
+    },
+    {
+      "kind": "security-group",
+      "label": "四维认知提炼产物 (分立存储)",
+      "wraps": [
+        "doc_system",
+        "doc_memory",
+        "doc_recent"
+      ],
+      "pad": 10
+    }
   ],
   "connections": [
-    { "from": "developer", "to": "agent_runtime", "label": "自然语言意图", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [205, 219] },
-    { "from": "constitution", "to": "agent_runtime", "label": "伴随模式铁律", "variant": "security", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [205, 279] },
-    { "from": "agent_runtime", "to": "skill_super_me", "label": "附体激活中枢", "variant": "emphasis", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [415, 220] },
-    { "from": "skill_super_me", "to": "cli_super_me", "label": "驱动 CLI 引擎", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelAt": [530, 250] },
-    { "from": "skill_super_me", "to": "system_profile", "label": "代号消歧与画像", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [660, 164] },
-    { "from": "skill_super_me", "to": "doc_memory", "label": "四维认知随手存", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [660, 219] },
-    { "from": "cli_super_me", "to": "fts_database", "label": "BM25 检索与同步", "variant": "emphasis", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [660, 334] },
-    { "from": "doc_memory", "to": "doc_onewiki", "label": "单层避坑手册", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [925, 220] },
-    { "from": "doc_memory", "to": "recent_governance", "label": "实操流水记录", "route": "orthogonal-h", "fromSide": "right", "toSide": "left", "labelAt": [925, 278] }
+    {
+      "from": "developer",
+      "to": "mode_explicit",
+      "label": "记文档",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        265,
+        95
+      ]
+    },
+    {
+      "from": "developer",
+      "to": "gate_filter",
+      "label": "随手收工",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        265,
+        230
+      ]
+    },
+    {
+      "from": "constitution",
+      "to": "gate_filter",
+      "label": "规则分流",
+      "variant": "security",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        235,
+        310
+      ]
+    },
+    {
+      "from": "gate_filter",
+      "to": "mode_wrapup",
+      "label": "通过门禁",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        515,
+        230
+      ]
+    },
+    {
+      "from": "mode_explicit",
+      "to": "doc_onewiki",
+      "label": "避坑实操长文",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        660,
+        95
+      ]
+    },
+    {
+      "from": "mode_wrapup",
+      "to": "doc_system",
+      "label": "提炼画像",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        760,
+        175
+      ]
+    },
+    {
+      "from": "mode_wrapup",
+      "to": "doc_memory",
+      "label": "提炼方法",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        760,
+        255
+      ]
+    },
+    {
+      "from": "mode_wrapup",
+      "to": "doc_recent",
+      "label": "记录流水",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        835,
+        335
+      ]
+    },
+    {
+      "from": "mode_wrapup",
+      "to": "cli_engine",
+      "label": "写库与治理",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        655,
+        315
+      ]
+    },
+    {
+      "from": "cli_engine",
+      "to": "fts_db",
+      "label": "BM25同步",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        800,
+        420
+      ]
+    }
   ],
   "cards": [
-    { "dot": "cyan", "title": "伴随模式 (Companion Mode)", "items": ["彻底去除脆弱的退出钩子，在会话中边干边伴随", "未知代号先查 aliases.md，操作避坑首选 BM25 检索", "凡更新 Markdown 文件必顺便执行 super-me sync"] },
-    { "dot": "rose", "title": "中英分离与纯数据仓", "items": ["Skill 内部文件名 100% 英文，海马体文档 100% 中文", "one-hippocampus 纯数据存储，严禁放入执行脚本", "统一由 super-me CLI 驱动检索、重建与治理"] },
-    { "dot": "emerald", "title": "宁缺毋滥与记忆治理", "items": ["严苛防垃圾过滤，日常寒暄与无意义碎片绝不入库", "仅沉淀跑通的独家实操步骤与真实资产位置", "近期记忆 recent.md 严格执行 60 天与 100 条双阈值淘汰"] }
+    {
+      "dot": "cyan",
+      "title": "显式记录链路（人类指令）",
+      "items": [
+        "人类明确下达“帮我记东西/记到文档/避坑手册”时激活",
+        "在 onewiki/ 撰写单层平铺避坑长文，并在 index.md 登记",
+        "保存后调用 super-me sync 增量写入本地 SQLite FTS5 数据库"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "无脑收工链路（零心智负担）",
+      "items": [
+        "会话结束随手甩“超级我/收工/下班”，用户不费心思考",
+        "防垃圾门禁：日常闲聊或无硬核改动直接阻断退出，零垃圾写入",
+        "四维提炼：画像入 system/、实操入 memory/、流水追加至 recent.md"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "纯数据仓与统一 CLI 引擎",
+      "items": [
+        "严格分立 system/（画像代号）与 memory/（四维知识库）",
+        "super-me CLI 统一驱动 BM25 毫秒全文检索与双阈值淘汰治理",
+        "海马体仓内纯 Markdown 数据，.fts.db 本地存放严禁入 Git"
+      ]
+    }
   ]
 }
