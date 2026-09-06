@@ -276,6 +276,27 @@ def cmd_clean_recent():
         f.write(new_content)
 
     print(f">>> [Super-Me 治理] 近期记忆清理完成，当前保留 {len(new_rows)} 条有效记忆。")
+def extract_chat_text(raw_text):
+    """解析 Agent Hook 传入的 JSON 负载（如 Claude Code 或 OMP），提炼为易读文本"""
+    s = raw_text.strip()
+    if s.startswith("{") and s.endswith("}"):
+        try:
+            data = json.loads(s)
+            extracted = []
+            for key in ["transcript", "messages", "turns"]:
+                if key in data and isinstance(data[key], list):
+                    for item in data[key]:
+                        if isinstance(item, dict):
+                            role = item.get("role", "")
+                            c = item.get("content", "")
+                            if c and isinstance(c, str):
+                                extracted.append(f"[{role}]: {c}")
+            if extracted:
+                return "\n".join(extracted)
+        except Exception:
+            pass
+    return raw_text
+
 def cmd_ingest(input_text=None, file_path=None):
     text = ""
     if input_text:
@@ -286,7 +307,7 @@ def cmd_ingest(input_text=None, file_path=None):
     elif not sys.stdin.isatty():
         text = sys.stdin.read()
 
-    text = text.strip()
+    text = extract_chat_text(text.strip())
     if not text:
         print(">>> [Super-Me Ingest] 输入内容为空，跳过提炼。")
         return

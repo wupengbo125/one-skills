@@ -73,39 +73,46 @@ AI 拥有对人类用户的深度认知上下文：
 
 ---
 
-## 三、 产品化安装与运行架构 (Install & Runtime)
+## 三、 目标 Agent 钩子安装与透明配置 (Install Hook & Runtime)
 
-One Super-Me 采用“安装器 + 外层宿主后壳 + 纯粹运行时客户端 + 通用解耦配置”的清晰分层：
+One Super-Me 为各 Agent 宿主提供透明、显式的生命周期钩子接入：
 
 ```
 one-super-me/
-├── install.sh         # 【安装器】：环境检测、宿主 Stop 钩子挂接、Skill 软链
-├── uninstall.sh       # 【卸载器】：一键注销后壳与软链，不留系统垃圾
-├── hooks/             # 【宿主后壳模板】：被宿主事件触发，调用 client.py ingest
-│   ├── claude/stop.sh # Claude Code Stop 事件钩子
-│   └── omp/stop.sh    # OMP / Pi Agent 事件钩子
-└── client.py          # 【业务客户端】：负责 search、sync、rebuild、clean、ingest
+├── install-hook.sh   # 【钩子安装器】：交互或参数指定 Agent，引导模型配置并输出回执
+├── uninstall-hook.sh # 【钩子卸载器】：从指定 Agent 注销钩子，清理软链
+├── hook.sh           # 【会话钩子】：Agent Stop 事件触发，支持 `./hook.sh --test` 纯净自检
+└── client.py         # 【业务客户端】：负责 search、sync、rebuild、clean、ingest
 ```
 
-### 1. 一键安装与卸载
+### 1. 为指定 Agent 安装钩子
 ```bash
-# 安装：自动检测环境、初始化 ~/.config/one-super-me/config.env、挂接 Stop 钩子并建库
-./install.sh
+# 为 Claude Code 安装 Stop 钩子
+./install-hook.sh --agent claude
 
-# 卸载：干净移除宿主钩子与全局软链，保留用户数据
-./uninstall.sh
+# 为 OMP / Pi 安装会话结束扩展
+./install-hook.sh --agent omp
+
+# 也可以直接运行（提供交互菜单引导选择）：
+./install-hook.sh
 ```
 
-### 2. 通用大模型配置 (`~/.config/one-super-me/config.env`)
-解耦大模型端点，绝不硬编码私有局域网 IP 或个人账号：
+### 2. 小明一键自检验证
+安装完成后，任何人均可执行自检命令验证全链路（模型提取 + Markdown 写入 + BM25 写库检索）：
 ```bash
-OPENAI_BASE_URL="https://api.openai.com/v1" # 或本地网关/Ollama
+./hook.sh --test
+```
+
+### 3. 通用大模型配置 (`~/.config/one-super-me/config.env`)
+彻底解耦大模型端点，任何兼容 OpenAI 的本地或云端模型（Ollama / DeepSeek / 本机网关）均可配置：
+```bash
+OPENAI_BASE_URL="https://api.openai.com/v1"
 OPENAI_API_KEY="your-api-key"
 OPENAI_MODEL="gpt-4o-mini"
 ONE_HIPPOCAMPUS_DIR="/home/ctyun/onespace/github/one-hippocampus"
 ```
 
-### 3. 客户端指令 (`client.py`)
+### 4. 客户端指令 (`client.py`)
 ```bash
 # 1. 关键字 BM25 极速检索（最快寻路）
 python3 client.py search "<关键词>"
@@ -122,7 +129,6 @@ python3 client.py rebuild
 # 5. 治理近期记忆（执行 60 天 / 100 条双阈值淘汰）
 python3 client.py clean
 ```
----
 
 ## 四、 海马体纯数据仓目录拓扑 (`$github_dir/one-hippocampus`)
 
