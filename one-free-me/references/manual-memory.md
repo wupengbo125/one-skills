@@ -1,6 +1,5 @@
 # 手工记忆操作指南 (Manual Memory Reference)
 
-> 用户显式说“**收工**”、“**超级我**”时触发。
 > **核心原则**：价值判定过滤；情景长文完整叙事；通过 `scripts/free_me.py recent` 自动打卡、置顶并治理近期记忆。
 
 ---
@@ -64,7 +63,4 @@ python3 scripts/free_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主
 
 ---
 
-## 规范说明
-
-* **职责归属**：系统行为与环境准则归属于 `system/`，`memory/` 纯粹存放情景实操与复盘长文。
-* **中文命名**：文档名称统一使用中文。
+### 5. 提交git
