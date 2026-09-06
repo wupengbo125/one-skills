@@ -54,7 +54,7 @@ one-skills/one-super-me/
 - **情景复盘**：补全复盘长文，涵盖背景目标、关键决策、落地清单与避坑要点；
 - **打卡与自清洁**：更新 `recent.md`，执行 `scripts/super_me.py recent` 自动打卡、双阈值淘汰并同步索引。
 
-### 3. 避坑手册（用户说“记一下 / 记到文档 / 避坑手册”）
+### 3. 避坑手册（用户说“避坑手册” / “存手册”）
 - 遵循 `references/wiki.md`；
 - 按领域分类撰写中文手册至 `onewiki/<分类>/<全中文名称>.md`；
 - 在 `onewiki/index.md` 对应领域下登记并执行 `scripts/super_me.py sync`。

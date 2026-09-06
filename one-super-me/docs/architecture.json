@@ -85,7 +85,7 @@
       "id": "mode_explicit",
       "type": "backend",
       "label": "显式记录处理器",
-      "sublabel": "记到文档 / 避坑手册",
+      "sublabel": "避坑手册 / 存手册",
       "pos": [
         300,
         75
@@ -392,7 +392,7 @@
       "dot": "cyan",
       "title": "显式记录链路（人类指令）",
       "items": [
-        "人类明确下达“帮我记东西/记到文档/避坑手册”时激活",
+        "人类明确下达“避坑手册/存手册”时激活",
         "在 onewiki/ 撰写单层平铺避坑长文，并在 index.md 登记",
         "保存后调用 super-me sync 增量写入本地 SQLite FTS5 数据库"
       ]
