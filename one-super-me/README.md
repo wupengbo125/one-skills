@@ -16,7 +16,8 @@ one-skills/one-super-me/
 ├── references/              # 【按需执行指南】
 │   ├── routing.md           # 检索寻路：别名消歧、BM25 检索与语义索引
 │   ├── auto-memory.md       # 自动记忆：干活中顺手增量追加到 memory/（主航道）
-│   ├── manual-memory.md     # 收工记忆：输入“收工”或“超级我”沉淀到 memory/（兜底）
+│   ├── manual-memory.md     # 收工记忆：输入"收工"或"超级我"沉淀到 memory/（兜底）
+│   ├── wiki.md              # Wiki 手册：踩坑 SOP 沉淀到 onewiki/（复用资产）
 │   └── scripts.md           # 脚本详解与 recent.md 生命周期
 ├── docs/                    # 【架构与设计资产】
 │   ├── architecture.html    # 架构可视化交互图
