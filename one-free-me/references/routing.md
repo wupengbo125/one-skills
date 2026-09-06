@@ -7,7 +7,7 @@
 ## 寻路优先级
 
 1. **项目代号消歧**：
-   - 包含代号（如 `OneToDo`、`vfrp`、`mihomo` 等）时，查阅 `$github_dir/one-hippocampus/system/aliases.md` 获取工程路径与常用操作。
+   - 涉及特定项目代号时，查阅 `$github_dir/one-hippocampus/system/aliases.md` 获取对应工程路径与常用操作。
 2. **BM25 极速检索**：
    - 优先执行脚本检索本地数据库：
      ```bash
