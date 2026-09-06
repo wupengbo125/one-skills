@@ -2,68 +2,11 @@
 
 将已接受的 Markdown 源文件编译入持久的个人 Wiki 中。首次构建和以后的每次更新都使用相同的操作。
 
-## 规范个人知识模型
+## 知识提取原则
 
-当 Markdown 证据使其相关时，维护以下 OpenWiki 规范页面：
-
-- `onewiki/index.md`：导航和当前高级状态。强调已确认和受到强力支持的知识；链接出去以了解细节。
-- `onewiki/open-questions.md`：关于用户的知识库或记忆模型的未解决不确定性，可能会损害未来的协助。
-- `onewiki/themes.md`：重复出现主题和趋势的紧凑索引，而不是叙事性源摘要。
-- `onewiki/commitments.md`：具体的工作任务、批准、决策、计划工作和后续行动，在证据支持时附带所有者和状态。
-- `onewiki/personal-logistics.md`：预约、旅行、家务、生活管理截止日期和其他非工作后勤。
-- `onewiki/sources/<source>.md`：必须保留特定源上下文时的紧凑出处和证据覆盖。规范解释仍然属于领域页面。
-
-仅在存在相关证据时创建或更新这些页面。不要仅仅因为在此处命名了它们就创建空的规范文件。
-
-### 开放问题 (Open questions)
-
-- 仅为真实的知识缺口、模糊关系、矛盾、不清晰的例程、缺失的偏好或未来协助所需的上下文添加开放问题。
-- 不要将源文档中找到的每个未解决问题或 TODO 复制到 `open-questions.md` 中。
-- 将相关的不确定性归类在一个稳定的主题键（topic key）下，而不是为同一主题创建重复的问题。
-- 使用 `Active`（活跃）、`Answered`（已回答）和 `Stale`（陈旧）章节。移动问题时保留原始问题，并记录决定性证据或陈旧原因和日期。
-- 当新证据回答了一个活跃问题时，将其移动到 `Answered` 并链接规范答案或支持证据。
-
-使用这种紧凑的形状：
-
-```markdown
-# Open Questions
-
-## Active
-### <topic-key>: <question>
-- Owner: <person/team/unknown>
-- Seen: YYYY-MM-DD
-- Evidence: <short source references>
-
-## Answered
-### <topic-key>: <original question>
-- Evidence: <canonical answer or source>
-- Answered: YYYY-MM-DD
-
-## Stale
-### <topic-key>: <original question>
-- Why: <short reason>
-- Last seen: YYYY-MM-DD
-```
-
-### 主题 (Themes)
-
-- 保持 `themes.md` 紧凑。优先选择包含主题键、信号、首次发现、最后发现、置信度、源文件、证据数量、状态和简短证据的表格。
-- 将主题视为重复出现的信号，而不是详细的解释。将持久细节放在规范领域页面上并链接到那里。
-- 更新现有主题，而不是追加相同模式的第二个描述。
-- 仅当弱证据重复出现、具有源多样性或受到一个权威源的有力支持时，才升级弱证据。
-
-### 承诺与后勤 (Commitments and logistics)
-
-- 当需要跨主题的规范视图时，将工作承诺、决策、批准、计划工作和后续行动路由到 `commitments.md`。
-- 仅在证据允许分类时将所有者记录为 `me`、`team`、`other:<name>` 或 `unknown`。
-- 将个人预约、旅行、杂务、家务和生活管理截止日期路由到 `personal-logistics.md`，并在可用时保留日期、时间、地点和状态。
-- 不要将信息性笔记、收据、促销、例行通知或推测性可能性转化为承诺。
-
-### 跨源合成 (Cross-source synthesis)
-
-- 使用稳定的主题键或 Slugs 去重重复出现的项目、人员、组织、决策、问题和承诺。
-- 保持源页面作为出处索引；使领域页面成为跨源共享的持久知识的规范归宿。
-- 当证据改变规范事实时，更新每个受影响的关系和索引，而不是保留不兼容的重复项。
+- 从源文件中自然提取实体（人物、项目、工具、组织）、概念、工作流、决策和关系，为每个实质性知识区域创建或更新规范页面。
+- 跨多个源文件出现的同一实体/概念，合并到同一规范页面，而不是重复。当证据改变规范事实时，更新所有受影响的页面。
+- 仅在真实的知识缺口或矛盾会损害未来使用时，在 `onewiki/open-questions.md` 中记录开放问题。
 
 ## 发现 (Discovery)
 

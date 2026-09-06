@@ -15,6 +15,6 @@
      ```
      毫秒级输出命中段落，零 Token 消耗快速定位。
 3. **语义索引兜底**：
-   - 若 BM25 未命中，回退至大模型语义理解，查阅 `$github_dir/one-hippocampus/INDEX.md` 或 `onewiki/index.md` 结构导航。
+   - 若 BM25 未命中，回退至大模型语义理解，查阅 `$github_dir/one-hippocampus/INDEX.md` 或 `freewiki/index.md` 结构导航。
 4. **活跃记忆**：
    - 查阅 `hot.md`（高频常驻记忆）与 `recent.md`（近期活跃指针），命中时执行 `python3 scripts/free_me.py recent "<实体名>" "[指针]"` 刷新时间戳并置顶。

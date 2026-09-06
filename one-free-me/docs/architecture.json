@@ -14,7 +14,7 @@
         "focus": [
           "developer",
           "mode_explicit",
-          "doc_onewiki",
+          "doc_freewiki",
           "cli_engine",
           "fts_db"
         ],
@@ -44,7 +44,7 @@
           "fts_db",
           "doc_system",
           "doc_memory",
-          "doc_onewiki",
+          "doc_freewiki",
           "doc_recent"
         ],
         "note": "严格区隔 system/ 与 memory/，统一由 free-me CLI 驱动 BM25 检索与双阈值清理。"
@@ -142,9 +142,9 @@
       "tag": "统一工具"
     },
     {
-      "id": "doc_onewiki",
+      "id": "doc_freewiki",
       "type": "database",
-      "label": "onewiki/ 实操规程",
+      "label": "freewiki/ 实操规程",
       "sublabel": "领域实操与规程库",
       "pos": [
         870,
@@ -242,7 +242,7 @@
       "kind": "region",
       "label": "海马体纯数据仓 (one-hippocampus/)",
       "wraps": [
-        "doc_onewiki",
+        "doc_freewiki",
         "doc_system",
         "doc_memory",
         "doc_recent",
@@ -314,7 +314,7 @@
     },
     {
       "from": "mode_explicit",
-      "to": "doc_onewiki",
+      "to": "doc_freewiki",
       "label": "实操规程沉淀",
       "variant": "emphasis",
       "route": "orthogonal-h",
