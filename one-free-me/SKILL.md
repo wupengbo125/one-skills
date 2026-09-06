@@ -11,10 +11,8 @@ description: "产生实质代码或配置修改（自动伴随记忆），或用
 
 - **查资料 / 搜记忆 / 历史流水 / 用户画像**：
   - 规则见 [references/search-memory.md](references/search-memory.md)
-- **日常编码（自动伴随记忆）**：
-  - 产生实质改动时增量记录，规则见 [references/auto-memory.md](references/auto-memory.md)
-- **会话收工（用户输入“收工”）**：
-  - 会话复盘与历史流水记录，规则见 [references/manual-memory.md](references/manual-memory.md)
+- **记忆沉淀（自动伴随 / 用户说“收工”）**：
+  - 规则见 [references/memory.md](references/memory.md)
 - **记到海马体（用户说“记到海马体”）**：
   - 内容写入 freewiki，规则见 [references/freewiki.md](references/freewiki.md)
 - **辅助脚本**：
