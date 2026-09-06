@@ -14,7 +14,7 @@ one-skills/one-super-me/
 ├── super-me                 # 【统一引擎】：BM25 检索、增量/全量建库、近期记忆治理
 ├── references/              # 【按需执行指南】：三大动作各司其职
 │   ├── auto-memory.md       # 自动记忆：干活中顺手增量追加到 memory/（主航道）
-│   ├── manual-memory.md     # 手工记忆：收工/主动复盘总结到 memory/（兜底）
+│   ├── manual-memory.md     # 手工记忆：收工/超级我沉淀到 memory/（兜底）
 │   └── wiki.md              # 避坑手册：领域分类操作规程沉淀到 onewiki/
 ├── docs/                    # 【架构与设计资产】
 │   ├── architecture.html    # 架构可视化交互图
@@ -47,7 +47,7 @@ one-skills/one-super-me/
 - 会话产生实质改动时，向当日话题长文 `memory/<YYYY-MM-DD_中文主题>.md` 增量追加演化过程；
 - 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，不依赖收工触发。
 
-### 2. 手工记忆（用户主动要求收工 / 总结 / 超级我）
+### 2. 手工记忆（用户主动输入“收工” / “超级我”）
 - 遵循 `references/manual-memory.md`；
 - **防垃圾门禁**：无重大决策与新工程事实时，0 文件落盘，极简退出；
 - **情景记忆复盘**：若自动记忆已覆盖，极简确认；未覆盖则补全复盘长文；

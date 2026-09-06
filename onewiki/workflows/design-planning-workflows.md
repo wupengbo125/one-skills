@@ -29,7 +29,7 @@ sequenceDiagram
     Grill-->>Developer: 提问澄清细节并输出 PRD (docs/prd/xxx.md)
     Developer->>Blueprint: 发起蓝图构建
     Blueprint-->>Developer: 生成/更新 BLUEPRINT.md
-    Developer->>Impl: 附带暗号 "aaa" 实施代码编写
+    Developer->>Impl: 实施代码编写
     Impl-->>Developer: 完成测试验证
     Developer->>Handoff: 发起交接总结
     Handoff-->>Developer: 生成交接说明

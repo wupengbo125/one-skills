@@ -10,7 +10,7 @@ description: 详细解析 one-implement、one-minimal-implement、one-refactor-i
 
 ## 组成技能与职责
 
-1. [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md)：标准代码修改工作流。**触发前提**：用户提示词中必须包含暗号 `aaa`（且每次仅单次生效）。在实施任何改动前，先确认暗号与规划。
+1. [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md)：标准代码修改工作流。在实施任何改动前，先确认方案与规划。
 2. [`one-minimal-implement`](file://$github_dir/one-skills/one-minimal-implement/SKILL.md)：极简实现工作流。拒绝任何未明确要求的功能、错误处理或配置化扩展，能用一行代码解决绝不写两行。
 3. [`one-refactor-implement`](file://$github_dir/one-skills/one-refactor-implement/SKILL.md)：重构工作流。严格物理复制现有代码，非修改区保持 100% 绝对禁触，确保重构前后的测试都能通过。
 4. [`one-simplifying`](file://$github_dir/one-skills/one-simplifying/SKILL.md)：精简优化工作流。主动砍掉“以防万一”的防御性校验、兜底方案和未使用的依赖引用。
@@ -20,12 +20,7 @@ description: 详细解析 one-implement、one-minimal-implement、one-refactor-i
 ```mermaid
 stateDiagram-v2
     [*] --> Request: 收到代码修改请求
-    Request --> CheckSecret: 检查本次输入是否包含暗号 'aaa'
-    CheckSecret --> Deny: 未提供 'aaa'
-    Deny --> [*]: 立即停止探索，告知用户缺少暗号
-    
-    CheckSecret --> Allow: 包含暗号 'aaa'
-    Allow --> ChooseWorkflow: 选择实现模式
+    Request --> ChooseWorkflow: 选择实现模式
     ChooseWorkflow --> Minimal: one-minimal-implement (最小改动)
     ChooseWorkflow --> Standard: one-implement (标准修改)
     ChooseWorkflow --> Refactor: one-refactor-implement (受控重构)
@@ -35,7 +30,7 @@ stateDiagram-v2
     Standard --> Verify
     Refactor --> Verify
     Simplify --> Verify
-    Verify --> [*]: 结束单次修改 (暗号失效)
+    Verify --> [*]: 结束修改
 ```
 
 ## 核心法则
