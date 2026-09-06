@@ -1,7 +1,7 @@
 ---
 type: PRD
 title: One Super-Me 记忆中枢与双链路智能体需求文档
-description: 重塑 One Super-Me 与海马体记忆系统，规范全中文文档命名、扁平化 onewiki 实操手册，使用 super-me 统一 CLI 驱动 BM25 检索与记忆治理，明确显式记录与无脑收工双链路机制
+description: "[ARCHIVED] 设计阶段产物，运行时规范以 SKILL.md 和 references/ 为准"
 tags:
   - prd
   - one-super-me
