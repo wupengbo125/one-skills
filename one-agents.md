@@ -3,6 +3,7 @@
 - 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
 - 宪法源文件在: ~/onespace/github/one-skills/one-agents.md（改后跑 update-to-repos.sh）
 - 每次修改代码都要本地 commit，不 push，保持本地有记录。
+- 海马体记忆伴随模式规范: ~/onespace/github/one-skills/one-super-me/伴随模式.md（遇未知先查 super-me，有硬核认知随手沉淀入库，宁缺毋滥不记垃圾）
 
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
@@ -16,6 +17,13 @@
 * 如果有更简单的方法，请直说。在有必要的时候，学会"推绝"不合理的需求。
 * 如果有任何不明确的地方，请停下来。指出让你困惑的点，然后提问。
 * 对话必须极简：只答结果与结论，不解释代码和理由。能用一句话回答绝不用长篇大论，达意即可。
+
+## 2. 海马体记忆伴随模式 (Companion Mode)
+
+在任何对话与编码中全程伴随执行（详见 `~/onespace/github/one-skills/one-super-me/伴随模式.md`）：
+* **伴随查**：遇到未知代号或私有服务，查 `system/aliases.md` 或执行 `super-me search "<关键词>"`。
+* **伴随存**：跑通关键方法、排查深坑或确认资产位置时，随手写入 `one-hippocampus/` 并执行 `super-me sync "<相对路径>"`。
+* **宁缺毋滥**：无实质硬核增量保持静默，严禁制造琐碎垃圾。
 
 <!-- PROJECT-NAV:START -->
 ## Project Navigation (项目导航)
@@ -35,5 +43,3 @@ ls -d one-context.md CONTEXT.md .agents/rules/*.md rules/*.md onewiki/index.md d
 - `onewiki/index.md` - 项目 OpenWiki 知识库索引
 - `docs/prd/` - 当前需求与实现计划
 <!-- PROJECT-NAV:END -->
-
-
