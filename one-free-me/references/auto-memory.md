@@ -8,8 +8,8 @@
    - 检查 `memory/<YYYY-MM>/` 是否有今天同话题文件。
    - 无则新建 `memory/<YYYY-MM>/<YYYY-MM-DD_话题名称>.md`，有则追加。
    - 记录改动内容、原因、踩坑与当前状态。
-2. **记历史流水**：
-   - 向当月流水 `history/<YYYY-MM>.md` 追加指针：`- YYYY-MM-DD HH:MM：[话题名称](memory/<YYYY-MM>/对应文件.md) - 简述`。
+2. **记流水与大纲**：
+   - 向 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[话题名称](<YYYY-MM-DD_话题名称>.md) - 简述`。
 3. **画像更新**：
    - 获知用户身份、生日、习惯或喜好时，顺手更新 `system/profile.md`。
 
