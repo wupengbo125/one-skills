@@ -9,6 +9,6 @@
 2. **更新索引**：
    - `freewiki/index.md` 登记分类，分类内 `index.md` 登记具体文章。
 3. **记历史流水**：
-   - 向 `history.md` 追加一行：`- YYYY-MM-DD HH:MM：<简述沉淀了什么规程>`。
+   - 向当月流水 `history/<YYYY-MM>.md` 追加一行：`- YYYY-MM-DD HH:MM：<简述沉淀了什么规程>`。
 4. **提交 git**。
 5. **极简反馈**：仅反馈写入路径。
