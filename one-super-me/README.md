@@ -73,24 +73,55 @@ AI 拥有对人类用户的深度认知上下文：
 
 ---
 
-## 三、 客户端功能与 CLI 接口 (`client.py`)
+## 三、 产品化安装与运行架构 (Install & Runtime)
 
-所有执行能力收敛于 `one-skills/one-super-me/client.py`：
+One Super-Me 采用“安装器 + 外层宿主后壳 + 纯粹运行时客户端 + 通用解耦配置”的清晰分层：
 
-```bash
-# 1. 关键字 BM25 检索（最快寻路）
-python3 client.py search "<关键词>"
-
-# 2. 增量同步单篇文档索引
-python3 client.py sync "<相对路径>"
-
-# 3. 全量重建海马体 .fts.db 索引
-python3 client.py rebuild
-
-# 4. 治理近期记忆（执行 60 天 / 100 条双阈值淘汰）
-python3 client.py clean
+```
+one-super-me/
+├── install.sh         # 【安装器】：环境检测、宿主 Stop 钩子挂接、Skill 软链
+├── uninstall.sh       # 【卸载器】：一键注销后壳与软链，不留系统垃圾
+├── hooks/             # 【宿主后壳模板】：被宿主事件触发，调用 client.py ingest
+│   ├── claude/stop.sh # Claude Code Stop 事件钩子
+│   └── omp/stop.sh    # OMP / Pi Agent 事件钩子
+└── client.py          # 【业务客户端】：负责 search、sync、rebuild、clean、ingest
 ```
 
+### 1. 一键安装与卸载
+```bash
+# 安装：自动检测环境、初始化 ~/.config/one-super-me/config.env、挂接 Stop 钩子并建库
+./install.sh
+
+# 卸载：干净移除宿主钩子与全局软链，保留用户数据
+./uninstall.sh
+```
+
+### 2. 通用大模型配置 (`~/.config/one-super-me/config.env`)
+解耦大模型端点，绝不硬编码私有局域网 IP 或个人账号：
+```bash
+OPENAI_BASE_URL="https://api.openai.com/v1" # 或本地网关/Ollama
+OPENAI_API_KEY="your-api-key"
+OPENAI_MODEL="gpt-4o-mini"
+ONE_HIPPOCAMPUS_DIR="/home/ctyun/onespace/github/one-hippocampus"
+```
+
+### 3. 客户端指令 (`client.py`)
+```bash
+# 1. 关键字 BM25 极速检索（最快寻路）
+python3 client.py search "<关键词>"
+
+# 2. 数据摄入与提炼（模型分析提取增量并顺便写入 .fts.db）
+python3 client.py ingest --text "<会话文本>"
+
+# 3. 增量同步单篇文档索引
+python3 client.py sync "<相对路径>"
+
+# 4. 全量重建海马体 .fts.db 索引
+python3 client.py rebuild
+
+# 5. 治理近期记忆（执行 60 天 / 100 条双阈值淘汰）
+python3 client.py clean
+```
 ---
 
 ## 四、 海马体纯数据仓目录拓扑 (`$github_dir/one-hippocampus`)

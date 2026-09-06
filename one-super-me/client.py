@@ -10,17 +10,50 @@ One Super-Me Client (客户端与引擎)
 import os
 import re
 import sys
+import json
 import sqlite3
+import urllib.request
+import urllib.error
 from datetime import datetime, timedelta
 
 DEFAULT_HIPPOCAMPUS_DIR = os.path.expanduser(
     os.environ.get("ONE_HIPPOCAMPUS_DIR", "~/onespace/github/one-hippocampus")
 )
 
+def load_config():
+    """加载 ~/.config/one-super-me/config.env 中的配置，已有环境变量优先"""
+    cfg_file = os.path.expanduser("~/.config/one-super-me/config.env")
+    if os.path.isfile(cfg_file):
+        try:
+            with open(cfg_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    k, v = line.split("=", 1)
+                    k = k.strip()
+                    v = v.strip().strip("'\"")
+                    if k and k not in os.environ:
+                        os.environ[k] = v
+        except Exception:
+            pass
+
+def get_llm_config():
+    load_config()
+    base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("AI_API")
+    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("AI_API_KEY") or "EMPTY"
+    model = os.environ.get("OPENAI_MODEL") or os.environ.get("AI_MODEL") or "one-luna"
+    return base_url, api_key, model
+
 def get_hippocampus_dir():
+    load_config()
+    custom = os.environ.get("ONE_HIPPOCAMPUS_DIR")
+    if custom:
+        p = os.path.abspath(os.path.expanduser(custom))
+        if os.path.isdir(p):
+            return p
     d = os.path.abspath(DEFAULT_HIPPOCAMPUS_DIR)
     if not os.path.isdir(d):
-        # 兜底 fallback
         alt = "/home/ctyun/onespace/github/one-hippocampus"
         if os.path.isdir(alt):
             return alt
@@ -243,16 +276,127 @@ def cmd_clean_recent():
         f.write(new_content)
 
     print(f">>> [Super-Me 治理] 近期记忆清理完成，当前保留 {len(new_rows)} 条有效记忆。")
+def cmd_ingest(input_text=None, file_path=None):
+    text = ""
+    if input_text:
+        text = input_text
+    elif file_path and os.path.isfile(file_path):
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+            text = f.read()
+    elif not sys.stdin.isatty():
+        text = sys.stdin.read()
+
+    text = text.strip()
+    if not text:
+        print(">>> [Super-Me Ingest] 输入内容为空，跳过提炼。")
+        return
+
+    base_url, api_key, model = get_llm_config()
+    if not base_url:
+        print(">>> [Super-Me Ingest] 未配置大模型端点 (可在 ~/.config/one-super-me/config.env 中配置 OPENAI_BASE_URL 与 OPENAI_API_KEY)，跳过自动提炼。")
+        return
+
+    repo_dir = get_hippocampus_dir()
+    if not os.path.isdir(repo_dir):
+        print(f">>> [Super-Me Ingest] 海马体数据仓不存在: {repo_dir}")
+        return
+
+    endpoint = base_url.rstrip("/") + "/chat/completions"
+    prompt = (
+        "你是一个严谨的工程知识与环境认知提炼助手。请分析提供的会话文本或日志，判断是否有值得永久沉淀的：\n"
+        "1. 操作方法 (How-to, category=\"methods\")：如服务部署、代理切换、排障操作命令；\n"
+        "2. 资源定位 (Where-is, category=\"locations\")：如局域网机器拓扑、服务端口、仓库工程路径；\n"
+        "3. 关键事实 (What-is, category=\"facts\")：如用户硬件配置、特定约束规则、环境配置事实。\n\n"
+        "【规则】\n"
+        "- 若只是日常闲聊、临时查询或无新增固定经验，必须严格只回复: NO_INCREMENT\n"
+        "- 若有价值，严格只输出合法单行 JSON 对象（无 markdown 包裹，无解释）：\n"
+        '{"category": "methods"|"locations"|"facts", "topic": "中文主题名称(如: 本地服务部署与重启)", "content": "要追加的Markdown要点内容"}'
+    )
+
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": text[-10000:]}
+        ],
+        "temperature": 0.1
+    }
+
+    try:
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            endpoint,
+            data=data,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            resp_body = resp.read().decode("utf-8")
+            res_json = json.loads(resp_body)
+            content_text = res_json["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print(f">>> [Super-Me Ingest] 大模型请求失败 ({e})，跳过提炼。")
+        return
+
+    if "NO_INCREMENT" in content_text or not content_text:
+        print(">>> [Super-Me Ingest] 经分析无认知增量，保持静默。")
+        return
+
+    content_text = re.sub(r"^```json\s*", "", content_text, flags=re.I)
+    content_text = re.sub(r"\s*```$", "", content_text)
+
+    try:
+        parsed = json.loads(content_text)
+    except Exception:
+        m = re.search(r"\{.*\}", content_text, re.S)
+        if m:
+            try:
+                parsed = json.loads(m.group(0))
+            except Exception:
+                print(">>> [Super-Me Ingest] 模型输出无法解析为 JSON，跳过。")
+                return
+        else:
+            print(">>> [Super-Me Ingest] 未发现有效 JSON 增量，跳过。")
+            return
+
+    category = parsed.get("category", "").strip().lower()
+    topic = parsed.get("topic", "").strip()
+    content_to_add = parsed.get("content", "").strip()
+
+    if category not in ["methods", "locations", "facts"] or not topic or not content_to_add:
+        print(">>> [Super-Me Ingest] 结构化字段不合规，跳过写入。")
+        return
+
+    topic = re.sub(r'[/\\:\*?"<>|]', '_', topic).replace(".md", "")
+    target_dir = os.path.join(repo_dir, "memory", category)
+    os.makedirs(target_dir, exist_ok=True)
+    target_file = os.path.join(target_dir, f"{topic}.md")
+    rel_path = os.path.relpath(target_file, repo_dir)
+
+    is_new = not os.path.isfile(target_file)
+    with open(target_file, "a", encoding="utf-8") as f:
+        if is_new:
+            f.write(f"# {topic}\n\n{content_to_add}\n")
+        else:
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+            f.write(f"\n\n## 增量记录 ({now_str})\n\n{content_to_add}\n")
+
+    print(f">>> [Super-Me Ingest] 认知沉淀入库: {rel_path}")
+    # 顺便写入本地 BM25 数据库
+    cmd_sync(rel_path)
 
 def print_help():
     print("""One Super-Me Client (客户端与引擎)
 
 用法:
-  python3 client.py search <关键词>       # BM25 检索海马体知识与避坑手册
-  python3 client.py <关键词>              # 快捷搜索模式
-  python3 client.py rebuild               # 全量重建海马体 .fts.db 索引
-  python3 client.py sync <文件相对路径>    # 增量同步单篇文档索引
-  python3 client.py clean                 # 治理近期记忆 (双阈值 60天/100条)
+  python3 client.py search <关键词>         # BM25 检索海马体知识与避坑手册
+  python3 client.py <关键词>                # 快捷搜索模式
+  python3 client.py ingest [--text "内容"]  # 数据摄入：模型分析提取增量并顺便写库
+  python3 client.py sync <文件相对路径>      # 增量同步单篇文档索引到 .fts.db
+  python3 client.py rebuild                 # 全量重建海马体 .fts.db 索引
+  python3 client.py clean                   # 治理近期记忆 (双阈值 60天/100条)
 """)
 
 if __name__ == "__main__":
@@ -272,11 +416,21 @@ if __name__ == "__main__":
         cmd_sync(sys.argv[2])
     elif arg in ["clean", "clean-recent"]:
         cmd_clean_recent()
+    elif arg == "ingest":
+        input_text = None
+        file_path = None
+        if len(sys.argv) >= 3:
+            if sys.argv[2] in ["--text", "-t"] and len(sys.argv) >= 4:
+                input_text = " ".join(sys.argv[3:])
+            elif sys.argv[2] in ["--file", "-f"] and len(sys.argv) >= 4:
+                file_path = sys.argv[3]
+            else:
+                input_text = " ".join(sys.argv[2:])
+        cmd_ingest(input_text=input_text, file_path=file_path)
     elif arg == "search":
         if len(sys.argv) < 3:
             print(">>> 请输入检索关键词")
             sys.exit(1)
         cmd_search(" ".join(sys.argv[2:]))
     else:
-        # 默认作为关键词检索
         cmd_search(" ".join(sys.argv[1:]))

@@ -4,3 +4,5 @@
 .claude/
 .ua/
 .pi/
+__pycache__/
+*.py[cod]

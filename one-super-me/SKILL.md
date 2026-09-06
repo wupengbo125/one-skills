@@ -85,7 +85,9 @@ description: "当用户提到超级我或super me时触发。"
   ```bash
   python3 /home/ctyun/onespace/github/one-skills/one-super-me/client.py sync "<相对路径>"
   ```
-
+* **宿主后壳与安装**：
+  - 宿主挂接由 `install.sh` / `uninstall.sh` 管理，宿主 Stop 事件触发 `hooks/claude/stop.sh` 或 `hooks/omp/stop.sh`；
+  - 后壳调用 `python3 client.py ingest`，模型配置从通用 `~/.config/one-super-me/config.env` 读取，完成增量提炼并自动 `sync`。
 ### 2. 通道 B：用户主动触发沉淀写入
 * 当用户明确指令“记一下”、“沉淀避坑手册”时：
   1. 撰写单层平铺手册：`/home/ctyun/onespace/github/one-hippocampus/onewiki/<中文手册名称>.md`；
