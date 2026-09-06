@@ -55,14 +55,16 @@ $github_dir/one-hippocampus/
   2. 撰写/追加情景长文至 `memory/<YYYY-MM>/<YYYY-MM-DD_中文主题>.md`；
   3. 向当月 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[中文主题](<YYYY-MM-DD_中文主题>.md) - 简述`；
   4. 获知用户新事实时顺手更新 `system/profile.md`；
-  5. 提交 git。
+  5. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
+  6. 提交 git。
 
 ### 3.2 记到海马体（“记到海马体”）
 * **触发时机**：用户输入“记到海马体”。
 * **行为**：
   1. 沉淀实操规程至 `freewiki/<英文分类>/<中文主题>.md`；
   2. 更新对应索引（`freewiki/index.md` 与分类内 `index.md`）；
-  3. 提交 git。
+  3. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
+  4. 提交 git。
 
 ---
 
