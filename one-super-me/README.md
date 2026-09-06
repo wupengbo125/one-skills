@@ -4,14 +4,15 @@ One Super-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocam
 
 ---
 
-## 一、 技能分层架构 (Layered Architecture)
+## 一、 技能目录组织 (Directory Layout)
 
-为了避免大模型一次性加载全部长篇规范导致上下文膨胀，Skill 采用分层路由架构：
+遵循标准 Skill 结构，脚本集中于 `scripts/` 目录下，并提供分层参考指南：
 
 ```
 one-skills/one-super-me/
-├── SKILL.md                 # 【轻量路由入口】：意图分流与按需引用声明
-├── super-me                 # 【统一引擎】：BM25 检索、增量/全量建库、近期记忆治理
+├── SKILL.md                 # 【技能核心入口】：意图分流与脚本使用说明
+├── scripts/                 # 【脚本目录】
+│   └── super_me.py          # BM25 检索、增量/全量建库、近期流水与自清洁
 ├── references/              # 【按需执行指南】：三大动作各司其职
 │   ├── auto-memory.md       # 自动记忆：干活中顺手增量追加到 memory/（主航道）
 │   ├── manual-memory.md     # 手工记忆：收工/超级我沉淀到 memory/（兜底）
@@ -45,33 +46,39 @@ one-skills/one-super-me/
 ### 1. 自动记忆（会话进行时，主航道）
 - 遵循 `references/auto-memory.md`；
 - 会话产生实质改动时，向当日话题长文 `memory/<YYYY-MM-DD_中文主题>.md` 增量追加演化过程；
-- 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，不依赖收工触发。
+- 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，不依赖收工触发；
+- 通过 `scripts/super_me.py recent` 自动打卡置顶。
 
 ### 2. 手工记忆（用户主动输入“收工” / “超级我”）
 - 遵循 `references/manual-memory.md`；
 - **防垃圾门禁**：无重大决策与新工程事实时，0 文件落盘，极简退出；
 - **情景记忆复盘**：若自动记忆已覆盖，极简确认；未覆盖则补全复盘长文；
-- **打卡与自清洁**：更新 `recent.md`，执行 `super-me clean` 与 `super-me sync`。
+- **打卡与自清洁**：更新 `recent.md`，执行 `scripts/super_me.py recent` 自动打卡、双阈值淘汰并同步索引。
 
 ### 3. 避坑手册（用户说“记一下 / 记到文档 / 避坑手册”）
 - 遵循 `references/wiki.md`；
 - 按领域分类撰写中文手册至 `onewiki/<分类>/<全中文名称>.md`；
-- 在 `onewiki/index.md` 对应领域下登记并执行 `super-me sync`。
+- 在 `onewiki/index.md` 对应领域下登记并执行 `scripts/super_me.py sync`。
 
 ---
 
-## 四、 统一客户端命令 (`super-me`)
+## 四、 辅助脚本命令 (`scripts/super_me.py`)
+
+终端可通过 `python3 scripts/super_me.py` 或全局命令 `super-me` 执行：
 
 ```bash
 # 1. 关键词 BM25 极速检索 (毫秒响应，零 Token 消耗)
-super-me search "<关键词>"
+python3 scripts/super_me.py search "<关键词>"
 
-# 2. 增量同步单篇文档索引
-super-me sync "<相对路径>"
+# 2. 近期活跃流水打卡与置顶 (自动执行 60 天 / 100 条双阈值淘汰并同步索引)
+python3 scripts/super_me.py recent "<实体/主题>" "[指针/简述]"
 
-# 3. 全量重建海马体 .fts.db 索引
-super-me rebuild
+# 3. 近期记忆治理 (手动执行 60 天 / 100 条双阈值淘汰)
+python3 scripts/super_me.py clean
 
-# 4. 近期记忆治理 (双阈值 60 天 / 100 条淘汰)
-super-me clean
+# 4. 增量同步单篇文档索引
+python3 scripts/super_me.py sync "<相对路径>"
+
+# 5. 全量重建海马体 .fts.db 索引
+python3 scripts/super_me.py rebuild
 ```
