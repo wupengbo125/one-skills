@@ -3,148 +3,22 @@ name: one-super-me
 description: "产生实质改动（自动记忆），或用户输入“收工”、“超级我”、“记一下”、“避坑手册”时触发。"
 ---
 
-# One Super-Me (超级我)：海马体记忆中枢与数字化身
+# One Super-Me (超级我)
 
-> One Super-Me 是用户的海马体记忆中枢与专属执行代理。
-> 
-> * **海马体数据仓根目录**：`$github_dir/one-hippocampus/`
-> * **辅助 Python 脚本**：`scripts/super_me.py`（终端亦可通过 `super-me` 简写调用）
+海马体记忆中枢与执行代理。数据仓位于 `$github_dir/one-hippocampus/`，辅助脚本位于 `scripts/super_me.py`。
 
----
+## 意图分流与参考指南
 
-## 一、 核心认知与规范
+按用户意图查阅对应指南，按需加载：
 
-1. **存储与脚本职责划分**：
-   - **数据仓**：用户画像、操作方法、资源位置、避坑手册与近期记忆，集中存储于海马体数据仓：`$github_dir/one-hippocampus/`。
-   - **脚本辅助**：本地检索、索引同步与近期记忆生命周期治理，由辅助脚本完成：`scripts/super_me.py`。
-2. **文档与中文命名**：
-   - 沉淀成果为操作方法、资源位置与踩坑经验文档。
-   - 具体文章与文档文件名统一使用中文命名（如《本地私有服务启停实操指南.md》），顶层目录采用标准英文结构。
-3. **输出极简风格**：
-   - 遵循用户宪法：只答结果与结论，不解释代码和理由，用极简语言达意。
-
----
-
-## 二、 脚本说明 (Scripts Reference)
-
-本 Skill 在 `scripts/` 目录下提供辅助 Python 脚本，负责本地 BM25 检索、FTS5 索引同步及近期记忆生命周期治理。
-
-### 脚本位置与执行方式
-* **脚本路径**：`scripts/super_me.py`
-* **执行方式**：
-  * 直接执行：`python3 scripts/super_me.py <子命令> [参数...]`
-  * 简写调用：`super-me <子命令> [参数...]`
-
-### 脚本子命令详解
-
-| 子命令 | 参数 | 说明 | 调用示例 |
-| :--- | :--- | :--- | :--- |
-| `search` | `<关键词>` | **BM25 本地全文检索**：毫秒级检索海马体文档，输出高亮片段与相关度评分，零 Token 消耗。 | `python3 scripts/super_me.py search "Tailscale 代理"` |
-| `<关键词>` | `<关键词>` | **快捷检索**：省略 `search` 关键字直接检索。 | `python3 scripts/super_me.py "FRP 穿透"` |
-| `recent` | `<实体> [指针]` | **近期流水打卡与置顶**：将访问时间更新为今天并移至表格首行。自动执行 60 天/100 条双阈值淘汰与索引同步。别名：`touch`。 | `python3 scripts/super_me.py recent "用户画像" "system/profile.md"` |
-| `clean` | 无 | **近期记忆治理**：按 60 天超期与 100 条上限淘汰旧条目，并自动同步 `recent.md` 索引。 | `python3 scripts/super_me.py clean` |
-| `sync` | `<相对路径>` | **增量索引同步**：将单篇 Markdown 文件即时写入 `.fts.db` 索引库；文件不存在时自动清理对应索引条目。 | `python3 scripts/super_me.py sync "recent.md"` |
-| `rebuild` | 无 | **全量重建索引**：全量扫描海马体目录中的所有 `.md` 文件并重建 `.fts.db`。 | `python3 scripts/super_me.py rebuild` |
-| `help` | 无 | 显示命令帮助与用法提示。 | `python3 scripts/super_me.py help` |
-
----
-
-## 三、 寻路与执行协议 (Routing & Execution)
-
-任务涉及配置查询、经验排障或事实查找时，遵循以下优先级寻路：
-
-```
-                    ┌─────────────────────────┐
-                    │       用户意图输入       │
-                    └────────────┬────────────┘
-                                 │
-              ▼ (包含项目代号别名)                    ▼ (包含操作/排障/定位/记忆查找)
-     ┌─────────────────┐                   ┌───────────────────────┐
-     │ 查阅系统代号表   │                   │ 优先 BM25 极速检索库  │
-     │ system/         │                   │ scripts/super_me.py   │
-     │ aliases.md      │                   │ search "<关键词>"     │
-     └────────┬────────┘                   └───────────┬───────────┘
-              │                                        │
-              │                          ┌─────────────┴─────────────┐
-              │                          ▼ (命中段落)                ▼ (未命中)
-              │                ┌───────────────────┐       ┌───────────────────────┐
-              │                │ 直接获取精准候选  │       │ 降级回退大模型语义理解│
-              │                │ 目标段落与文档指针│       │ 遍历 INDEX.md 索引    │
-              │                └─────────┬─────────┘       └───────────┬───────────┘
-              │                          │                             │
-              └──────────────────────────┴──────────────┬──────────────┘
-                                                        ▼
-                                            ┌───────────────────────┐
-                                            │ 自主闭环执行，极简汇报│
-                                            └───────────────────────┘
-```
-
-1. **第一优先级（项目代号消歧）**：
-   - 用户提及代号（如 `OneToDo`、`vfrp`、`mihomo` 等）时，查阅 `system/aliases.md` 获取对应工程路径与常用操作。
-2. **第二优先级（BM25 极速检索）**：
-   - 优先执行脚本检索本地数据库：
-     ```bash
-     python3 scripts/super_me.py search "<检索关键词>"
-     ```
-     毫秒级输出命中段落，定位目标。
-3. **第三优先级（语义兜底）**：
-   - 若 BM25 未命中，回退至大模型语义理解，扫描海马体总索引 `INDEX.md` 或 `onewiki/index.md` 结构导航。
-4. **第四优先级（活跃记忆）**：
-   - 查阅 `hot.md`（高频常驻记忆）与 `recent.md`（近期活跃指针），命中时执行 `python3 scripts/super_me.py recent "<实体名>" "[指针]"` 刷新时间戳并置顶。
-
----
-
-## 四、 三维记忆沉淀机制 (Three-Channel Memory Flow)
-
-新增或更新 Markdown 文件后，顺便执行 `sync` 同步本地数据库。
-
-### 模式一：自动记忆（编码推进中伴随增量追加）
-* **触发时机**：日常编码推进中产生实质代码修改、配置变更或架构决策时，AI 主动触发。
-* **执行规范**：详见 `references/auto-memory.md`。
-* **核心动作**：
-  1. 对应当前会话主题，在 `$github_dir/one-hippocampus/memory/<YYYY-MM-DD_中文主题>.md` 单层追加连贯叙事日志；
-  2. 执行打卡置顶：
-     ```bash
-     python3 scripts/super_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
-     ```
-  3. 同步索引：
-     ```bash
-     python3 scripts/super_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
-     ```
-
-### 模式二：收工记忆（显式触发，会话复盘）
-* **触发时机**：用户输入“**收工**”或“**超级我**”。
-* **执行规范**：详见 `references/manual-memory.md`。
-* **核心动作**：
-  1. **价值判定**：若本次会话无实质改动或新增事实，直接回复“本次会话无新增硬核认知，已完成”并退出；
-  2. **情景记录**：在 `memory/<YYYY-MM-DD_中文主题>.md` 中完整梳理事件脉络、决策过程、改动清单与避坑要点；
-  3. **打卡与自清洁**：
-     ```bash
-     python3 scripts/super_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
-     ```
-  4. 极简一句话汇报。
-
-### 模式三：避坑手册（操作规程与 SOP）
-* **触发时机**：用户输入“**记一下**”、“**记到文档**”、“**避坑手册**”或“**存手册**”。
-* **执行规范**：详见 `references/wiki.md`。
-* **核心动作**：
-  1. 撰写中文实操避坑手册：`onewiki/<分类>/<中文手册名>.md`；
-  2. 在 `onewiki/index.md` 登记一行；
-  3. 同步索引：
-     ```bash
-     python3 scripts/super_me.py sync "onewiki/<分类>/<中文手册名>.md"
-     python3 scripts/super_me.py sync "onewiki/index.md"
-     ```
-  4. 极简一句话汇报。
-
----
-
-## 五、 近期记忆 (recent.md) 维护规范
-
-`recent.md` 记录近期活跃流水，遵循以下生命周期管理：
-1. **条目格式**：`| 实体 / 主题 | 对应文档指针 / 内容简述 | 最近访问时间 |`（日期格式：`YYYY-MM-DD`）。
-2. **访问置顶**：条目凡被查用、更新或写入，访问时间戳更新为当天并移到表格首行。
-3. **双阈值淘汰**：
-   - **时间上限**：条目最长保留 60 天，超期自动清理；
-   - **数量上限**：最多容纳 100 条，超出按最久未访问 (LRU) 顺序截断；
-   - **执行方式**：通过 `python3 scripts/super_me.py recent` 自动触发并同步索引。
+- **查资料 / 搜记忆**：
+  - 优先执行检索：`python3 scripts/super_me.py search "<关键词>"`
+  - 寻路规则见 [references/routing.md](references/routing.md)
+- **日常编码（自动伴随记忆）**：
+  - 产生实质改动时增量记录，规则见 [references/auto-memory.md](references/auto-memory.md)
+- **会话收工（用户输入“收工”、“超级我”）**：
+  - 会话复盘与近期流水打卡，规则见 [references/manual-memory.md](references/manual-memory.md)
+- **避坑手册（用户输入“记一下”、“避坑手册”）**：
+  - 沉淀实操规程至 `onewiki/`，规则见 [references/wiki.md](references/wiki.md)
+- **脚本与近期记忆生命周期**：
+  - 脚本子命令与 `recent.md` 治理规则见 [references/scripts.md](references/scripts.md)
