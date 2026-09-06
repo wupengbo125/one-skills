@@ -115,9 +115,8 @@ def cmd_rebuild():
 
     conn = get_db_connection(repo_dir)
     count = 0
-    for root, _, files in os.walk(repo_dir):
-        if ".git" in root:
-            continue
+    for root, dirs, files in os.walk(repo_dir):
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for file in files:
             if file.endswith(".md"):
                 full_path = os.path.join(root, file)
