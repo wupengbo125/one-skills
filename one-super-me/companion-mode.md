@@ -16,19 +16,16 @@
    - 若 BM25 未命中，自动降级由大模型扫描海马体总索引 `INDEX.md` 或 `onewiki/index.md` 进行语义联想寻路。
 
 2. **伴随沉淀（存）**：
-   - 在会话进行中，一旦跑通关键方法、排查深坑或确认资产位置，**随手落盘并即时写库**：
-     - **独家方法 (How-to)** $\rightarrow$ `memory/methods/<中文主题>.md`
-     - **资产位置 (Where-is)** $\rightarrow$ `memory/locations/<中文主题>.md`
-     - **事实认知 (What-is)** $\rightarrow$ `memory/facts/<中文主题>.md`
-     - **专项避坑指南** $\rightarrow$ `onewiki/<中文手册名称>.md`，并在 `onewiki/index.md` 登记一行
+   - **情景记忆（做过的事）**：会话跑通关键流程、解决重大问题或达成关键决策时，落盘至 `memory/<YYYY-MM-DD_中文主题>.md`（单层平铺，连贯记录背景、决策与结果，拒绝切碎实体）。
+   - **专项实操避坑手册**：明确要求记录操作手册时，落盘至 `onewiki/<中文手册名称>.md`，并在 `onewiki/index.md` 登记一行。
+   - **静态系统配置与代号**：环境/IP/端口更新至 `system/profile.md`，新增别名代号更新至 `system/aliases.md`。
    - 凡写入或更新 Markdown 文件，必须顺便执行增量同步入库：
      ```bash
      super-me sync "<相对路径>"
      ```
-
 3. **命名与语言铁律**：
    - **Skill 内部所有文件名 100% 使用英文**（如 `companion-mode.md`, `super-me`）。
-   - **海马体知识库文档 100% 使用中文命名**（如 `memory/methods/本地私有服务启停实操指南.md`）。
+   - **海马体知识库文档 100% 使用中文命名**（如 `memory/2026-09-06_本地服务启停与配置复盘.md`）。
 
 4. **宁缺毋滥（防垃圾）**：
    - 严禁记录日常闲聊、简单问答、无新工程事实的会话。
