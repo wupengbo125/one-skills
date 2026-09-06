@@ -2,8 +2,8 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "One Super-Me 双链路记忆中枢架构",
-    "output": "one-super-me/docs/architecture.html",
+    "title": "One Free-Me 双链路记忆中枢架构",
+    "output": "one-free-me/docs/architecture.html",
     "visual_preset": "blueprint",
     "animation": "trace",
     "quality_profile": "showcase",
@@ -47,7 +47,7 @@
           "doc_onewiki",
           "doc_recent"
         ],
-        "note": "严格区隔 system/ 与 memory/，统一由 super-me CLI 驱动 BM25 检索与双阈值清理。"
+        "note": "严格区隔 system/ 与 memory/，统一由 free-me CLI 驱动 BM25 检索与双阈值清理。"
       }
     ]
   },
@@ -129,7 +129,7 @@
     {
       "id": "cli_engine",
       "type": "backend",
-      "label": "super-me CLI",
+      "label": "free-me CLI",
       "sublabel": "BM25 检索 / sync / clean",
       "pos": [
         580,
@@ -229,7 +229,7 @@
     },
     {
       "kind": "region",
-      "label": "Super-Me 双链路应用中枢 (one-skills/one-super-me/)",
+      "label": "Free-Me 双链路应用中枢 (one-skills/one-free-me/)",
       "wraps": [
         "mode_explicit",
         "gate_filter",
@@ -394,7 +394,7 @@
       "items": [
         "编码过程中产生实质代码或配置修改时自主触发",
         "向 memory/ 当日话题增量追加改动与决策记录",
-        "调用 super-me recent 自动打卡置顶并同步索引"
+        "调用 free-me recent 自动打卡置顶并同步索引"
       ]
     },
     {
@@ -411,7 +411,7 @@
       "title": "纯数据仓与统一 CLI 引擎",
       "items": [
         "严格分立 system/（画像代号）与 memory/（四维知识库）",
-        "super-me CLI 统一驱动 BM25 毫秒全文检索与双阈值淘汰治理",
+        "free-me CLI 统一驱动 BM25 毫秒全文检索与双阈值淘汰治理",
         "海马体仓内纯 Markdown 数据，.fts.db 本地存放严禁入 Git"
       ]
     }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/super_me.py - 海马体记忆检索与维护脚本
+scripts/free_me.py - 海马体记忆检索与维护脚本
 
 功能：
 1. BM25 全文检索 (search)：检索海马体文档，按相关度排序并高亮输出片段
@@ -389,10 +389,10 @@ def cmd_clean_recent():
 # ==============================================================================
 
 def print_help():
-    print("""scripts/super_me.py - 海马体记忆检索与维护脚本
+    print("""scripts/free_me.py - 海马体记忆检索与维护脚本
 
 用法:
-  python3 scripts/super_me.py <子命令> [参数...]
+  python3 scripts/free_me.py <子命令> [参数...]
 
 命令:
   search <关键词>                 使用 BM25 检索海马体文档
@@ -404,11 +404,11 @@ def print_help():
   help                            显示此帮助信息
 
 示例:
-  python3 scripts/super_me.py search "Tailscale 代理"
-  python3 scripts/super_me.py recent "用户画像" "system/profile.md"
-  python3 scripts/super_me.py clean
-  python3 scripts/super_me.py sync "recent.md"
-  python3 scripts/super_me.py rebuild
+  python3 scripts/free_me.py search "Tailscale 代理"
+  python3 scripts/free_me.py recent "用户画像" "system/profile.md"
+  python3 scripts/free_me.py clean
+  python3 scripts/free_me.py sync "recent.md"
+  python3 scripts/free_me.py rebuild
 """)
 
 def main():
@@ -424,12 +424,12 @@ def main():
         cmd_rebuild()
     elif cmd == "sync":
         if len(sys.argv) < 3:
-            print(">>> 请指定待同步的文件相对路径，如: python3 scripts/super_me.py sync 'memory/xxx.md'")
+            print(">>> 请指定待同步的文件相对路径，如: python3 scripts/free_me.py sync 'memory/xxx.md'")
             sys.exit(1)
         cmd_sync(sys.argv[2])
     elif cmd in ["recent", "touch"]:
         if len(sys.argv) < 3:
-            print(">>> 请指定实体名称，如: python3 scripts/super_me.py recent '<实体/主题>' '[指针/简述]'")
+            print(">>> 请指定实体名称，如: python3 scripts/free_me.py recent '<实体/主题>' '[指针/简述]'")
             sys.exit(1)
         entity = sys.argv[2]
         pointer = sys.argv[3] if len(sys.argv) > 3 else ""
@@ -438,7 +438,7 @@ def main():
         cmd_clean_recent()
     elif cmd == "search":
         if len(sys.argv) < 3:
-            print(">>> 请输入检索关键词，如: python3 scripts/super_me.py search '代理'")
+            print(">>> 请输入检索关键词，如: python3 scripts/free_me.py search '代理'")
             sys.exit(1)
         cmd_search(" ".join(sys.argv[2:]))
     else:

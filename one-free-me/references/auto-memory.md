@@ -14,9 +14,9 @@ AI 在会话中观察到**实质性变更**（修改了代码/配置、做出了
    - 若不存在：创建 `memory/<YYYY-MM-DD_话题名称>.md`。
    - **调用 CLI 打卡与置顶**：
      ```bash
-     super-me recent "<话题名称>" "memory/<YYYY-MM-DD_话题名称>.md"
+     free-me recent "<话题名称>" "memory/<YYYY-MM-DD_话题名称>.md"
      ```
-     `super-me recent` 会自动将该记录置于 `recent.md` 表格首行、执行双阈值淘汰，并同步索引。
+     `free-me recent` 会自动将该记录置于 `recent.md` 表格首行、执行双阈值淘汰，并同步索引。
    - 若已存在：直接复用，准备追加。
 
 2. **阶段性推进与增量追加**：
@@ -24,12 +24,12 @@ AI 在会话中观察到**实质性变更**（修改了代码/配置、做出了
    - **向同一个文件追加**：记录刚才改了什么、为什么改、遇到了什么坑、当前状态如何（保留演进过程，不全量推倒重写）。
    - **刷新流水与同步索引**：
      ```bash
-     super-me recent "<话题名称>" "memory/<YYYY-MM-DD_话题名称>.md"
-     super-me sync "memory/<YYYY-MM-DD_话题名称>.md"
+     free-me recent "<话题名称>" "memory/<YYYY-MM-DD_话题名称>.md"
+     free-me sync "memory/<YYYY-MM-DD_话题名称>.md"
      ```
 
 3. **静态事实同步**：
-   - 若过程中确认了新的不变事实（端口、服务、别名、硬件），顺手更新 `system/profile.md` 或 `system/aliases.md`，并执行 `super-me sync`。
+   - 若过程中确认了新的不变事实（端口、服务、别名、硬件），顺手更新 `system/profile.md` 或 `system/aliases.md`，并执行 `free-me sync`。
 
 ---
 

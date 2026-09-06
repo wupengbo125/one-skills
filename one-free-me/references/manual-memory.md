@@ -1,7 +1,7 @@
 # 手工记忆操作指南 (Manual Memory Reference)
 
 > 用户显式说“**收工**”、“**超级我**”时触发。
-> **核心原则**：价值判定过滤；情景长文完整叙事；通过 `scripts/super_me.py recent` 自动打卡、置顶并治理近期记忆。
+> **核心原则**：价值判定过滤；情景长文完整叙事；通过 `scripts/free_me.py recent` 自动打卡、置顶并治理近期记忆。
 
 ---
 
@@ -41,23 +41,23 @@
 ---
 
 ### 3. 近期流水打卡、置顶与自清洁
-执行 `python3 scripts/super_me.py recent` 命令（或简写 `super-me recent`），自动完成**流水记录、时间戳刷新、首行置顶、双阈值淘汰与索引同步**：
+执行 `python3 scripts/free_me.py recent` 命令（或简写 `free-me recent`），自动完成**流水记录、时间戳刷新、首行置顶、双阈值淘汰与索引同步**：
 ```bash
-python3 scripts/super_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
+python3 scripts/free_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
 ```
 
 > **底层逻辑**：
 > 1. 条目格式：`| <中文主题> | memory/<YYYY-MM-DD_中文主题>.md | <YYYY-MM-DD> |`；
 > 2. 访问置顶：更新时间戳为当天，并将该条目移动到表格第一行；
 > 3. 双阈值淘汰：超 60 天自动淘汰，超 100 条 LRU 截断；
-> 4. 自动同步索引：自动调用 `super-me sync "recent.md"`。
+> 4. 自动同步索引：自动调用 `free-me sync "recent.md"`。
 
 ---
 
 ### 4. 即时同步与极简汇报
 1. **BM25 索引同步**：
    ```bash
-   python3 scripts/super_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
+   python3 scripts/free_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
    ```
 2. **终端极简汇报**：
    只答一句话结果，例如：“已完成今日记忆沉淀至 memory/<YYYY-MM-DD_中文主题>.md 并同步索引。”

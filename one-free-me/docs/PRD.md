@@ -1,19 +1,19 @@
 ---
 type: PRD
-title: One Super-Me 记忆中枢与三维记忆智能体需求文档
+title: One Free-Me 记忆中枢与三维记忆智能体需求文档
 description: "海马体记忆中枢与数字化身规范文档 (PRD)"
 tags:
   - prd
-  - one-super-me
+  - one-free-me
   - memory
   - hippocampus
 ---
 
-# One Super-Me 记忆中枢与执行代理需求文档
+# One Free-Me 记忆中枢与执行代理需求文档
 
 ## 1. 核心设计原则 (Core Principles)
 
-1. **数据与能力分立**：记忆数据、文档与画像统一保存在 `$github_dir/one-hippocampus/` 数据仓；检索、索引同步与近期记忆治理等工具集中在 `one-super-me/scripts/super_me.py` 辅助脚本中。
+1. **数据与能力分立**：记忆数据、文档与画像统一保存在 `$github_dir/one-hippocampus/` 数据仓；检索、索引同步与近期记忆治理等工具集中在 `one-free-me/scripts/free_me.py` 辅助脚本中。
 2. **双轨沉淀机制**：区隔“自动记忆（伴随增量）”与“收工记忆（情景复盘）”两条主线，按需沉淀。
 3. **意图驱动触发**：仅支持编码过程自动伴随记录，以及用户显式输入的收工意图（“收工”、“超级我”）。日常记笔记存资料归属于个人知识库（`one-take-notes`）。
 4. **全中文文章命名**：系统顶层骨架采用英文标准目录，所有具体文章与文档统一采用中文命名。
@@ -25,7 +25,7 @@ tags:
 
 ## 2. 背景与愿景 (Vision)
 
-构建专属于用户的数字化身与海马体记忆中枢（One Super-Me）：
+构建专属于用户的数字化身与海马体记忆中枢（One Free-Me）：
 - **用户基础画像**：沉淀用户物理与生活属性、硬件配置与日常环境；
 - **工程资产与路径**：记录 GitHub 仓库根目录（`$github_dir`）及关联项目拓扑；
 - **别名与操作映射**：映射常用项目代号（如 `OneToDo`、`vfrp`）至实际工程路径与常用操作；
@@ -44,11 +44,11 @@ tags:
   2. 记录演进过程、改动要点、踩坑排障与当前状态；
   3. 执行脚本完成打卡与置顶：
      ```bash
-     python3 scripts/super_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
+     python3 scripts/free_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
      ```
   4. 增量同步索引：
      ```bash
-     python3 scripts/super_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
+     python3 scripts/free_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
      ```
 
 ### 3.2 模式二：收工记忆（会话情景复盘）
@@ -58,17 +58,17 @@ tags:
   2. **情景记录**：以完整叙事方式撰写会话实操复盘至 `$github_dir/one-hippocampus/memory/<YYYY-MM-DD_中文主题>.md`，涵盖背景目标、决策过程、改动清单与避坑要点；
   3. **流水打卡与治理**：
      ```bash
-     python3 scripts/super_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
-     python3 scripts/super_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
+     python3 scripts/free_me.py recent "<中文主题>" "memory/<YYYY-MM-DD_中文主题>.md"
+     python3 scripts/free_me.py sync "memory/<YYYY-MM-DD_中文主题>.md"
      ```
   4. 极简汇报执行结果。
 
 ---
 
-## 4. 辅助脚本规范 (`scripts/super_me.py`)
+## 4. 辅助脚本规范 (`scripts/free_me.py`)
 
 ### 4.1 脚本定位
-在 `scripts/` 目录下提供单一 Python 脚本 `scripts/super_me.py`，全局环境可通过 `super-me` 简写调用。本地数据库 `.fts.db` 存放于海马体仓库根目录，加入 `.gitignore` 仅在本地维护。
+在 `scripts/` 目录下提供单一 Python 脚本 `scripts/free_me.py`，全局环境可通过 `free-me` 简写调用。本地数据库 `.fts.db` 存放于海马体仓库根目录，加入 `.gitignore` 仅在本地维护。
 
 ### 4.2 子命令规格
 
@@ -83,7 +83,7 @@ tags:
 ### 4.3 检索优先级
 AI 执行任务或查询记忆时遵循以下寻路顺序：
 1. **代号解析**：查阅 `system/aliases.md` 解析特定代号对应的项目路径与常用指令；
-2. **BM25 检索**：调用 `python3 scripts/super_me.py search "<关键词>"` 秒级检索文档候选；
+2. **BM25 检索**：调用 `python3 scripts/free_me.py search "<关键词>"` 秒级检索文档候选；
 3. **语义索引**：未精确命中时，遍历 `INDEX.md` 与 `onewiki/index.md` 结构导航；
 4. **活跃记忆**：结合 `hot.md` 与 `recent.md` 获取当前高频上下文。
 
@@ -121,4 +121,4 @@ $github_dir/one-hippocampus/
 * **双阈值淘汰**：
   1. **时间阈值**：保留 60 天内的条目，超期记录自动淘汰；
   2. **数量阈值**：最大保留 100 条记录，超出部分按访问时间倒序截断；
-  3. **自动同步**：调用 `scripts/super_me.py recent` 时自动触发双阈值清理与索引同步。
+  3. **自动同步**：调用 `scripts/free_me.py recent` 时自动触发双阈值清理与索引同步。

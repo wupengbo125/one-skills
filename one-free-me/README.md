@@ -1,6 +1,6 @@
-# One Super-Me (超级我)：个人专属数字化身与海马体中枢
+# One Free-Me (超级我)：个人专属数字化身与海马体中枢
 
-One Super-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocampus`）的认知与技能中枢。
+One Free-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocampus`）的认知与技能中枢。
 
 ---
 
@@ -9,10 +9,10 @@ One Super-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocam
 遵循标准 Skill 结构，脚本集中于 `scripts/` 目录下，并提供分层参考指南：
 
 ```
-one-skills/one-super-me/
+one-skills/one-free-me/
 ├── SKILL.md                 # 【技能核心入口】：意图分流与按需索引
 ├── scripts/                 # 【脚本目录】
-│   └── super_me.py          # BM25 检索、增量/全量建库、近期流水与自清洁
+│   └── free_me.py          # BM25 检索、增量/全量建库、近期流水与自清洁
 ├── references/              # 【按需执行指南】
 │   ├── routing.md           # 检索寻路：别名消歧、BM25 检索与语义索引
 │   ├── auto-memory.md       # 自动记忆：干活中顺手增量追加到 memory/（主航道）
@@ -48,33 +48,33 @@ one-skills/one-super-me/
 ### 1. 自动记忆（编码推进中伴随增量追加）
 - 遵循 `references/auto-memory.md`；
 - 会话产生实质代码或配置修改时，向当日话题长文 `memory/<YYYY-MM-DD_中文主题>.md` 增量追加演化过程；
-- 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，通过 `scripts/super_me.py recent` 自动打卡置顶。
+- 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，通过 `scripts/free_me.py recent` 自动打卡置顶。
 
 ### 2. 收工记忆（用户主动输入“收工” / “超级我”）
 - 遵循 `references/manual-memory.md`；
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **情景复盘**：补全复盘长文，涵盖背景目标、关键决策与落地清单；
-- **打卡与自清洁**：更新 `recent.md`，执行 `scripts/super_me.py recent` 自动打卡、双阈值淘汰并同步索引。
+- **打卡与自清洁**：更新 `recent.md`，执行 `scripts/free_me.py recent` 自动打卡、双阈值淘汰并同步索引。
 
 ---
 
-## 四、 辅助脚本命令 (`scripts/super_me.py`)
+## 四、 辅助脚本命令 (`scripts/free_me.py`)
 
-终端可通过 `python3 scripts/super_me.py` 或全局命令 `super-me` 执行：
+终端可通过 `python3 scripts/free_me.py` 或全局命令 `free-me` 执行：
 
 ```bash
 # 1. 关键词 BM25 极速检索 (毫秒响应，零 Token 消耗)
-python3 scripts/super_me.py search "<关键词>"
+python3 scripts/free_me.py search "<关键词>"
 
 # 2. 近期活跃流水打卡与置顶 (自动执行 60 天 / 100 条双阈值淘汰并同步索引)
-python3 scripts/super_me.py recent "<实体/主题>" "[指针/简述]"
+python3 scripts/free_me.py recent "<实体/主题>" "[指针/简述]"
 
 # 3. 近期记忆治理 (手动执行 60 天 / 100 条双阈值淘汰)
-python3 scripts/super_me.py clean
+python3 scripts/free_me.py clean
 
 # 4. 增量同步单篇文档索引
-python3 scripts/super_me.py sync "<相对路径>"
+python3 scripts/free_me.py sync "<相对路径>"
 
 # 5. 全量重建海马体 .fts.db 索引
-python3 scripts/super_me.py rebuild
+python3 scripts/free_me.py rebuild
 ```
