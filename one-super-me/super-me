@@ -1,64 +1,24 @@
 #!/usr/bin/env python3
 """
-One Super-Me (超级我) - 统一全能 CLI
+One Super-Me (超级我) - 海马体核心检索与索引引擎
 职责：
-1. 认知提炼引擎 (hook run)：会话结束时四维认知提炼（画像、方法、位置与别名、近期流水）
-2. 钩子生命周期管理 (hook install / uninstall / test)
-3. BM25 本地全文检索 (search)：毫秒级寻路，零模型消耗
-4. 索引维护 (sync / rebuild)
-5. 近期记忆治理 (clean)
+1. BM25 本地全文检索 (search)：毫秒级寻路，零模型与零Token消耗
+2. 增量同步单篇文档 (sync)：更新 Markdown 后即时写入 .fts.db 索引
+3. 全量重建海马体索引 (rebuild)：遍历文档重建 SQLite FTS5 数据库
+4. 近期记忆治理 (clean)：执行 recent.md 双阈值（60天 / 100条）淘汰
 """
 
 import os
 import re
 import sys
-import json
-import shutil
 import sqlite3
-import subprocess
-import urllib.request
-import urllib.error
 from datetime import datetime, timedelta
 
 DEFAULT_HIPPOCAMPUS_DIR = os.path.expanduser(
     os.environ.get("ONE_HIPPOCAMPUS_DIR", "~/onespace/github/one-hippocampus")
 )
 
-def get_script_path():
-    """获取 super-me 的真实绝对路径"""
-    return os.path.abspath(os.path.realpath(__file__))
-
-# ==============================================================================
-# 配置与路径管理
-# ==============================================================================
-
-def load_config():
-    """加载 ~/.config/one-super-me/config.env，环境变量优先"""
-    cfg_file = os.path.expanduser("~/.config/one-super-me/config.env")
-    if os.path.isfile(cfg_file):
-        try:
-            with open(cfg_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line or line.startswith("#") or "=" not in line:
-                        continue
-                    k, v = line.split("=", 1)
-                    k = k.strip()
-                    v = v.strip().strip("'\"")
-                    if k and k not in os.environ:
-                        os.environ[k] = v
-        except Exception:
-            pass
-
-def get_llm_config():
-    load_config()
-    base_url = os.environ.get("OPENAI_BASE_URL") or os.environ.get("AI_API")
-    api_key = os.environ.get("OPENAI_API_KEY") or os.environ.get("AI_API_KEY") or "EMPTY"
-    model = os.environ.get("OPENAI_MODEL") or os.environ.get("AI_MODEL") or ""
-    return base_url, api_key, model
-
 def get_hippocampus_dir():
-    load_config()
     custom = os.environ.get("ONE_HIPPOCAMPUS_DIR")
     if custom:
         p = os.path.abspath(os.path.expanduser(custom))
@@ -77,7 +37,7 @@ def get_db_path(repo_dir):
 def cjk_spaced(s):
     if not s:
         return ""
-    # 在相邻 CJK 字符之间插入空格，使 SQLite FTS5 unicode61 支持中文字词匹配
+    # 在相邻 CJK 字符之间插入空格，使 SQLite FTS5 unicode61 支持逐字分词匹配
     return re.sub(r'(?<=[\u3400-\u9fff])(?=[\u3400-\u9fff])', ' ', s)
 
 def extract_title(text, path):
@@ -85,15 +45,6 @@ def extract_title(text, path):
     if m:
         return m.group(1).strip()
     return os.path.splitext(os.path.basename(path))[0]
-
-def sanitize_filename(name):
-    clean = re.sub(r'[/\\:\*?"<>|#]', '', name).strip()
-    clean = re.sub(r'\s+', '_', clean)
-    return clean[:60] if clean else "未命名记录"
-
-# ==============================================================================
-# SQLite FTS5 BM25 检索与索引引擎
-# ==============================================================================
 
 def init_db(conn):
     conn.execute("""
@@ -105,6 +56,10 @@ def init_db(conn):
     );
     """)
     conn.commit()
+
+# ==============================================================================
+# 增量同步与全量重建
+# ==============================================================================
 
 def cmd_sync(rel_path):
     repo_dir = get_hippocampus_dir()
@@ -182,6 +137,10 @@ def cmd_rebuild():
     conn.close()
     print(f">>> [Super-Me BM25] 重建完成，共索引 {indexed_count} 篇海马体文档。")
 
+# ==============================================================================
+# BM25 极速检索
+# ==============================================================================
+
 def cmd_search(query_str):
     if not query_str or not query_str.strip():
         print(">>> [Super-Me BM25] 请输入搜索关键词")
@@ -244,6 +203,10 @@ def cmd_search(query_str):
         print(f"    摘要: {clean_snippet[:120]}")
         print()
 
+# ==============================================================================
+# 近期记忆生命周期治理 (60天 / 100条双阈值)
+# ==============================================================================
+
 def cmd_clean_recent():
     repo_dir = get_hippocampus_dir()
     recent_file = os.path.join(repo_dir, "recent.md")
@@ -301,559 +264,21 @@ def cmd_clean_recent():
     print(f">>> [Super-Me 治理] 近期记忆清理完成，当前保留 {len(new_rows)} 条有效记忆。")
 
 # ==============================================================================
-# 会话解析与模型借用通道 (免配置开箱即用)
-# ==============================================================================
-
-def extract_chat_text(raw_text):
-    """解析 Hook 传入的各种 JSON 或文本负载，提取人机对话与工具操作轨迹"""
-    s = raw_text.strip()
-    if not s:
-        return ""
-    if s.startswith("{") and s.endswith("}"):
-        try:
-            data = json.loads(s)
-            # 如果是 OMP 扩展传入的 session_file
-            if "session_file" in data and os.path.isfile(data["session_file"]):
-                with open(data["session_file"], "r", encoding="utf-8", errors="ignore") as sf:
-                    file_content = sf.read()
-                    return extract_chat_text(file_content)
-
-            extracted = []
-            for key in ["transcript", "messages", "turns"]:
-                if key in data and isinstance(data[key], list):
-                    for item in data[key]:
-                        if isinstance(item, dict):
-                            role = item.get("role", "")
-                            c = item.get("content", "")
-                            if isinstance(c, list):
-                                for block in c:
-                                    if isinstance(block, dict) and block.get("type") == "text":
-                                        extracted.append(f"[{role}]: {block.get('text', '')}")
-                            elif c and isinstance(c, str):
-                                extracted.append(f"[{role}]: {c}")
-                    if extracted:
-                        return "\n".join(extracted)
-        except Exception:
-            pass
-    elif "\n{" in s or s.startswith("{\""):
-        # 处理 jsonl 格式
-        lines = s.splitlines()
-        extracted = []
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                item = json.loads(line)
-                if isinstance(item, dict):
-                    role = item.get("role", item.get("type", ""))
-                    c = item.get("content", item.get("message", ""))
-                    if isinstance(c, str) and c:
-                        extracted.append(f"[{role}]: {c}")
-            except Exception:
-                pass
-        if extracted:
-            return "\n".join(extracted)
-
-    return raw_text
-
-def call_llm(prompt):
-    """
-    通用大模型调用管道：
-    1. 优先调用配置的 OpenAI 兼容端点 (~/.config/one-super-me/config.env 或环境变量)
-    2. 若未配置外部 API，自动回退借用宿主已登录的本地 Agent CLI (如 claude -p)
-    """
-    base_url, api_key, model = get_llm_config()
-
-    # 方式 1：如果配置了外部模型端点，走标准 API 请求
-    if base_url:
-        endpoint = base_url.rstrip("/") + "/chat/completions"
-        payload = {
-            "model": model or "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": "You are a professional cognitive extraction assistant. Output strictly JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            "temperature": 0.2
-        }
-        try:
-            data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                endpoint,
-                data=data,
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {api_key}"
-                }
-            )
-            with urllib.request.urlopen(req, timeout=40) as resp:
-                resp_body = resp.read().decode("utf-8")
-                res_json = json.loads(resp_body)
-                return res_json["choices"][0]["message"]["content"].strip()
-        except Exception as e:
-            print(f">>> [Super-Me] 外部大模型 API 调用失败 ({e})，尝试回退宿主原生 CLI...")
-
-    # 方式 2：宿主自带模型免配置借用 (小明不用额外买任何 API)
-    if shutil.which("claude"):
-        try:
-            res = subprocess.run(
-                ["claude", "-p", prompt, "--allowed-tools", ""],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            if res.returncode == 0 and res.stdout.strip():
-                return res.stdout.strip()
-        except Exception as e:
-            print(f">>> [Super-Me] 调用宿主 claude 失败: {e}")
-
-    if shutil.which("omp"):
-        try:
-            res = subprocess.run(
-                ["omp", "-p", prompt],
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
-            if res.returncode == 0 and res.stdout.strip():
-                return res.stdout.strip()
-        except Exception:
-            pass
-
-    print(">>> [Super-Me] 提示：未检测到可用的大模型通道（请在 ~/.config/one-super-me/config.env 配置或确保宿主 CLI 可用）。")
-    return None
-
-# ==============================================================================
-# 四维认知深度提炼与持久化落盘
-# ==============================================================================
-
-COGNITIVE_PROMPT_TEMPLATE = """你是一个超级智能体（Super-Me 数字化身）的记忆与认知中枢。
-请仔细审视本次对话交互（包含用户意图、讨论内容、实操命令、改动文件、产生结果），进行深度的四维认知提炼。
-
-【四大认知提炼维度】
-1. 👤 用户画像与事实偏好 (profile):
-   提取用户的生活属性（如电车/油车、作息习惯）、硬件设备、工程偏好、沟通铁律、禁忌癖好。
-   格式：只提炼高价值新事实，泛泛而谈或已有的一律不提取。
-
-2. 🛠️ 独家操作方法 (methods):
-   提取本次跑通的具体操作命令、踩平的坑、特定服务的部署/排障流程。
-   格式：必须给出具体的中文主题名称（如《本地服务启停实操指南》）和精炼 Markdown 步骤。
-
-3. 🗺️ 资产与位置 (locations & aliases):
-   提取新增或确认的局域网机器拓扑、端口映射、工程目录路径，以及项目高频代号/别名映射。
-   格式：中文位置主题（如《局域网服务与核心端口》）或代号映射（如别名对应路径）。
-
-4. ⚡ 近期活跃流水 (recent):
-   记录本次会话的核心实操：时间、做了什么事、改了哪些核心文件或服务。
-   格式：实体名称与一句话变动摘要。
-
-【输出严格要求】
-- 如果本轮会话只是简单的寒暄、无任何实质进展或新认知，只返回: NO_INCREMENT
-- 否则，请严格输出且仅输出一个合法的 JSON 对象（严禁任何 markdown ``` 代码块包裹），格式严格如下：
-{
-  "profile": ["用户属性或习惯事实1", "用户属性或习惯事实2"],
-  "methods": [
-    {"topic": "中文操作主题", "content": "核心步骤与实操命令"}
-  ],
-  "locations": [
-    {"topic": "中文位置主题", "content": "机器拓扑、端口或工程路径详情"}
-  ],
-  "aliases": [
-    {"alias": "代号名", "target": "路径或操作命令", "desc": "代号说明"}
-  ],
-  "recent": {
-    "entity": "实操主题或项目代号",
-    "summary": "本次会话的核心操作与改动摘要"
-  }
-}
-
-【会话交互内容如下】:
-%s
-"""
-
-def extract_and_persist(chat_text):
-    """四维认知提炼并落盘至海马体，自动增量更新 .fts.db"""
-    clean_text = extract_chat_text(chat_text)
-    if len(clean_text.strip()) < 15:
-        return
-
-    # 截取近 10000 字符避免 token 溢出
-    sample_text = clean_text[-10000:]
-    prompt = COGNITIVE_PROMPT_TEMPLATE % sample_text
-
-    content_text = call_llm(prompt)
-    if not content_text or "NO_INCREMENT" in content_text:
-        print(">>> [Super-Me] 经认知审视无新知识增量，保持静默。")
-        return
-
-    content_text = re.sub(r"^```json\s*", "", content_text, flags=re.I)
-    content_text = re.sub(r"\s*```$", "", content_text)
-
-    try:
-        parsed = json.loads(content_text)
-    except Exception:
-        m = re.search(r"\{.*\}", content_text, re.S)
-        if m:
-            try:
-                parsed = json.loads(m.group(0))
-            except Exception:
-                print(">>> [Super-Me] 模型输出无法解析为 JSON，跳过落盘。")
-                return
-        else:
-            print(">>> [Super-Me] 未发现有效 JSON 增量，跳过落盘。")
-            return
-
-    repo_dir = get_hippocampus_dir()
-    now_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-    today_str = datetime.now().strftime("%Y-%m-%d")
-
-    # --------------------------------------------------------------------------
-    # 维度 1：用户画像与偏好 (profile) -> system/profile.md
-    # --------------------------------------------------------------------------
-    profile_items = parsed.get("profile", [])
-    if profile_items and isinstance(profile_items, list):
-        profile_file = os.path.join(repo_dir, "system", "profile.md")
-        os.makedirs(os.path.dirname(profile_file), exist_ok=True)
-        with open(profile_file, "a", encoding="utf-8") as f:
-            f.write(f"\n\n### 增量画像与偏好 ({now_str})\n")
-            for item in profile_items:
-                f.write(f"- {item}\n")
-        print(">>> [Super-Me] 👤 用户画像已增量更新: system/profile.md")
-        cmd_sync("system/profile.md")
-
-    # --------------------------------------------------------------------------
-    # 维度 2：独家操作方法 (methods) -> memory/methods/<中文主题>.md
-    # --------------------------------------------------------------------------
-    methods = parsed.get("methods", [])
-    if methods and isinstance(methods, list):
-        for m_item in methods:
-            topic = sanitize_filename(m_item.get("topic", ""))
-            content = m_item.get("content", "").strip()
-            if topic and content:
-                m_file = os.path.join(repo_dir, "memory", "methods", f"{topic}.md")
-                os.makedirs(os.path.dirname(m_file), exist_ok=True)
-                is_new = not os.path.isfile(m_file)
-                with open(m_file, "a", encoding="utf-8") as f:
-                    if is_new:
-                        f.write(f"# {topic}\n\n{content}\n")
-                    else:
-                        f.write(f"\n\n## 增量实操记录 ({now_str})\n\n{content}\n")
-                rel_p = os.path.relpath(m_file, repo_dir)
-                print(f">>> [Super-Me] 🛠️ 操作方法沉淀入库: {rel_p}")
-                cmd_sync(rel_p)
-
-    # --------------------------------------------------------------------------
-    # 维度 3：资产与资源位置 (locations) -> memory/locations/<中文主题>.md
-    # --------------------------------------------------------------------------
-    locations = parsed.get("locations", [])
-    if locations and isinstance(locations, list):
-        for l_item in locations:
-            topic = sanitize_filename(l_item.get("topic", ""))
-            content = l_item.get("content", "").strip()
-            if topic and content:
-                l_file = os.path.join(repo_dir, "memory", "locations", f"{topic}.md")
-                os.makedirs(os.path.dirname(l_file), exist_ok=True)
-                is_new = not os.path.isfile(l_file)
-                with open(l_file, "a", encoding="utf-8") as f:
-                    if is_new:
-                        f.write(f"# {topic}\n\n{content}\n")
-                    else:
-                        f.write(f"\n\n## 增量资源记录 ({now_str})\n\n{content}\n")
-                rel_p = os.path.relpath(l_file, repo_dir)
-                print(f">>> [Super-Me] 🗺️ 资产位置沉淀入库: {rel_p}")
-                cmd_sync(rel_p)
-
-    # 别名映射 (aliases) -> system/aliases.md
-    aliases = parsed.get("aliases", [])
-    if aliases and isinstance(aliases, list):
-        alias_file = os.path.join(repo_dir, "system", "aliases.md")
-        if os.path.isfile(alias_file):
-            with open(alias_file, "a", encoding="utf-8") as f:
-                for a in aliases:
-                    al = a.get("alias", "").strip()
-                    tg = a.get("target", "").strip()
-                    ds = a.get("desc", "").strip()
-                    if al:
-                        f.write(f"| **{al}** | `{tg}` | - | {ds} |\n")
-            print(">>> [Super-Me] 🏷️ 项目别名映射更新: system/aliases.md")
-            cmd_sync("system/aliases.md")
-
-    # --------------------------------------------------------------------------
-    # 维度 4：近期活跃流水 (recent) -> recent.md
-    # --------------------------------------------------------------------------
-    recent_entry = parsed.get("recent")
-    if recent_entry and isinstance(recent_entry, dict):
-        entity = recent_entry.get("entity", "").strip()
-        summary = recent_entry.get("summary", "").strip()
-        if entity and summary:
-            recent_file = os.path.join(repo_dir, "recent.md")
-            if os.path.isfile(recent_file):
-                lines = open(recent_file, "r", encoding="utf-8").readlines()
-                insert_idx = len(lines)
-                for idx, line in enumerate(lines):
-                    if line.strip().startswith("|") and ("---" in line or "实体" in line):
-                        insert_idx = idx + 1
-                new_line = f"| {entity} | {summary} | {today_str} |\n"
-                lines.insert(insert_idx, new_line)
-                with open(recent_file, "w", encoding="utf-8") as f:
-                    f.writelines(lines)
-                print(f">>> [Super-Me] ⚡ 近期活跃流水已记录: recent.md")
-                cmd_sync("recent.md")
-
-# ==============================================================================
-# 钩子生命周期管理 (Install / Uninstall / Test)
-# ==============================================================================
-
-def cmd_hook_install(agent_name=None, custom_opts=None):
-    custom_opts = custom_opts or {}
-    real_script = get_script_path()
-
-    # 确保 ~/.local/bin/super-me 全局快捷入口
-    local_bin = os.path.expanduser("~/.local/bin")
-    os.makedirs(local_bin, exist_ok=True)
-    symlink_path = os.path.join(local_bin, "super-me")
-    try:
-        if os.path.lexists(symlink_path):
-            os.remove(symlink_path)
-        os.symlink(real_script, symlink_path)
-        os.chmod(real_script, 0o755)
-    except Exception:
-        pass
-
-    # 处理目标 Agent
-    if not agent_name:
-        print("==================================================================")
-        print("      One Super-Me (超级我) 目标 Agent 钩子安装向导")
-        print("==================================================================")
-        print("请选择要挂载的目标 Agent 宿主：")
-        print("  1) Claude Code (挂载至 ~/.claude/settings.json 的 Stop 钩子)")
-        print("  2) OMP / Pi Agent (挂载至 ~/.omp/agent/extensions/)")
-        choice = input("请输入选项编号 (默认 1): ").strip() or "1"
-        agent_name = "claude" if choice == "1" else "omp"
-
-    agent_name = agent_name.lower()
-    if agent_name not in ["claude", "omp"]:
-        print(f"❌ 不支持的 Agent 目标: {agent_name} (仅支持 claude 或 omp)")
-        sys.exit(1)
-
-    # 处理配置
-    cfg_dir = os.path.expanduser("~/.config/one-super-me")
-    cfg_file = os.path.join(cfg_dir, "config.env")
-    os.makedirs(cfg_dir, exist_ok=True)
-
-    if not os.path.isfile(cfg_file) or custom_opts:
-        url = custom_opts.get("url", os.environ.get("OPENAI_BASE_URL", ""))
-        key = custom_opts.get("key", os.environ.get("OPENAI_API_KEY", ""))
-        model = custom_opts.get("model", os.environ.get("OPENAI_MODEL", ""))
-        repo = custom_opts.get("repo", os.environ.get("ONE_HIPPOCAMPUS_DIR", DEFAULT_HIPPOCAMPUS_DIR))
-        with open(cfg_file, "w", encoding="utf-8") as f:
-            f.write(f'OPENAI_BASE_URL="{url}"\n')
-            f.write(f'OPENAI_API_KEY="{key}"\n')
-            f.write(f'OPENAI_MODEL="{model}"\n')
-            f.write(f'ONE_HIPPOCAMPUS_DIR="{repo}"\n')
-
-    # 挂载钩子
-    mount_desc = ""
-    hook_cmd = f"{symlink_path} hook run"
-
-    if agent_name == "claude":
-        claude_dir = os.path.expanduser("~/.claude")
-        settings_file = os.path.join(claude_dir, "settings.json")
-        os.makedirs(claude_dir, exist_ok=True)
-        data = {}
-        if os.path.isfile(settings_file):
-            try:
-                data = json.load(open(settings_file, "r", encoding="utf-8"))
-            except Exception:
-                data = {}
-
-        hooks = data.setdefault("hooks", {})
-        stop_list = hooks.setdefault("Stop", [])
-
-        # 幂等清理已有 super-me 相关钩子
-        clean_stops = []
-        for item in stop_list:
-            inner_hooks = item.get("hooks", [])
-            has_super_me = any("super-me" in h.get("command", "") or "client.py" in h.get("command", "") for h in inner_hooks)
-            if not has_super_me:
-                clean_stops.append(item)
-
-        clean_stops.append({
-            "hooks": [
-                {
-                    "type": "command",
-                    "command": hook_cmd,
-                    "timeout": 60
-                }
-            ]
-        })
-        data["hooks"]["Stop"] = clean_stops
-        with open(settings_file, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        mount_desc = f"{settings_file} (Stop 事件)"
-
-    elif agent_name == "omp":
-        ext_dir = os.path.expanduser("~/.omp/agent/extensions")
-        os.makedirs(ext_dir, exist_ok=True)
-        ext_file = os.path.join(ext_dir, "one-super-me-hook.ts")
-        ts_code = f"""// One Super-Me Session Shutdown Hook
-import {{ spawn }} from 'child_process';
-import * as fs from 'fs';
-
-export default function (pi: any) {{
-  pi.on('session_shutdown', async (_event: any, ctx: any) => {{
-    try {{
-      const sessionFile = ctx?.sessionManager?.getSessionFile?.();
-      const proc = spawn('{symlink_path}', ['hook', 'run'], {{
-        detached: true,
-        stdio: ['pipe', 'ignore', 'ignore'],
-      }});
-      if (sessionFile && fs.existsSync(sessionFile)) {{
-        const stream = fs.createReadStream(sessionFile);
-        stream.pipe(proc.stdin);
-      }} else {{
-        proc.stdin.end();
-      }}
-      proc.unref();
-    }} catch (_) {{}}
-  }});
-}}
-"""
-        with open(ext_file, "w", encoding="utf-8") as f:
-            f.write(ts_code)
-        mount_desc = ext_file
-
-    # 初始化数据库
-    repo_dir = get_hippocampus_dir()
-    db_path = get_db_path(repo_dir)
-    if not os.path.isfile(db_path):
-        cmd_rebuild()
-
-    # 打印透明回执
-    base_url, _, model = get_llm_config()
-    llm_desc = f"{model} @ {base_url}" if base_url else "开箱即用（借用宿主已登录的原生模型 CLI）"
-
-    print("\n==================================================================")
-    print("🎉 One Super-Me 统一钩子已成功安装！")
-    print("==================================================================")
-    print(f"🎯 目标 Agent:    {agent_name}")
-    print(f"🪝 挂载位置:      {mount_desc}")
-    print(f"📜 钩子执行指令:  {hook_cmd}")
-    print(f"🧠 四维提炼落盘:  画像(profile) | 方法(methods) | 位置(locations) | 流水(recent)")
-    print(f"🤖 认知模型通道:  {llm_desc}")
-    print(f"📁 海马体数据仓:  {repo_dir}")
-    print("------------------------------------------------------------------")
-    print("💡 小明如何一键自检与验证？")
-    print("   请在终端直接执行一行自检命令：")
-    print(f"   super-me hook test")
-    print("   若看到【四维认知全链路自检完成】，即代表全链路 100% 畅通！")
-    print("==================================================================\n")
-
-def cmd_hook_uninstall(agent_name=None):
-    if not agent_name or agent_name == "all":
-        agent_name = "all"
-
-    print(f">>> 正在注销 One Super-Me 钩子 (目标: {agent_name})...")
-
-    if agent_name in ["claude", "all"]:
-        settings_file = os.path.expanduser("~/.claude/settings.json")
-        if os.path.isfile(settings_file):
-            try:
-                data = json.load(open(settings_file, "r", encoding="utf-8"))
-                stop_list = data.get("hooks", {}).get("Stop", [])
-                clean_stops = []
-                for item in stop_list:
-                    inner_hooks = item.get("hooks", [])
-                    has_sm = any("super-me" in h.get("command", "") or "client.py" in h.get("command", "") for h in inner_hooks)
-                    if not has_sm:
-                        clean_stops.append(item)
-                data["hooks"]["Stop"] = clean_stops
-                with open(settings_file, "w", encoding="utf-8") as f:
-                    json.dump(data, f, indent=2, ensure_ascii=False)
-                print("  [✓] 已从 ~/.claude/settings.json 中移除 Stop 钩子")
-            except Exception as e:
-                print(f"  [-] 移除 Claude 钩子异常: {e}")
-
-    if agent_name in ["omp", "all"]:
-        ext_file = os.path.expanduser("~/.omp/agent/extensions/one-super-me-hook.ts")
-        if os.path.isfile(ext_file):
-            os.remove(ext_file)
-            print(f"  [✓] 已移除 OMP 扩展: {ext_file}")
-
-    print(">>> 钩子注销完成（海马体数据与本地配置完整保留）。")
-
-def cmd_hook_test():
-    print("==================================================")
-    print("🧪 One Super-Me 四维认知提炼全链路自检")
-    print("==================================================")
-    repo_dir = get_hippocampus_dir()
-
-    # 0. 自检前备份状态（保证测试后零污染精确回滚）
-    backup_files = ["system/profile.md", "system/aliases.md", "recent.md"]
-    snapshots = {}
-    for rel_f in backup_files:
-        full_f = os.path.join(repo_dir, rel_f)
-        if os.path.isfile(full_f):
-            snapshots[rel_f] = open(full_f, "r", encoding="utf-8").read()
-
-    existing_files = set()
-    for root, _, files in os.walk(repo_dir):
-        for f in files:
-            existing_files.add(os.path.join(root, f))
-
-    test_input = (
-        "测试会话记录：小明告诉助手，他是自由职业开发者，习惯极简中文交流，主力车是特斯拉 Model Y。"
-        "今天在服务器 10.0.0.10 成功部署了局域网测试服务，访问端口 29090，执行脚本是 ~/bin/test-service.sh，"
-        "别名为 pts。本次解决了端口占用冲突，顺利完成了版本发布。"
-    )
-    print("1. 模拟输入测试会话文本...")
-    extract_and_persist(test_input)
-
-    print("\n2. 测试 BM25 检索刚沉淀的多维知识...")
-    cmd_search("29090")
-
-    # 安全回滚测试数据，保持海马体 100% 纯净
-    print("3. 正在安全清理自检测试数据（精确回滚快照）...")
-    for rel_f, content in snapshots.items():
-        full_f = os.path.join(repo_dir, rel_f)
-        with open(full_f, "w", encoding="utf-8") as f:
-            f.write(content)
-
-    for root, _, files in os.walk(repo_dir):
-        for f in files:
-            full_p = os.path.join(root, f)
-            if full_p not in existing_files and not f.endswith(".fts.db"):
-                try:
-                    os.remove(full_p)
-                except Exception:
-                    pass
-
-    cmd_rebuild()
-    print("==================================================")
-    print("✅ 四维认知提炼、落盘与检索全链路自检完成，一切正常！")
-
-# ==============================================================================
 # CLI 主入口
 # ==============================================================================
 
 def print_help():
-    print("""One Super-Me (超级我) - 统一全能命令行
+    print("""One Super-Me (超级我) - 海马体核心检索与索引引擎
 
 用法:
   super-me <子命令> [参数...]
 
-核心检索与索引 (纯本地算法，毫秒响应，零Token消耗):
+命令列表 (纯本地算法，毫秒响应，零Token消耗):
   search <关键词>              BM25 极速检索海马体知识与避坑手册
-  <关键词>                     快捷搜索模式
+  <关键词>                     快捷搜索模式 (如: super-me dotfiles)
   sync <文件相对路径>          增量同步单篇文档到 .fts.db 索引
   rebuild                     全量重建海马体 .fts.db 索引
   clean                       近期记忆治理 (执行 60 天 / 100 条双阈值淘汰)
-
-钩子与自动化四维认知提炼:
-  hook install [claude|omp]   安装会话钩子到指定 Agent (透明回执与开箱即用)
-  hook uninstall [claude|omp] 从指定 Agent 注销钩子
-  hook run                    执行钩子提炼 (从 stdin 捕获会话，提取四维认知并写库)
-  hook test                   全链路功能自检 (模拟输入、模型四维提取、落盘与查库)
 """)
 
 def main():
@@ -865,42 +290,6 @@ def main():
 
     if cmd in ["-h", "--help", "help"]:
         print_help()
-    elif cmd == "hook":
-        if len(sys.argv) < 3:
-            print(">>> 请指定 hook 动作: install | uninstall | run | test")
-            sys.exit(1)
-        sub = sys.argv[2]
-        if sub == "install":
-            target = sys.argv[3] if len(sys.argv) >= 4 and not sys.argv[3].startswith("-") else None
-            # 解析可选参数
-            custom_opts = {}
-            for i in range(3, len(sys.argv)):
-                if sys.argv[i] == "--url" and i + 1 < len(sys.argv):
-                    custom_opts["url"] = sys.argv[i+1]
-                elif sys.argv[i] == "--key" and i + 1 < len(sys.argv):
-                    custom_opts["key"] = sys.argv[i+1]
-                elif sys.argv[i] == "--model" and i + 1 < len(sys.argv):
-                    custom_opts["model"] = sys.argv[i+1]
-            cmd_hook_install(target, custom_opts)
-        elif sub == "uninstall":
-            target = sys.argv[3] if len(sys.argv) >= 4 else "all"
-            cmd_hook_uninstall(target)
-        elif sub == "run":
-            # 优先从 stdin 读取
-            raw_input = ""
-            if not sys.stdin.isatty():
-                try:
-                    raw_input = sys.stdin.read()
-                except Exception:
-                    pass
-            if not raw_input and len(sys.argv) >= 4:
-                raw_input = " ".join(sys.argv[3:])
-            extract_and_persist(raw_input)
-        elif sub == "test":
-            cmd_hook_test()
-        else:
-            print(f">>> 未知的 hook 动作: {sub}")
-            sys.exit(1)
     elif cmd == "rebuild":
         cmd_rebuild()
     elif cmd == "sync":
