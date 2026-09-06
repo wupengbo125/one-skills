@@ -3,7 +3,7 @@
 - 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
 - 宪法源文件在: ~/onespace/github/one-skills/one-agents.md（改后跑 update-to-repos.sh）
 - 每次修改代码都要本地 commit，不 push，保持本地有记录。
-- 海马体记忆伴随模式规范: ~/onespace/github/one-skills/one-super-me/伴随模式.md（遇未知先查 super-me，有硬核认知随手沉淀入库，宁缺毋滥不记垃圾）
+- 海马体记忆伴随模式 (Companion Mode): 遵循 one-super-me skill（遇未知先查 super-me，有硬核认知随手沉淀入库，知识库全中文，宁缺毋滥不记垃圾）
 
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
@@ -20,9 +20,10 @@
 
 ## 2. 海马体记忆伴随模式 (Companion Mode)
 
-在任何对话与编码中全程伴随执行（详见 `~/onespace/github/one-skills/one-super-me/伴随模式.md`）：
+在任何对话与编码中全程伴随执行（遵循 `one-super-me` skill）：
 * **伴随查**：遇到未知代号或私有服务，查 `system/aliases.md` 或执行 `super-me search "<关键词>"`。
 * **伴随存**：跑通关键方法、排查深坑或确认资产位置时，随手写入 `one-hippocampus/` 并执行 `super-me sync "<相对路径>"`。
+* **知识库全中文**：Skill 保持 `one-super-me`，海马体知识库文档 100% 采用中文命名。
 * **宁缺毋滥**：无实质硬核增量保持静默，严禁制造琐碎垃圾。
 
 <!-- PROJECT-NAV:START -->

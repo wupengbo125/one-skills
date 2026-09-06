@@ -1,0 +1,42 @@
+# 海马体记忆伴随模式 (Companion Mode)
+
+> 本规范定义 AI Agent 在日常会话与编码中的实时记忆伴随行为准则。
+> 无需依赖脆弱的进程退出钩子（Hook），在会话行进过程中自然伴随「查」与「存」。
+
+---
+
+## 核心准则
+
+1. **伴随寻路（查）**：
+   - 遇模糊代号、私有组件或服务名，优先查阅 `/home/ctyun/onespace/github/one-hippocampus/system/aliases.md`。
+   - 遇操作方法、踩坑经验或资产定位，优先调用 BM25 全文检索：
+     ```bash
+     super-me search "<检索关键词>"
+     ```
+   - 若 BM25 未命中，自动降级由大模型扫描海马体总索引 `INDEX.md` 或 `onewiki/index.md` 进行语义联想寻路。
+
+2. **伴随沉淀（存）**：
+   - 在会话进行中，一旦跑通关键方法、排查深坑或确认资产位置，**随手落盘并即时写库**：
+     - **独家方法 (How-to)** $\rightarrow$ `memory/methods/<中文主题>.md`
+     - **资产位置 (Where-is)** $\rightarrow$ `memory/locations/<中文主题>.md`
+     - **事实认知 (What-is)** $\rightarrow$ `memory/facts/<中文主题>.md`
+     - **专项避坑指南** $\rightarrow$ `onewiki/<中文手册名称>.md`，并在 `onewiki/index.md` 登记一行
+   - 凡写入或更新 Markdown 文件，必须顺便执行增量同步入库：
+     ```bash
+     super-me sync "<相对路径>"
+     ```
+
+3. **命名与语言铁律**：
+   - **Skill 内部所有文件名 100% 使用英文**（如 `companion-mode.md`, `super-me`）。
+   - **海马体知识库文档 100% 使用中文命名**（如 `memory/methods/本地私有服务启停实操指南.md`）。
+
+4. **宁缺毋滥（防垃圾）**：
+   - 严禁记录日常闲聊、简单问答、无新工程事实的会话。
+   - 无硬核认知增量时保持静默，绝不制造低价值碎片。
+
+5. **生命周期治理**：
+   - 定期或在近期记录膨胀时执行治理：
+     ```bash
+     super-me clean
+     ```
+   - 严格遵循**时间超 60 天**与**条目超 100 条**的双阈值淘汰机制。
