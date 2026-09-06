@@ -26,7 +26,7 @@ tags:
 - `INDEX.md`：海马体总索引，负责冷知识与全部文档导航。
 - `memory/`：Hook 自动提炼的「文档」沉淀池，按中文主题文件聚合（操作方法、资源定位、事实上下文）。
 - `onewiki/`：单层扁平专区，存放独家实操避坑手册，外层 `index.md` 索引每篇手册。
-- `system/`：拆分为 `profile.md`（静态画像）与 `aliases.md`（高频项目别名映射，如 `dot five`）。
+- `system/`：拆分为 `profile.md`（静态画像）与 `aliases.md`（高频项目别名映射，如 `OneToDo`、`vfrp`、`dotfiles`）。
 
 ## 3. 边界说明
 - 需求讨论阶段仅定稿 PRD 与文档，不编写实施代码。

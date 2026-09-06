@@ -2,61 +2,62 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "One Super-Me (超级我) 架构全景",
+    "title": "One Super-Me (超级我) 架构全景：读写闭环与降级兜底",
     "locale": "zh-CN",
     "output": "architecture.html",
     "quality_profile": "showcase",
     "views": [
       {
+        "id": "read-and-fallback",
+        "label": "两级读取：优先查库与语义降级",
+        "focus": ["user_agent", "skill_route", "client_engine", "fts_db", "llm_semantic", "hot_mem"],
+        "note": "查询时第一优先级 BM25 极速查库；若未命中则自动降级回退至大模型语义理解寻找。"
+      },
+      {
+        "id": "write-and-sync",
+        "label": "数据写入流：更新顺便写库",
+        "focus": ["user_agent", "client_engine", "doc_wiki", "doc_memory", "fts_db"],
+        "note": "任何内容发生更新（Hook自动提炼或主动沉淀），保存文件的同时顺便增量写入本地数据库。"
+      },
+      {
         "id": "full-topology",
-        "label": "全局拓扑与数据流动",
-        "focus": ["user_agent", "skill_route", "client_engine", "fts_db", "hot_mem", "recent_mem", "system_profile", "doc_wiki", "doc_memory"],
-        "note": "端到端贯通从会话触发、客户端执行到海马体纯数据仓沉淀的完整链路。"
-      },
-      {
-        "id": "retrieval-path",
-        "label": "BM25 极速检索链路",
-        "focus": ["skill_route", "client_engine", "fts_db", "doc_wiki", "doc_memory"],
-        "note": "客户端通过本地 SQLite FTS 索引快速检索并定位海马体实操手册与记忆文档。"
-      },
-      {
-        "id": "memory-governance",
-        "label": "双通道与记忆生命周期",
-        "focus": ["client_engine", "lifecycle_clean", "hot_mem", "recent_mem"],
+        "label": "全局拓扑与生命周期治理",
+        "focus": ["user_agent", "skill_route", "client_engine", "lifecycle_clean", "fts_db", "recent_mem", "hot_mem"],
         "note": "热记忆常驻不设上限，近期记忆遵循双阈值（60天/100条）自动清理淘汰。"
       }
     ]
   },
   "components": [
-    { "id": "user_agent", "type": "external", "label": "用户与交互宿主", "sublabel": "会话交互 / 对话 Hook", "pos": [40, 270], "size": [130, 60] },
+    { "id": "user_agent", "type": "external", "label": "用户与交互宿主", "sublabel": "对话交互 / 会话 Hook", "pos": [40, 270], "size": [130, 60] },
     { "id": "skill_route", "type": "security", "label": "技能路由契约", "sublabel": "SKILL.md (意图路由)", "pos": [230, 270], "size": [140, 60] },
-    { "id": "client_engine", "type": "backend", "label": "Super-Me 客户端", "sublabel": "client.py (核心应用引擎)", "pos": [440, 270], "size": [150, 60], "tag": "应用主体" },
-    { "id": "lifecycle_clean", "type": "backend", "label": "近期记忆治理", "sublabel": "LRU 淘汰 (60天/100条)", "pos": [440, 430], "size": [150, 60] },
-    { "id": "fts_db", "type": "database", "label": "BM25 检索库", "sublabel": ".fts.db (SQLite FTS)", "pos": [660, 130], "size": [150, 56], "tag": "Git 隔离" },
-    { "id": "hot_mem", "type": "database", "label": "热记忆 (Hot)", "sublabel": "hot.md (人工维护/无上限)", "pos": [870, 130], "size": [150, 56], "tag": "常驻装载" },
-    { "id": "system_profile", "type": "database", "label": "静态画像与别名", "sublabel": "system/ (画像与映射)", "pos": [660, 270], "size": [150, 56] },
-    { "id": "doc_wiki", "type": "database", "label": "独家实操手册", "sublabel": "onewiki/ (单层扁平避坑)", "pos": [870, 270], "size": [150, 56] },
-    { "id": "recent_mem", "type": "database", "label": "近期记忆 (Recent)", "sublabel": "recent.md (双阈值维护)", "pos": [660, 430], "size": [150, 56] },
-    { "id": "doc_memory", "type": "database", "label": "提炼文档池", "sublabel": "memory/ (方法/位置/事实)", "pos": [870, 430], "size": [150, 56] }
+    { "id": "llm_semantic", "type": "cloud", "label": "大模型语义理解", "sublabel": "语义泛化 / 索引兜底", "pos": [230, 120], "size": [140, 56], "tag": "二级兜底" },
+    { "id": "client_engine", "type": "backend", "label": "Super-Me 客户端", "sublabel": "client.py (读写中枢)", "pos": [440, 270], "size": [150, 60], "tag": "应用主体" },
+    { "id": "lifecycle_clean", "type": "backend", "label": "近期记忆治理", "sublabel": "LRU (60天/100条淘汰)", "pos": [440, 430], "size": [150, 60] },
+    { "id": "fts_db", "type": "database", "label": "BM25 检索数据库", "sublabel": ".fts.db (SQLite FTS)", "pos": [660, 120], "size": [150, 56], "tag": "优先查库/写库" },
+    { "id": "hot_mem", "type": "database", "label": "热记忆 (Hot)", "sublabel": "hot.md (人工维护/无上限)", "pos": [870, 120], "size": [150, 56], "tag": "常驻装载" },
+    { "id": "doc_wiki", "type": "database", "label": "独家实操手册", "sublabel": "onewiki/ (单层扁平避坑)", "pos": [660, 270], "size": [150, 56] },
+    { "id": "doc_memory", "type": "database", "label": "提炼文档池", "sublabel": "memory/ (方法/位置/事实)", "pos": [870, 270], "size": [150, 56] },
+    { "id": "recent_mem", "type": "database", "label": "近期记忆 (Recent)", "sublabel": "recent.md (双阈值维护)", "pos": [660, 430], "size": [150, 56] }
   ],
   "boundaries": [
-    { "kind": "region", "label": "应用与执行层 (one-skills/one-super-me/)", "wraps": ["skill_route", "client_engine", "lifecycle_clean"], "pad": 16 },
-    { "kind": "region", "label": "海马体持久化数据仓 (one-hippocampus/)", "wraps": ["fts_db", "hot_mem", "system_profile", "doc_wiki", "recent_mem", "doc_memory"], "pad": 16 }
+    { "kind": "region", "label": "应用与执行层 (one-skills/one-super-me/)", "wraps": ["llm_semantic", "skill_route", "client_engine", "lifecycle_clean"], "pad": 16 },
+    { "kind": "region", "label": "海马体持久化数据仓 (one-hippocampus/)", "wraps": ["fts_db", "hot_mem", "doc_wiki", "doc_memory", "recent_mem"], "pad": 16 }
   ],
   "connections": [
     { "id": "c_user_skill", "from": "user_agent", "to": "skill_route", "label": "用户指令", "variant": "emphasis" },
     { "id": "c_skill_client", "from": "skill_route", "to": "client_engine", "label": "驱动引擎", "variant": "emphasis" },
+    { "id": "c_route_fallback", "from": "skill_route", "to": "llm_semantic", "label": "②未命中模型兜底", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "c_client_fts", "from": "client_engine", "to": "fts_db", "label": "①优先BM25查库", "variant": "emphasis", "fromSide": "top", "toSide": "left", "via": [[515, 148]] },
+    { "id": "c_client_doc", "from": "client_engine", "to": "doc_wiki", "label": "更新文档", "fromSide": "right", "toSide": "left" },
+    { "id": "c_wiki_memory", "from": "doc_wiki", "to": "doc_memory", "label": "文档沉淀", "fromSide": "right", "toSide": "left" },
+    { "id": "c_sync_write", "from": "doc_wiki", "to": "fts_db", "label": "更新顺便写库(sync)", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
     { "id": "c_client_clean", "from": "client_engine", "to": "lifecycle_clean", "label": "调度治理", "fromSide": "bottom", "toSide": "top", "labelDy": 20 },
     { "id": "c_clean_recent", "from": "lifecycle_clean", "to": "recent_mem", "label": "执行淘汰", "fromSide": "right", "toSide": "left" },
-    { "id": "c_client_fts", "from": "client_engine", "to": "fts_db", "label": "BM25检索", "fromSide": "top", "toSide": "left", "via": [[515, 158]] },
-    { "id": "c_client_profile", "from": "client_engine", "to": "system_profile", "label": "画像消歧", "fromSide": "right", "toSide": "left" },
-    { "id": "c_client_hot", "from": "client_engine", "to": "hot_mem", "label": "常驻读取", "fromSide": "top", "toSide": "top", "via": [[515, 60], [945, 60]] },
-    { "id": "c_profile_wiki", "from": "system_profile", "to": "doc_wiki", "label": "实操映射", "fromSide": "right", "toSide": "left" },
-    { "id": "c_recent_memory", "from": "recent_mem", "to": "doc_memory", "label": "文档指针", "fromSide": "right", "toSide": "left" }
+    { "id": "c_client_hot", "from": "client_engine", "to": "hot_mem", "label": "常驻读取", "fromSide": "top", "toSide": "top", "via": [[515, 60], [945, 60]] }
   ],
   "cards": [
-    { "dot": "cyan", "title": "应用与数据彻底解耦", "items": ["海马体 (one-hippocampus) 作为纯数据仓，全中文文档存储", "所有检索、治理与同步逻辑收敛于客户端 (client.py)"] },
-    { "dot": "emerald", "title": "BM25 极速全文检索", "items": ["本地 SQLite FTS 毫秒级匹配定位候选文档与关键段落", "Git 全局忽略本地 .fts.db，保证数据仓纯洁轻量"] },
-    { "dot": "rose", "title": "双通道与精细治理", "items": ["热记忆由用户全权掌控无条数限制", "近期记忆严格执行 60 天与 100 条双阈值淘汰机制"] }
+    { "dot": "cyan", "title": "数据写入流：更新即写库", "items": ["无论自动化提炼或人工编写，Markdown 保存的同时顺便执行 sync 写库", "底层增量更新 SQLite BM25 索引库，秒级实现新知识可查"] },
+    { "dot": "emerald", "title": "读取流：优先查库与语义兜底", "items": ["第一级：优先直接从数据库中极速 BM25 检索，零消耗定位目标段落", "第二级：数据库未命中时，自动降级回退至大模型语义理解寻找与推导"] },
+    { "dot": "rose", "title": "数据隔离与生命周期治理", "items": ["海马体是纯 Markdown 数据仓，.fts.db 由 Git 忽略不入库", "近期记忆严格执行 60 天与 100 条双阈值淘汰治理"] }
   ]
 }

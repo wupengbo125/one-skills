@@ -32,68 +32,71 @@ description: "当用户提到超级我或super me时触发。"
 
 ```
                     ┌─────────────────────────┐
-                    │      用户输入或任务      │
+                    │       用户意图输入       │
                     └────────────┬────────────┘
                                  │
-              ┌──────────────────┴──────────────────┐
-              ▼ (包含代号别名如 dot five)             ▼ (包含操作/排障/定位)
-     ┌─────────────────┐                   ┌─────────────────┐
-     │ 查阅系统代号表   │                   │ 客户端 BM25 极速搜│
-     │ system/         │                   │ python3 client.py│
-     │ aliases.md      │                   │ search "<关键词>"│
-     └────────┬────────┘                   └────────┬────────┘
-              │                                     │
-              └──────────────────┬──────────────────┘
-                                 ▼
-                     ┌───────────────────────┐
-                     │ 命中海马体文档/避坑手册 │
-                     │ onewiki/ 或 memory/   │
-                     └───────────┬───────────┘
-                                 ▼
-                     ┌───────────────────────┐
-                     │ 自主闭环执行，无需用户解释│
-                     └───────────────────────┘
+              ▼ (包含代号别名如 OneToDo)             ▼ (包含操作/排障/定位/记忆查找)
+     ┌─────────────────┐                   ┌───────────────────────┐
+     │ 查阅系统代号表   │                   │ 优先 BM25 极速检索库  │
+     │ system/         │                   │ python3 client.py     │
+     │ aliases.md      │                   │ search "<关键词>"     │
+     └────────┬────────┘                   └───────────┬───────────┘
+              │                                        │
+              │                          ┌─────────────┴─────────────┐
+              │                          ▼ (命中段落)                ▼ (未命中/无精确词)
+              │                ┌───────────────────┐       ┌───────────────────────┐
+              │                │ 直接获取精准候选  │       │ 降级回退大模型语义理解│
+              │                │ 目标段落与文档指针│       │ 泛化遍历 INDEX.md 索引│
+              │                └─────────┬─────────┘       └───────────┬───────────┘
+              │                          │                             │
+              └──────────────────────────┴──────────────┬──────────────┘
+                                                        ▼
+                                            ┌───────────────────────┐
+                                            │ 自主闭环执行，无需解释│
+                                            └───────────────────────┘
 ```
 
 1. **第一优先级（高频代号消歧）**：
-   - 若用户提及代号（如 `dot five`、`OneToDo`、`vfrp`、`mihomo` 等），直接读取 `/home/ctyun/onespace/github/one-hippocampus/system/aliases.md`，秒懂真实项目路径与常用触发动作。
-2. **第二优先级（客户端 BM25 极速检索）**：
-   - 需要查找操作指引、排障手册、本地资产位置时，**直接调用本 Skill 客户端执行极速检索**：
+   - 若用户提及代号（如 `OneToDo`、`vfrp`、`mihomo`、`omniroute` 等），直接读取 `/home/ctyun/onespace/github/one-hippocampus/system/aliases.md`，秒懂真实项目路径与常用触发动作。
+2. **第二优先级（客户端 BM25 极速检索与大模型语义兜底）**：
+   - **第一级（优先 BM25 查库）**：优先调用本 Skill 客户端检索本地数据库：
      ```bash
      python3 /home/ctyun/onespace/github/one-skills/one-super-me/client.py search "<检索关键词>"
      ```
-   - 毫秒级锁定目标文档与关键代码段落，读取对应文档后自主闭环执行。
-3. **第三优先级（热记忆与近期常驻）**：
+     毫秒级秒出命中段落，零额外 Token 消耗直接定位目标。
+   - **第二级（未命中模型兜底）**：如果 BM25 检索未命中（返回空或无关联结果），**自动降级回退至大模型语义理解能力**，扫描海马体总索引 `INDEX.md` 或 `onewiki/index.md`，由大模型根据语义泛化与联想推导定位。
+3. **第三优先级（热记忆常驻与近期活跃）**：
    - 查阅 `hot.md`（人工热记忆）与 `recent.md`（近期活跃指针），命中时即刻更新 `recent.md` 中的访问时间戳。
 
 ---
 
-## 三、 双通道沉淀与索引维护契约
+## 三、 数据写入流：更新即入库规范 (Write & Sync Flow)
 
-### 1. 通道 A：对话 Hook 自动提炼文档（被动潜意识）
-每轮会话结束时，分析提取本次会话中产生的认知增量：
+**核心契约**：无论任何时候只要有内容更新（自动化提炼或用户主动编写），**必须在保存文件的同时顺便写入数据库**：
+
+### 1. 通道 A：对话 Hook 自动提炼写入
+每轮会话结束时，分析提取认知增量：
 * **提取类别**：
-  * **操作方法 (How-to)** $\rightarrow$ 归纳写入 `/home/ctyun/onespace/github/one-hippocampus/memory/methods/<中文主题>.md`
-  * **资源定位 (Where-is)** $\rightarrow$ 归纳写入 `/home/ctyun/onespace/github/one-hippocampus/memory/locations/<中文主题>.md`
-  * **事实认知 (What-is)** $\rightarrow$ 归纳写入 `/home/ctyun/onespace/github/one-hippocampus/memory/facts/<中文主题>.md`
+  * **操作方法 (How-to)** $\rightarrow$ 写入 `/home/ctyun/onespace/github/one-hippocampus/memory/methods/<中文主题>.md`
+  * **资源定位 (Where-is)** $\rightarrow$ 写入 `/home/ctyun/onespace/github/one-hippocampus/memory/locations/<中文主题>.md`
+  * **事实认知 (What-is)** $\rightarrow$ 写入 `/home/ctyun/onespace/github/one-hippocampus/memory/facts/<中文主题>.md`
   * **用户静态画像与别名** $\rightarrow$ 增量同步 `system/profile.md` 与 `system/aliases.md`
-* **聚合原则**：优先向已有中文主题文档追加合并，严禁产生零碎微小文件。
-* **客户端同步建库**：写入完成后，调用客户端同步增量索引：
+* **即时顺便写库**：Markdown 文件保存后，立即同步写入本地数据库：
   ```bash
   python3 /home/ctyun/onespace/github/one-skills/one-super-me/client.py sync "<相对路径>"
   ```
 
-### 2. 通道 B：用户主动触发沉淀（主动显意识）
+### 2. 通道 B：用户主动触发沉淀写入
 * 当用户明确指令“记一下”、“沉淀避坑手册”时：
   1. 撰写单层平铺手册：`/home/ctyun/onespace/github/one-hippocampus/onewiki/<中文手册名称>.md`；
   2. 在 `/home/ctyun/onespace/github/one-hippocampus/onewiki/index.md` 登记一行（名称、对应资产、核心避坑点）；
-  3. 调用客户端同步索引：
+  3. **即时顺便写库**：
      ```bash
      python3 /home/ctyun/onespace/github/one-skills/one-super-me/client.py sync "onewiki/<中文手册名称>.md"
      ```
 
-### 3. 近期记忆生命周期治理
-* 定期或在需要维护时，通过客户端执行治理：
+### 3. 近期记忆生命周期清理
+* 调用客户端治理指令：
   ```bash
   python3 /home/ctyun/onespace/github/one-skills/one-super-me/client.py clean
   ```
