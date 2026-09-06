@@ -9,7 +9,7 @@
    - 无则新建 `memory/<YYYY-MM-DD_话题名称>.md`，有则追加。
    - 记录改动内容、原因、踩坑与当前状态。
 2. **记历史流水**：
-   - 顺手向 `history.md` 尾部追加一行：`- YYYY-MM-DD HH:MM：<简述干了什么>`。
+   - 顺手向 `history.md` 追加指针：`- YYYY-MM-DD HH:MM：[话题名称](memory/对应文件.md) - 简述`。
 3. **画像更新**：
    - 获知用户身份、生日、习惯或喜好时，顺手更新 `system/profile.md`。
 
