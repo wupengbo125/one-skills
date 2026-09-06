@@ -9,8 +9,8 @@
     "quality_profile": "showcase",
     "views": [
       {
-        "id": "explicit-flow",
-        "label": "显式记录链路 (记东西/避坑手册)",
+        "id": "auto-flow",
+        "label": "自动伴随链路 (编码实质改动)",
         "focus": [
           "developer",
           "mode_explicit",
@@ -18,7 +18,7 @@
           "cli_engine",
           "fts_db"
         ],
-        "note": "人类明确指令帮我记东西，撰写单层平铺避坑长文并增量同步入库。"
+        "note": "日常编码中产生实质改动时，AI 自主向 memory/ 当日话题追加演进记录并打卡置顶。"
       },
       {
         "id": "wrapup-flow",
@@ -84,8 +84,8 @@
     {
       "id": "mode_explicit",
       "type": "backend",
-      "label": "显式记录处理器",
-      "sublabel": "避坑手册 / 存手册",
+      "label": "自动伴随记录",
+      "sublabel": "代码改动自动触发",
       "pos": [
         300,
         75
@@ -94,7 +94,7 @@
         150,
         60
       ],
-      "tag": "显式链路"
+      "tag": "伴随链路"
     },
     {
       "id": "gate_filter",
@@ -144,8 +144,8 @@
     {
       "id": "doc_onewiki",
       "type": "database",
-      "label": "onewiki/ 实操手册",
-      "sublabel": "单层平铺避坑长文",
+      "label": "onewiki/ 实操规程",
+      "sublabel": "领域实操与规程库",
       "pos": [
         870,
         75
@@ -154,7 +154,7 @@
         180,
         60
       ],
-      "tag": "显式记录产物"
+      "tag": "实操产物"
     },
     {
       "id": "doc_system",
@@ -315,7 +315,7 @@
     {
       "from": "mode_explicit",
       "to": "doc_onewiki",
-      "label": "避坑实操长文",
+      "label": "实操规程沉淀",
       "variant": "emphasis",
       "route": "orthogonal-h",
       "fromSide": "right",
@@ -390,18 +390,18 @@
   "cards": [
     {
       "dot": "cyan",
-      "title": "显式记录链路（人类指令）",
+      "title": "自动伴随链路（改动触发）",
       "items": [
-        "人类明确下达“避坑手册/存手册”时激活",
-        "在 onewiki/ 撰写单层平铺避坑长文，并在 index.md 登记",
-        "保存后调用 super-me sync 增量写入本地 SQLite FTS5 数据库"
+        "编码过程中产生实质代码或配置修改时自主触发",
+        "向 memory/ 当日话题增量追加改动与决策记录",
+        "调用 super-me recent 自动打卡置顶并同步索引"
       ]
     },
     {
       "dot": "emerald",
       "title": "无脑收工链路（零心智负担）",
       "items": [
-        "会话结束随手甩“超级我/收工/下班”，用户不费心思考",
+        "会话结束随手输入“超级我”或“收工”，AI 自主情景复盘",
         "防垃圾门禁：日常闲聊或无硬核改动直接阻断退出，零垃圾写入",
         "四维提炼：画像入 system/、实操入 memory/、流水追加至 recent.md"
       ]
