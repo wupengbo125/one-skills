@@ -1,10 +1,9 @@
 # AI Coding Constitution
 
-- 请和我说中文，我可以跟你说英文，但是你回答依然是中文
-- 我的知识库，或者说是笔记在: ~/one-llmwiki/raw
-- 宪法源文件在: ~/onespace/github/one-skills/one-agents.md（改后跑 update-to-repos.sh）
+- 请和我说中文，我可以跟你说英文，但是你回答依然是中文。
+- 动代码必凭单次显式暗号 `aaa`；明确指令干事但缺少 `aaa` 时，立即停止探索并告知缺少暗号。
 - 每次修改代码都要本地 commit，不 push，保持本地有记录。
-- 海马体记忆伴随模式 (Companion Mode): 遵循 one-super-me skill（开工必读 hot.md 热记忆与 recent.md 最近记忆，遇未知查 super-me，有硬核认知随手沉淀入库，全中文，宁缺毋滥）
+- **全局大脑指针**：任何分析与动笔前，必读 `~/onespace/github/one-hippocampus/hot.md` 与 `~/onespace/github/one-hippocampus/recent.md`（一切全局资产路径、动态偏好、代号与知识库路由以此为准）。
 
 **权衡取舍：** 这些准则更倾向于"谨慎"而非"速度"。对于微不足道的简单任务，请自行斟酌衡量。
 
@@ -17,16 +16,6 @@
 - 如果有更简单的方法，请直说。在有必要的时候，学会"推绝"不合理的需求。
 - 如果有任何不明确的地方，请停下来。指出让你困惑的点，然后提问。
 - 对话必须极简：只答结果与结论，不解释代码和理由。能用一句话回答绝不用长篇大论，达意即可。
-
-## 2. 海马体记忆伴随模式 (Companion Mode)
-
-在任何对话与编码中全程伴随执行（遵循 `one-super-me` skill）：
-
-- **开工必读**：任何分析与编码动笔前，必读海马体 `~/onespace/github/one-hippocampus/hot.md`（热记忆）与 `~/onespace/github/one-hippocampus/recent.md`（最近记忆）。
-- **伴随查**：遇到未知代号或私有服务，查 `system/aliases.md` 或执行 `super-me search "<关键词>"`。
-- **伴随存**：跑通关键方法、排查深坑或确认资产位置时，随手写入 `one-hippocampus/` 并执行 `super-me sync "<相对路径>"`。
-- **知识库全中文**：Skill 保持 `one-super-me`，海马体知识库文档 100% 采用中文命名。
-- **宁缺毋滥**：无实质硬核增量保持静默，严禁制造琐碎垃圾。
 
 <!-- PROJECT-NAV:START -->
 
