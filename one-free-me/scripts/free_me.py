@@ -67,7 +67,7 @@ def get_db_connection(repo_dir):
             title,
             category,
             content,
-            anchor UNINDEXED,
+            anchor,
             tokenize='unicode61'
         );
     """)
@@ -250,7 +250,7 @@ def cmd_search(query_str):
     conn = get_db_connection(repo_dir)
     sql = """
         SELECT path, raw_title, category, raw_content, anchor,
-               bm25(docs_fts, 0.0, 0.0, 0.0, 5.0, 1.0, 2.0) as rank
+               bm25(docs_fts, 0.0, 0.0, 0.0, 5.0, 1.0, 2.0, 3.0) as rank
         FROM docs_fts
         WHERE docs_fts MATCH ?
         ORDER BY rank
