@@ -1,6 +1,6 @@
 # 轻 Skill（light-skills）创建手册
 
-用户明确说"创建轻 Skill"、"创建冷门记录"（或"记到海马体"）时触发，将低频专用技能文档（操作手册、避坑手册）写入 `light-skills/`。
+用户明确说"创建轻 Skill"或"创建冷门记录"时触发，将低频专用技能文档（操作手册、避坑手册）写入 `light-skills/`。
 
 海马体数据仓路径：`~/onespace/github/one-hippocampus/`
 
