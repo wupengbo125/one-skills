@@ -26,8 +26,8 @@ update_repo() {
     if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
         rm -f "$target_dir/AGENTS.md" "$target_dir/CLAUDE.md"
         [ ! -f "$target_dir/one-context.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "$target_dir/one-context.md"
-        cp -f "$SCRIPT_DIR/one-agents.md" "$target_dir/AGENTS.md"
-        cp -f "$SCRIPT_DIR/one-agents.md" "$target_dir/CLAUDE.md"
+        ln -sfn "$SCRIPT_DIR/one-agents.md" "$target_dir/AGENTS.md"
+        ln -sfn "$SCRIPT_DIR/one-agents.md" "$target_dir/CLAUDE.md"
     fi
 
     # 2. 忽略配置
@@ -44,15 +44,17 @@ update_repo() {
         fi
     done
 
-    # 3. 技能文件 (先删后装)
+    # 3. 技能文件 (软链接方式)
     if [ "$target_dir" != "$SCRIPT_DIR" ]; then
+        mkdir -p "$target_dir/.agents/skills"
         for idx in "${!skill_names[@]}"; do
             local name="${skill_names[idx]}"
             local src="${skill_paths[idx]}"
             rm -rf "$target_dir/.agents/skills/$name"
-            mkdir -p "$target_dir/.agents/skills"
-            cp -rf "$src" "$target_dir/.agents/skills/"
+            ln -sfn "$src" "$target_dir/.agents/skills/$name"
         done
+        # 清理可能存在的失效软链接
+        find "$target_dir/.agents/skills" -xtype l -delete 2>/dev/null || true
     fi
 }
 
