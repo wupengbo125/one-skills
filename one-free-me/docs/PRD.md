@@ -58,7 +58,7 @@ $github_dir/one-hippocampus/
   5. 提交 git。
 
 ### 3.2 创建轻 Skill（“创建轻 Skill”）
-* **触发时机**：用户输入“创建轻 Skill”或“创建冷门记录”。
+* **触发时机**：用户输入“创建轻 Skill”或“创建冷门技能”。
 * **行为**：
   1. 沉淀实操规程至 `light-skills/<英文分类>/<中文主题>.md`；
   2. 更新对应索引（`light-skills/index.md`）；
