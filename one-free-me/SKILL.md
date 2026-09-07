@@ -1,6 +1,6 @@
 ---
 name: one-free-me
-description: "用户输入“收工”、“记到海马体”, 以及需要查记忆, 查资料时触发。"
+description: "修改东西后或者用户输入“收工”、“记到海马体”, 以及需要查记忆, 查资料时触发。"
 ---
 
 # One Free-Me (解脱我)
@@ -11,7 +11,7 @@ description: "用户输入“收工”、“记到海马体”, 以及需要查�
 
 - **查资料 / 搜记忆 / 历史流水 / 用户画像**：
   - 规则与脚本见 [references/search-memory.md](references/search-memory.md)
-- **记忆沉淀（自动记忆 / 用户说“收工”）**：
+- **修改东西后记忆沉淀（自动记忆 / 用户说“收工”）**：
 
   - 规则见 [references/memory.md](references/memory.md)
 - **记到海马体（用户说“记到海马体”）**：
