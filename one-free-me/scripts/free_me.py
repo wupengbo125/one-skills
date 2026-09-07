@@ -67,6 +67,7 @@ def get_db_connection(repo_dir):
             title,
             category,
             content,
+            anchor UNINDEXED,
             tokenize='unicode61'
         );
     """)
@@ -79,6 +80,68 @@ def extract_title(content, default_name):
         if line_s.startswith("# "):
             return line_s[2:].strip()
     return default_name
+
+def parse_entries(raw_content):
+    """把 markdown 拆成条目列表 [(anchor, title, content), ...]。
+
+    规则：`##`/`###` 开头为小节锚点；`- `/`* ` 列表项为一条记录
+    （`- **名称**：内容` 用名称做 title）；其余段落按整体一条。
+    每日流水等无结构的文件退化为整篇一条。
+    """
+    entries = []
+    anchor = ""
+    buf_title = None
+    buf_lines = []
+
+    def flush():
+        nonlocal buf_title, buf_lines
+        if buf_title is not None and buf_lines:
+            text = "\n".join(buf_lines).strip()
+            if text:
+                entries.append((anchor, buf_title, text))
+        buf_title = None
+        buf_lines = []
+
+    for line in raw_content.splitlines():
+        s = line.strip()
+        if s.startswith("# "):
+            flush()
+            anchor = ""
+        elif s.startswith("## ") or s.startswith("### "):
+            flush()
+            anchor = re.sub(r'^#+\s*', '', s)
+        elif s.startswith("- ") or s.startswith("* "):
+            flush()
+            item = s[2:].strip()
+            m = re.match(r'^\*\*(.+?)\*\*[：:]\s*(.*)$', item)
+            if m:
+                buf_title = m.group(1).strip()
+                buf_lines = [m.group(2).strip()] if m.group(2) else [item]
+            else:
+                buf_title = item
+                buf_lines = [item]
+        elif s == "":
+            flush()
+        else:
+            if buf_title is None:
+                buf_title = s
+                buf_lines = [s]
+            else:
+                buf_lines.append(s)
+    flush()
+    if not entries and raw_content.strip():
+        entries.append(("", extract_title(raw_content, ""), raw_content.strip()))
+    return entries
+
+def insert_entries(conn, rel_path, raw_title, category, raw_content):
+    conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
+    entries = parse_entries(raw_content)
+    for anchor, title, content in entries:
+        conn.execute(
+            "INSERT INTO docs_fts(path, raw_title, raw_content, title, category, content, anchor) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (rel_path, raw_title, content, tokenize(title), category, tokenize(content), anchor)
+        )
+    return len(entries)
 
 def make_clean_snippet(raw_text, words):
     clean = re.sub(r'\s+', ' ', raw_text).strip()
@@ -116,14 +179,10 @@ def cmd_sync(target_path):
     parts = rel_path.split(os.sep)
     category = parts[0] if len(parts) > 1 else "root"
 
-    conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
-    conn.execute(
-        "INSERT INTO docs_fts(path, raw_title, raw_content, title, category, content) VALUES (?, ?, ?, ?, ?, ?)",
-        (rel_path, raw_title, raw_content, tokenize(raw_title), category, tokenize(raw_content))
-    )
+    n = insert_entries(conn, rel_path, raw_title, category, raw_content)
     conn.commit()
     conn.close()
-    print(f"✅ 已增量同步至索引: {rel_path}")
+    print(f"✅ 已增量同步至索引: {rel_path} ({n} 条)")
 
 def cmd_rebuild():
     repo_dir = get_hippocampus_dir()
@@ -155,11 +214,8 @@ def cmd_rebuild():
                 parts = rel_path.split(os.sep)
                 category = parts[0] if len(parts) > 1 else "root"
 
-                conn.execute(
-                    "INSERT INTO docs_fts(path, raw_title, raw_content, title, category, content) VALUES (?, ?, ?, ?, ?, ?)",
-                    (rel_path, raw_title, raw_content, tokenize(raw_title), category, tokenize(raw_content))
-                )
-                count += 1
+                n = insert_entries(conn, rel_path, raw_title, category, raw_content)
+                count += n
 
     conn.commit()
     conn.close()
@@ -193,7 +249,7 @@ def cmd_search(query_str):
 
     conn = get_db_connection(repo_dir)
     sql = """
-        SELECT path, raw_title, category, raw_content,
+        SELECT path, raw_title, category, raw_content, anchor,
                bm25(docs_fts, 0.0, 0.0, 0.0, 5.0, 1.0, 2.0) as rank
         FROM docs_fts
         WHERE docs_fts MATCH ?
@@ -218,11 +274,10 @@ def cmd_search(query_str):
 
     print(f"⚡ [BM25 检索命中 {len(rows)} 条] 关键词: {query_str}")
     for idx, row in enumerate(rows, 1):
-        rel_path, raw_title, category, raw_content, score = row
+        rel_path, raw_title, category, raw_content, anchor, score = row
         snip = make_clean_snippet(raw_content, valid_words)
-        hl_title = pattern.sub(r'【\g<0>】', raw_title) if pattern else raw_title
-        print(f"\n{idx}. 📄 {rel_path} (类别: {category})")
-        print(f"   标题: {hl_title}")
+        loc = f"{rel_path} › {anchor}" if anchor else rel_path
+        print(f"\n{idx}. 📄 {loc} (类别: {category})")
         print(f"   摘要: {snip}")
 
 def main():
