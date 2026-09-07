@@ -43,14 +43,13 @@ one-skills/one-free-me/
 
 ### 1. 自动记忆（编码产生实质修改时自动落盘）
 - 遵循 `references/memory.md`；
-- 会话产生实质代码或配置修改时，向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
-- 同步当月 `memory/<YYYY-MM>/index.md` 流水指针。
+- 会话产生实质代码或配置修改时，向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水。
 
 ### 2. 收工记忆（用户主动输入“收工”）
 - 遵循 `references/memory.md`；
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
-- **情景复盘**：补全复盘长文，涵盖背景目标、关键决策与落地清单；
-- **流水与索引**：向当月 `memory/<YYYY-MM>/index.md` 追加流水，并执行 `scripts/free_me.py sync` 同步索引。
+- **流水沉淀**：向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
+- **索引同步**：执行 `scripts/free_me.py sync` 同步当日文件索引。
 
 
 ---

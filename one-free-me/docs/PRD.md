@@ -13,7 +13,7 @@ tags:
 
 ## 1. 核心设计原则
 
-1. **全量记忆为主，近期查询为客**：`memory/<YYYY-MM>/index.md` 记录当月时间线流水与目录索引，永不淘汰；仅当用户主动询问近期历史时按需查阅尾部。
+1. **全量记忆为主，近期查询为客**：每日文件 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 全量流水，永不淘汰；仅当用户主动询问近期历史时 `ls` 当月文件按需查阅。
 2. **常驻感知轻量化**：大模型动笔前仅读 `hot.md`（全局路由与关键硬核上下文），彻底消除默认冗余读取。
 3. **用户画像闭环**：涉及用户个人身份、偏好、习惯或选型时，主动读取 `system/profile.md`；获知新事实时顺手更新。
 4. **命名规范**：系统骨架目录 100% 英文小写，具体文档与文章文件名 100% 中文。
@@ -35,7 +35,6 @@ $github_dir/one-hippocampus/
 │   └── aliases.md           # 项目代号与路径映射
 ├── memory/                  # 每日流水（按月分目录）
 │   └── YYYY-MM/             # 月份目录
-│       ├── index.md         # 当月流水索引
 │       └── YYYY-MM-DD.md    # 当日豆包式流水
 └── light-skills/                 # 领域实操避坑规程库
     ├── index.md             # 规程总大纲
@@ -54,10 +53,9 @@ $github_dir/one-hippocampus/
 * **行为**：
   1. 价值判定（无实质增量则不写，手动触发时直接回复已完成）；
   2. 追加豆包式流水段至当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（做了什么、关键结论、待办，不记过程）；
-  3. 向当月 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[YYYY-MM-DD](<YYYY-MM-DD>.md) - 一句话简述`；
-  4. 获知用户新事实时顺手更新 `system/profile.md`；
-  5. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
-  6. 提交 git。
+  3. 获知用户新事实时顺手更新 `system/profile.md`；
+  4. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
+  5. 提交 git。
 
 ### 3.2 创建轻 Skill（“创建轻 Skill”）
 * **触发时机**：用户输入“创建轻 Skill”或“创建冷门记录”。
@@ -72,9 +70,9 @@ $github_dir/one-hippocampus/
 ## 4. 检索与消费优先级
 
 1. **用户画像感知**：涉及个人身份、偏好、习惯或软硬件环境，直接读取 `system/profile.md`；
-2. **近期历史查阅**：用户主动询问最近干了什么，按需读取当月流水 `memory/<YYYY-MM>/index.md` 尾部；
+2. **近期历史查阅**：用户主动询问最近干了什么，`ls memory/<YYYY-MM>/` 列当月文件，按需读取对应日文件；
 3. **BM25 检索**：查资料统一先搜 `python3 scripts/free_me.py search "<关键词>"`；
-4. **分类导航与归档**：未命中时查阅 `light-skills/index.md`，或查阅 `memory/<YYYY-MM>/`。
+4. **分类导航与归档**：未命中时查阅 `light-skills/index.md`，或 `ls memory/<YYYY-MM>/`。
 
 ---
 
@@ -83,5 +81,5 @@ $github_dir/one-hippocampus/
 | 子命令 | 参数 | 说明 | 调用示例 |
 | :--- | :--- | :--- | :--- |
 | `search` | `<关键词>` | BM25 本地检索海马体文档与高亮片段。 | `python3 scripts/free_me.py search "Tailscale"` |
-| `sync` | `<相对路径>` | 将单篇 Markdown 增量写入 `.fts.db` 索引。 | `python3 scripts/free_me.py sync "memory/2026-09/index.md"` |
+| `sync` | `<相对路径>` | 将单篇 Markdown 增量写入 `.fts.db` 索引。 | `python3 scripts/free_me.py sync "memory/2026-09/2026-09-07.md"` |
 | `rebuild` | 无 | 全量扫描海马体重建 `.fts.db`。 | `python3 scripts/free_me.py rebuild` |

@@ -25,8 +25,7 @@ python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关
 仅当用户诉求非常纯粹，属于以下 2 种专用场景时，才无需 BM25 检索，直达指定文档：
 
 1. **查历史流水（“最近干了什么”、“查近期历史”、“流水日志”）**：
-   - **历史就是 index**：直接读取当月流水日志大纲尾部：
-     `~/onespace/github/one-hippocampus/memory/<YYYY-MM>/index.md`
+   - 直接列当月文件：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读取对应当日文件。
 2. **查用户画像与环境拓扑（“用户习惯”、“局域网IP”、“端口”、“项目路径”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/system/profile.md`
 
