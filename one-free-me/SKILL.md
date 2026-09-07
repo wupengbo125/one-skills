@@ -1,6 +1,6 @@
 ---
 name: one-free-me
-description: "修改东西后或者用户输入“收工”、“记到海马体”, 以及需要查记忆, 查资料时触发。"
+description: "记忆与轻Skill：修改东西后或用户说'收工'、'记到海马体'、'创建轻Skill'时记录；查记忆、查资料时检索。"
 ---
 
 # One Free-Me (解脱我)
@@ -16,8 +16,8 @@ description: "修改东西后或者用户输入“收工”、“记到海马体
 - **修改东西后记忆沉淀（自动记忆 / 用户说“收工”）**：
 
   - 规则见 [references/memory.md](references/memory.md)
-- **记到海马体（用户说“记到海马体”）**：
-  - 内容写入 freewiki，规则见 [references/freewiki.md](references/freewiki.md)
+- **创建轻 Skill（用户说“创建轻 Skill” / “记到海马体”）**：
+  - 内容写入 light-skills，规则见 [references/light-skills.md](references/light-skills.md)
 
 ## 禁止
-- 用户说"记笔记"不要用这个技能，这个是针对记到海马体的，或者记住什么东西 
+- 用户说"记笔记"不要用这个技能——记笔记走 one-wiki 个人笔记本；本技能只管记忆流水（memory/）与轻 Skill（light-skills/）

@@ -138,7 +138,7 @@ def cmd_rebuild():
 
     conn = get_db_connection(repo_dir)
     count = 0
-    valid_dirs = {"memory", "freewiki", "system"}
+    valid_dirs = {"memory", "light-skills", "system"}
     for root, dirs, files in os.walk(repo_dir):
         dirs[:] = [d for d in dirs if not d.startswith(".") and (root != repo_dir or d in valid_dirs)]
         if root == repo_dir:

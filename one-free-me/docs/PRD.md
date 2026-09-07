@@ -37,7 +37,7 @@ $github_dir/one-hippocampus/
 │   └── YYYY-MM/             # 月份目录
 │       ├── index.md         # 当月时间线流水与索引（时分追加，永不截断）
 │       └── YYYY-MM-DD_中文主题.md # 情景长文
-└── freewiki/                 # 领域实操避坑规程库
+└── light-skills/                 # 领域实操避坑规程库
     ├── index.md             # 规程总大纲
     └── <英文分类>/          # 如 network/, hardware/, workflow/
         ├── index.md         # 分类目录大纲
@@ -62,8 +62,8 @@ $github_dir/one-hippocampus/
 ### 3.2 记到海马体（“记到海马体”）
 * **触发时机**：用户输入“记到海马体”。
 * **行为**：
-  1. 沉淀实操规程至 `freewiki/<英文分类>/<中文主题>.md`；
-  2. 更新对应索引（`freewiki/index.md` 与分类内 `index.md`）；
+  1. 沉淀实操规程至 `light-skills/<英文分类>/<中文主题>.md`；
+  2. 更新对应索引（`light-skills/index.md` 与分类内 `index.md`）；
   3. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
   4. 提交 git。
 
@@ -74,7 +74,7 @@ $github_dir/one-hippocampus/
 1. **用户画像感知**：涉及个人身份、偏好、习惯或软硬件环境，直接读取 `system/profile.md`；
 2. **近期历史查阅**：用户主动询问最近干了什么，按需读取当月流水 `memory/<YYYY-MM>/index.md` 尾部；
 3. **BM25 检索**：查资料统一先搜 `python3 scripts/free_me.py search "<关键词>"`；
-4. **分类导航与归档**：未命中时查阅 `freewiki/index.md`，或查阅 `memory/<YYYY-MM>/`。
+4. **分类导航与归档**：未命中时查阅 `light-skills/index.md`，或查阅 `memory/<YYYY-MM>/`。
 
 ---
 
