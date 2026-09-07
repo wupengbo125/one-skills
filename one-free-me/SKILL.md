@@ -7,6 +7,8 @@ description: "修改东西后或者用户输入“收工”、“记到海马体
 
 数据仓位于 `~/onespace/github/one-hippocampus/`
 
+记忆沉淀统一为**每日一个文件**（`memory/<YYYY-MM>/<YYYY-MM-DD>.md`），格式见 [references/memory.md](references/memory.md)。
+
 ## 意图分流
 
 - **查资料 / 搜记忆 / 历史流水 / 用户画像**：
