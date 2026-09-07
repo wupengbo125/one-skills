@@ -33,10 +33,10 @@ $github_dir/one-hippocampus/
 │   ├── constitution.md      # 行为宪法
 │   ├── profile.md           # 用户画像（身份、习惯、喜好与软硬件环境）
 │   └── aliases.md           # 项目代号与路径映射
-├── memory/                  # 情景叙事长文（按月分目录）
+├── memory/                  # 每日流水（按月分目录）
 │   └── YYYY-MM/             # 月份目录
-│       ├── index.md         # 当月时间线流水与索引（时分追加，永不截断）
-│       └── YYYY-MM-DD_中文主题.md # 情景长文
+│       ├── index.md         # 当月流水索引
+│       └── YYYY-MM-DD.md    # 当日豆包式流水
 └── light-skills/                 # 领域实操避坑规程库
     ├── index.md             # 规程总大纲
     └── <英文分类>/          # 如 network/, hardware/, workflow/
@@ -53,17 +53,17 @@ $github_dir/one-hippocampus/
 
 * **行为**：
   1. 价值判定（无实质增量则不写，手动触发时直接回复已完成）；
-  2. 撰写/追加情景长文至 `memory/<YYYY-MM>/<YYYY-MM-DD_中文主题>.md`；
-  3. 向当月 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[中文主题](<YYYY-MM-DD_中文主题>.md) - 简述`；
+  2. 追加豆包式流水段至当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（做了什么、关键结论、待办，不记过程）；
+  3. 向当月 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[YYYY-MM-DD](<YYYY-MM-DD>.md) - 一句话简述`；
   4. 获知用户新事实时顺手更新 `system/profile.md`；
   5. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
   6. 提交 git。
 
-### 3.2 记到海马体（“记到海马体”）
-* **触发时机**：用户输入“记到海马体”。
+### 3.2 创建轻 Skill（“创建轻 Skill”）
+* **触发时机**：用户输入“创建轻 Skill”或“创建冷门记录”。
 * **行为**：
   1. 沉淀实操规程至 `light-skills/<英文分类>/<中文主题>.md`；
-  2. 更新对应索引（`light-skills/index.md` 与分类内 `index.md`）；
+  2. 更新对应索引（`light-skills/index.md`）；
   3. 同步索引：`python3 scripts/free_me.py sync "<改动的文件路径>"`；
   4. 提交 git。
 

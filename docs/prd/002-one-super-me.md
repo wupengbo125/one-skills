@@ -22,9 +22,9 @@ tags:
 ## 2. 存储与功能架构 (`$github_dir/one-hippocampus/`)
 - `.fts.db` / `fts.sh`：本地 BM25 检索数据库（本地使用，`.gitignore` 忽略，不入 git）。
 - `hot.md`：热记忆，纯人工手动维护，不限制条数；外部 AI 宿主永远自动装载调用。
-- `recent.md`：近期记忆，系统自动更新。双重清理阈值（任一满足即清理）：时间限制 2 个月（60 天），数量限制 100 条。
 - `INDEX.md`：海马体总索引，负责冷知识与全部文档导航。
-- `memory/`：Hook 自动提炼的「文档」沉淀池，按中文主题文件聚合（操作方法、资源定位、事实上下文）。
+- `memory/`：每日流水沉淀池，按 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 每天一个文件（做了什么、结论、待办）。
+- `light-skills/`：轻 Skill，低频专用技能文档（操作手册、避坑），index 即 description。
 - `onewiki/`：单层扁平专区，存放独家实操避坑手册，外层 `index.md` 索引每篇手册。
 - `system/`：拆分为 `profile.md`（静态画像）与 `aliases.md`（高频项目别名映射，如 `OneToDo`、`vfrp`、`dotfiles`）。
 
