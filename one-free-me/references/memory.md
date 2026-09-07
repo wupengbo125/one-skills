@@ -13,7 +13,7 @@
 
 ## 执行步骤
 
-1. 打开当天文件 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`，不存在则创建，在末尾追加一段流水。
+1. 打开当天文件 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`，不存在则创建，在末尾追加一段流水，**段落末尾标注本次提交 hash**（如「(对应提交 abc1234)」）。
 2. 获知用户身份、习惯或喜好时，更新 `system/profile.md`。
 3. 向 `memory/<YYYY-MM>/index.md` 追加指针：`- YYYY-MM-DD HH:MM：[YYYY-MM-DD](<YYYY-MM-DD>.md) - 一句话简述`。
 4. 同步索引：`python3 scripts/free_me.py sync "<当天文件路径>"`。
