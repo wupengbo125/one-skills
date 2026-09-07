@@ -1,6 +1,6 @@
 ---
 name: one-free-me
-description: "记忆与轻Skill：修改东西后或用户说'收工'、'记到海马体'、'创建轻Skill'时记录；查记忆、查资料时检索。"
+description: "记忆与轻Skill：修改东西后或用户说'收工'、'记到海马体'、'创建轻Skill'、'创建冷门记录'时记录；查记忆、查资料时检索。"
 ---
 
 # One Free-Me (解脱我)
@@ -18,7 +18,7 @@ description: "记忆与轻Skill：修改东西后或用户说'收工'、'记到�
 - **修改东西后记忆沉淀（自动记忆 / 用户说“收工”）**：
 
   - 规则见 [references/memory.md](references/memory.md)
-- **创建轻 Skill（用户说“创建轻 Skill” / “记到海马体”）**：
+- **创建轻 Skill（用户说“创建轻 Skill” / “创建冷门记录” / “记到海马体”）**：
   - 内容写入 light-skills，规则见 [references/light-skills.md](references/light-skills.md)
 
 ## 禁止
