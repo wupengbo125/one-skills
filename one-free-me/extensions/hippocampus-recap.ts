@@ -84,62 +84,32 @@ function extractAssistantText(message: unknown): string {
   return out
 }
 
-function loadPromptTemplate(): { system: string; initial: string; update: string } {
+function loadMemoryGuideline(): string {
   const candidatePaths = [
-    path.join(__dirname, 'recap-prompt.md'),
+    path.join(__dirname, '../references/memory.md'),
+    path.join(process.cwd(), '.agents/skills/one-free-me/references/memory.md'),
     path.join(
       process.env.HOME || '/home/ctyun',
-      'onespace/github/one-skills/one-free-me/extensions/recap-prompt.md'
+      'onespace/github/one-skills/one-free-me/references/memory.md'
     ),
-    path.join(process.cwd(), '.omp/extensions/recap-prompt.md'),
+    path.join(HIPPOCAMPUS_DIR, '../one-skills/one-free-me/references/memory.md'),
   ]
 
-  let content = ''
   for (const p of candidatePaths) {
     if (fs.existsSync(p)) {
       try {
-        content = fs.readFileSync(p, 'utf-8')
-        if (content.trim()) break
+        const text = fs.readFileSync(p, 'utf-8').trim()
+        if (text) return text
       } catch {}
     }
   }
 
-  if (content) {
-    const parts = content.split(/\n---\s*\n/)
-    if (parts.length >= 3) {
-      return {
-        system: parts[0].replace(/^#.*\n?/, '').trim(),
-        initial: parts[1].replace(/^#.*\n?/, '').trim(),
-        update: parts[2].replace(/^#.*\n?/, '').trim(),
-      }
-    }
-  }
-
-  return {
-    system: `你是海马体情景记忆沉淀引擎。将对话复盘整理为标准情景记忆。
-必须返回纯 JSON 格式：
-{
-  "topic": "简短中文主题（4-12字，不得有标点空格）",
-  "brief": "单行大纲简介（20-40字）",
-  "markdown": "Markdown 正文"
+  return `# 记忆沉淀指南
+## 执行步骤
+1. 写情景长文：写入/追加至 memory/<YYYY-MM>/<YYYY-MM-DD_中文主题>.md，记录背景、改动脉络、资产与避坑。
+2. 记流水大纲：向 memory/<YYYY-MM>/index.md 追加指针：- YYYY-MM-DD HH:MM：[中文主题](<YYYY-MM-DD_中文主题>.md) - 简述。`
 }
 
-Markdown 正文格式遵循极简规范：
-# <中文主题> ({{TODAY}})
-
-## 一、 会话背景与目标
-- 目标与诉求
-
-## 二、 核心决策与过程复盘
-1. 步骤与关键技术点
-2. 遇到什么坑、如何解决
-
-## 三、 落地结果与当前状态
-- 具体改动的文件与资产状态`,
-    initial: `对话与操作历史：\n<history>\n{{HISTORY}}\n</history>\n\n请总结为标准情景记忆。`,
-    update: `这是该会话之前的记忆文档：\n<prev_memory>\n{{PREV_MEMORY}}\n</prev_memory>\n\n后续新增的对话与操作如下：\n<new_turns>\n{{HISTORY}}\n</new_turns>\n\n请在原记忆基础上进行增量演进更新。保持主题一致，合并更新落地结果与过程复盘，输出更新后的全文与单行大纲。`,
-  }
-}
 
 async function callLlm(messages: Array<{ role: string; content: string }>): Promise<string> {
   for (const model of CANDIDATE_MODELS) {
@@ -227,17 +197,46 @@ async function persistMemory(ctx: any, isManual = false): Promise<void> {
 
     const isUpdate = Boolean(state.lastSummary && state.relPath)
 
-    const tpls = loadPromptTemplate()
-    const systemPrompt = tpls.system.replace(/\{\{TODAY\}\}/g, today)
+    const memoryGuide = loadMemoryGuideline()
+    const systemPrompt = `你是海马体记忆沉淀引擎。请严格遵循《记忆沉淀指南》规范，将对话与操作复盘整理为标准情景记忆与流水大纲。
+
+【记忆沉淀指南】
+${memoryGuide}
+
+【输出约束】
+必须返回纯 JSON 格式：
+{
+  "topic": "简短中文主题（4-12字，不得有标点空格）",
+  "brief": "单行大纲简介（20-40字）",
+  "markdown": "Markdown 正文"
+}`
 
     let userPrompt = ''
     if (isUpdate) {
-      userPrompt = tpls.update
-        .replace(/\{\{PREV_MEMORY\}\}/g, state.lastSummary!)
-        .replace(/\{\{HISTORY\}\}/g, historyText)
+      userPrompt = `当前日期：${today}
+
+这是该会话之前的记忆文档：
+<prev_memory>
+${state.lastSummary}
+</prev_memory>
+
+后续新增的对话与操作记录：
+<new_turns>
+${historyText}
+</new_turns>
+
+请按《记忆沉淀指南》要求，在原记忆基础上增量演进更新。保持主题一致，合并更新落地结果与过程复盘，输出更新后的全文与单行大纲 JSON。`
     } else {
-      userPrompt = tpls.initial.replace(/\{\{HISTORY\}\}/g, historyText)
+      userPrompt = `当前日期：${today}
+
+对话与操作历史：
+<history>
+${historyText}
+</history>
+
+请按《记忆沉淀指南》要求，总结提炼为标准情景记忆与单行大纲 JSON。`
     }
+
 
     const rawResponse = await callLlm([
       { role: 'system', content: systemPrompt },

@@ -55,9 +55,10 @@ update_repo() {
         done
     fi
 
-    # 4. OMP / Pi 扩展文件 (自动海马体记忆沉淀)
+    # 4. OMP / Pi 扩展文件 (自动海马体记忆沉淀，先删后装)
     local recap_dir="$SCRIPT_DIR/one-free-me/extensions"
     if [ -d "$recap_dir" ]; then
+        rm -rf "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
         mkdir -p "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
         cp -rf "$recap_dir"/* "$target_dir/.omp/extensions/"
         cp -rf "$recap_dir"/* "$target_dir/.pi/extensions/"
