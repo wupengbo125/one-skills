@@ -30,7 +30,7 @@ argument-hint: "实施目标、重构说明或需求文档路径"
 - 绝不引入未经要求的"灵活性"或"可配置性"。
 - 拒绝为确定性事物写防御性代码。
 - 拒绝写兜底方案（A方案能用就用A，不能用就报错修A，别去造B方案来兜底）。
-- 凡是已有环境变量（如 `$github_dir`、`$onespace_dir`），严禁硬编码绝对路径，必须直接引用环境变量。
+- 优先使用最稳的 `~` 或 `$HOME` 确定路径，避免依赖容易丢失的自定义环境变量（如 `$github_dir`、`$onespace_dir`）。
 - 问问自己："资深工程师会觉得这太复杂了吗？"如果是，请简化。
 
 #### 拒绝为确定性事物写防御性代码
@@ -65,16 +65,16 @@ except:
 result = method_a()
 ```
 
-#### 严禁硬编码已有环境变量的路径
+#### 优先使用确定的 ~/ 或 $HOME 路径，避免脆弱环境变量
 
-凡是已有环境变量（如 `$github_dir`、`$onespace_dir`），代码和配置中必须直接引用环境变量，严禁硬编码绝对路径。
+自定义环境变量（如 `$github_dir`、`$onespace_dir`）在不同子 Shell、IDE 或非交互式环境中容易未注入或丢失，不够稳定；`~` 或 `$HOME` 最稳定。代码和配置中优先直接使用 `~/` 或 `$HOME` 路径。
 
-反例：
+好例子：
 ```yaml
 target_dir: "~/onespace/github"
 ```
 
-改成：
+反例（避免依赖易失效的自定义变量）：
 ```yaml
 target_dir: "$github_dir"
 ```
@@ -149,8 +149,8 @@ grep -qF "rc/bash/bashrc.personal" "$BASHRC" || sed -i "1i. \"$DOTFILES_DIR/rc/b
 * 如果要安装或者写skill，请在当前项目下写或安装，不要安装到用户级。
 * 每个子项目采用标准三件套结构(<script.py> + 配置文件(.env或config.yaml) + readme.md)，扁平/API凭证类自适应选择 .env（直通系统环境变量），复杂结构选择 config.yaml，同时保留并支持 CLI 参数供 AI 灵活调用。
 * 禁止使用系统的tmp目录，如果要使tmp目录，在当前项目下创建，用完删除.
-* 修改宪法时，严禁直接改分发副本（如各项目 AGENTS.md / CLAUDE.md），宪法唯一源文件为 `$github_dir/one-skills/one-agents.md`，只改源文件。
-* 编写或修改 Skill 时，严禁直接去安装目标目录（如 `~/.gemini/config/skills/`、`./.agents/skills/`）修改，必须直接在源仓库 `$github_dir/one-skills/` 下修改。
+* 修改宪法时，严禁直接改分发副本（如各项目 AGENTS.md / CLAUDE.md），宪法唯一源文件为 `~/onespace/github/one-skills/one-agents.md`，只改源文件。
+* 编写或修改 Skill 时，严禁直接去安装目标目录（如 `~/.gemini/config/skills/`、`./.agents/skills/`）修改，必须直接在源仓库 `~/onespace/github/one-skills/` 下修改。
 
 ---
 

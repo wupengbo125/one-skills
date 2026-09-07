@@ -26,6 +26,6 @@
    ```bash
    python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py sync "light-skills/<英文分类>/<中文主题>.md"
    ```
-4. **提交本地 Git**：
-   - 在 `~/onespace/github/one-hippocampus/` 执行提交（遵循宪法：本地 commit，不 push）。
+4. **提交 Git**：
+   - 在 `~/onespace/github/one-hippocampus/` 执行提交。
 5. **极简反馈**：一句话仅反馈写入路径与标题。
