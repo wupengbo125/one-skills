@@ -56,11 +56,11 @@ update_repo() {
     fi
 
     # 4. OMP / Pi 扩展文件 (自动海马体记忆沉淀)
-    local recap_ext="$SCRIPT_DIR/one-free-me/extensions/hippocampus-recap.ts"
-    if [ -f "$recap_ext" ]; then
+    local recap_dir="$SCRIPT_DIR/one-free-me/extensions"
+    if [ -d "$recap_dir" ]; then
         mkdir -p "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
-        cp -f "$recap_ext" "$target_dir/.omp/extensions/hippocampus-recap.ts"
-        cp -f "$recap_ext" "$target_dir/.pi/extensions/hippocampus-recap.ts"
+        cp -rf "$recap_dir"/* "$target_dir/.omp/extensions/"
+        cp -rf "$recap_dir"/* "$target_dir/.pi/extensions/"
     fi
 }
 

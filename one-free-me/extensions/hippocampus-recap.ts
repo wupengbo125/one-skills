@@ -84,6 +84,63 @@ function extractAssistantText(message: unknown): string {
   return out
 }
 
+function loadPromptTemplate(): { system: string; initial: string; update: string } {
+  const candidatePaths = [
+    path.join(__dirname, 'recap-prompt.md'),
+    path.join(
+      process.env.HOME || '/home/ctyun',
+      'onespace/github/one-skills/one-free-me/extensions/recap-prompt.md'
+    ),
+    path.join(process.cwd(), '.omp/extensions/recap-prompt.md'),
+  ]
+
+  let content = ''
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      try {
+        content = fs.readFileSync(p, 'utf-8')
+        if (content.trim()) break
+      } catch {}
+    }
+  }
+
+  if (content) {
+    const parts = content.split(/\n---\s*\n/)
+    if (parts.length >= 3) {
+      return {
+        system: parts[0].replace(/^#.*\n?/, '').trim(),
+        initial: parts[1].replace(/^#.*\n?/, '').trim(),
+        update: parts[2].replace(/^#.*\n?/, '').trim(),
+      }
+    }
+  }
+
+  return {
+    system: `你是海马体情景记忆沉淀引擎。将对话复盘整理为标准情景记忆。
+必须返回纯 JSON 格式：
+{
+  "topic": "简短中文主题（4-12字，不得有标点空格）",
+  "brief": "单行大纲简介（20-40字）",
+  "markdown": "Markdown 正文"
+}
+
+Markdown 正文格式遵循极简规范：
+# <中文主题> ({{TODAY}})
+
+## 一、 会话背景与目标
+- 目标与诉求
+
+## 二、 核心决策与过程复盘
+1. 步骤与关键技术点
+2. 遇到什么坑、如何解决
+
+## 三、 落地结果与当前状态
+- 具体改动的文件与资产状态`,
+    initial: `对话与操作历史：\n<history>\n{{HISTORY}}\n</history>\n\n请总结为标准情景记忆。`,
+    update: `这是该会话之前的记忆文档：\n<prev_memory>\n{{PREV_MEMORY}}\n</prev_memory>\n\n后续新增的对话与操作如下：\n<new_turns>\n{{HISTORY}}\n</new_turns>\n\n请在原记忆基础上进行增量演进更新。保持主题一致，合并更新落地结果与过程复盘，输出更新后的全文与单行大纲。`,
+  }
+}
+
 async function callLlm(messages: Array<{ role: string; content: string }>): Promise<string> {
   for (const model of CANDIDATE_MODELS) {
     try {
@@ -170,33 +227,16 @@ async function persistMemory(ctx: any, isManual = false): Promise<void> {
 
     const isUpdate = Boolean(state.lastSummary && state.relPath)
 
-    const systemPrompt = `你是海马体情景记忆沉淀引擎。将对话复盘整理为标准情景记忆。
-必须返回纯 JSON 格式：
-{
-  "topic": "简短中文主题（4-12字，不得有标点空格）",
-  "brief": "单行大纲简介（20-40字）",
-  "markdown": "Markdown 正文"
-}
-
-Markdown 正文格式遵循极简规范：
-# <中文主题> (${today})
-
-## 一、 会话背景与目标
-- 目标与诉求
-
-## 二、 核心决策与过程复盘
-1. 步骤与关键技术点
-2. 遇到什么坑、如何解决
-
-## 三、 落地结果与当前状态
-- 具体改动的文件与资产状态
-`
+    const tpls = loadPromptTemplate()
+    const systemPrompt = tpls.system.replace(/\{\{TODAY\}\}/g, today)
 
     let userPrompt = ''
     if (isUpdate) {
-      userPrompt = `这是该会话之前的记忆文档：\n<prev_memory>\n${state.lastSummary}\n</prev_memory>\n\n后续新增的对话与操作如下：\n<new_turns>\n${historyText}\n</new_turns>\n\n请在原记忆基础上进行增量演进更新。保持主题一致，合并更新落地结果与过程复盘，输出更新后的全文与单行大纲。`
+      userPrompt = tpls.update
+        .replace(/\{\{PREV_MEMORY\}\}/g, state.lastSummary!)
+        .replace(/\{\{HISTORY\}\}/g, historyText)
     } else {
-      userPrompt = `对话与操作历史：\n<history>\n${historyText}\n</history>\n\n请总结为标准情景记忆。`
+      userPrompt = tpls.initial.replace(/\{\{HISTORY\}\}/g, historyText)
     }
 
     const rawResponse = await callLlm([
