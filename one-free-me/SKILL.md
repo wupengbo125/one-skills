@@ -1,13 +1,18 @@
 ---
 name: one-free-me
-description: "记忆与轻Skill：修改东西后或用户说'收工'、'创建轻Skill'、'创建冷门记录'时记录；查记忆、查资料时检索。"
+description: "记忆与轻Skill：修改东西后或用户说'收工'、'创建轻Skill'、'创建冷门记录'时记录；获知用户偏好时写偏好，完成任务后写任务；查记忆、查资料时检索。"
 ---
 
 # One Free-Me (解脱我)
 
 数据仓位于 `~/onespace/github/one-hippocampus/`
 
-记忆沉淀统一为**每日一个文件**（`memory/<YYYY-MM>/<YYYY-MM-DD>.md`），格式见 [references/memory.md](references/memory.md)。
+记忆分**三态（对齐豆包）**：
+- **daily（每日流水）**：`memory/<YYYY-MM>/<YYYY-MM-DD>.md`，每天一个文件，记当天做了什么 + 结论 + 待办。
+- **preference（偏好）**：`preference.md`，获知用户稳定偏好（回复风格、习惯、喜好）时追加或更新，一条一条不按天。
+- **task_history（任务）**：`task_history.md`，完成有长期价值的关键任务后追加"做了什么 + 结论"，一条一条不按天。
+
+格式与写入步骤见 [references/memory.md](references/memory.md)。
 
 轻 Skill = 低频使用的专用技能文档（"轻"指使用频度，不是内容轻重）。
 
@@ -15,11 +20,15 @@ description: "记忆与轻Skill：修改东西后或用户说'收工'、'创建�
 
 ## 意图分流
 
-- **查资料 / 搜记忆 / 历史流水 / 用户画像**：
+- **查资料 / 搜记忆 / 历史流水 / 用户画像 / 查偏好 / 查任务**：
   - 规则与脚本见 [references/search-memory.md](references/search-memory.md)
 - **修改东西后记忆沉淀（自动记忆 / 用户说“收工”）**：
 
   - 规则见 [references/memory.md](references/memory.md)
+- **获知用户稳定偏好（“我的偏好是…”/“以后都…”）**：
+  - 写入 `preference.md`，一条一条，不按天
+- **完成有长期价值的关键任务后**：
+  - 追加 `task_history.md`，一条"做了什么 + 结论"
 - **创建轻 Skill（用户说“创建轻 Skill” / “创建冷门记录”）**：
   - 内容写入 light-skills，规则见 [references/light-skills.md](references/light-skills.md)
 
