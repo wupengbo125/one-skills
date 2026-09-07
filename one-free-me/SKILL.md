@@ -1,6 +1,6 @@
 ---
 name: one-free-me
-description: "记忆与轻Skill：自动沉淀记忆流水；用户想查记忆/查资料/看轻Skill内容时检索；用户说'创建轻Skill'或'创建冷门技能'时创建轻Skill；'收工'为兜底补记。"
+description: "记忆与轻Skill：自动沉淀记忆流水（每日流水、用户表达的稳定偏好、完成的关键任务）；用户想查记忆/查资料/看轻Skill内容时检索；用户说'创建轻Skill'或'创建冷门技能'时创建轻Skill；'收工'兜底补记。"
 ---
 
 # One Free-Me (解脱我)
