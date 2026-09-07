@@ -11,6 +11,8 @@ description: "记忆与轻Skill：修改东西后或用户说'收工'、'创建�
 
 轻 Skill = 低频使用的专用技能文档（"轻"指使用频度，不是内容轻重）。
 
+记忆提醒钩子：`bash hooks/install-hooks.sh` 一键安装 post-commit 提醒到 one-skills 与 one-hippocampus（云电脑重装后需重跑）。
+
 ## 意图分流
 
 - **查资料 / 搜记忆 / 历史流水 / 用户画像**：
