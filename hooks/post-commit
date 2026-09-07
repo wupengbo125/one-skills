@@ -1,0 +1,19 @@
+#!/bin/bash
+# post-commit: 宪法提醒——commit 后自动检查海马体记忆是否已更新，未更新则输出提醒
+# 不阻挡任何 git 操作（post-commit 在提交完成后运行）
+
+mem=~/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md
+ct=$(git log -1 --format='%ct' 2>/dev/null)
+[ -z "$ct" ] && exit 0
+
+if [ -f "$mem" ] && [ "$(stat -c %Y "$mem" 2>/dev/null)" -ge "$ct" ]; then
+  exit 0
+fi
+
+last=$(git log -1 --format='%s' 2>/dev/null)
+echo ""
+echo "=============================================="
+echo " ⚠️ 宪法提醒：本次提交「${last}」尚未记录到记忆"
+echo "    请按 one-free-me 规程向 ${mem} 追加流水段后补记"
+echo "=============================================="
+echo ""
