@@ -26,7 +26,11 @@ python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关
 
 1. **查历史流水（“最近干了什么”、“查近期历史”、“流水日志”）**：
    - 直接列当月文件：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读取对应当日文件。
-2. **查用户画像与环境拓扑（“用户习惯”、“局域网IP”、“端口”、“项目路径”）**：
+2. **查稳定偏好（“我的偏好”、“习惯”、“喜不喜欢”）**：
+   - 直接读取：`~/onespace/github/one-hippocampus/preference.md`
+3. **查已完成任务（“之前做过什么改造”、“任务历史”）**：
+   - 直接检索：`free_me.py search "任务"`，或读 `~/onespace/github/one-hippocampus/task_history.md`
+4. **查用户画像与环境拓扑（“用户习惯”、“局域网IP”、“端口”、“项目路径”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/system/profile.md`
 
 ---

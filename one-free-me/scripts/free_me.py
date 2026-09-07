@@ -141,8 +141,6 @@ def cmd_rebuild():
     valid_dirs = {"memory", "light-skills", "system"}
     for root, dirs, files in os.walk(repo_dir):
         dirs[:] = [d for d in dirs if not d.startswith(".") and (root != repo_dir or d in valid_dirs)]
-        if root == repo_dir:
-            continue
         for file in files:
             if file.endswith(".md"):
                 full_path = os.path.join(root, file)
