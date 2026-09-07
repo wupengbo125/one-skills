@@ -45,16 +45,17 @@ one-skills/one-free-me/
 
 ## 三、 记忆沉淀机制
 
-### 1. 自动记忆（编码推进中伴随增量追加）
-- 遵循 `references/auto-memory.md`；
-- 会话产生实质代码或配置修改时，向当日话题长文 `memory/<YYYY-MM-DD_中文主题>.md` 增量追加演化过程；
-- 一个话题对应 `recent.md` 一条记录与 `memory/` 一个文件，通过 `scripts/free_me.py recent` 自动打卡置顶。
+### 1. 自动记忆（编码产生实质修改时自动落盘）
+- 遵循 `references/memory.md`；
+- 会话产生实质代码或配置修改时，向当月话题长文 `memory/<YYYY-MM>/<YYYY-MM-DD_中文主题>.md` 记录演化过程；
+- 记录改动脉络、关键决策与踩坑，并向当月 `memory/<YYYY-MM>/index.md` 追加流水。
 
-### 2. 收工记忆（用户主动输入“收工” / “超级我”）
-- 遵循 `references/manual-memory.md`；
+### 2. 收工记忆（用户主动输入“收工”）
+- 遵循 `references/memory.md`；
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **情景复盘**：补全复盘长文，涵盖背景目标、关键决策与落地清单；
-- **打卡与自清洁**：更新 `recent.md`，执行 `scripts/free_me.py recent` 自动打卡、双阈值淘汰并同步索引。
+- **流水与索引**：向当月 `memory/<YYYY-MM>/index.md` 追加流水，并执行 `scripts/free_me.py sync` 同步索引。
+
 
 ---
 
