@@ -16,3 +16,6 @@ description: "修改东西后或者用户输入“收工”、“记到海马体
   - 规则见 [references/memory.md](references/memory.md)
 - **记到海马体（用户说“记到海马体”）**：
   - 内容写入 freewiki，规则见 [references/freewiki.md](references/freewiki.md)
+
+## 禁止
+- 用户说"记笔记"不要用这个技能，这个是针对记到海马体的，或者记住什么东西 
