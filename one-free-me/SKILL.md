@@ -9,6 +9,8 @@ description: "记忆与轻Skill：修改东西后或用户说'收工'、'记到�
 
 记忆沉淀统一为**每日一个文件**（`memory/<YYYY-MM>/<YYYY-MM-DD>.md`），格式见 [references/memory.md](references/memory.md)。
 
+轻 Skill = 低频使用的专用技能文档（"轻"指使用频度，不是内容轻重）。
+
 ## 意图分流
 
 - **查资料 / 搜记忆 / 历史流水 / 用户画像**：
