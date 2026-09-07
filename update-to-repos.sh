@@ -54,15 +54,6 @@ update_repo() {
             cp -rf "$src" "$target_dir/.agents/skills/"
         done
     fi
-
-    # 4. OMP / Pi 扩展文件 (自动海马体记忆沉淀，先删后装)
-    local recap_dir="$SCRIPT_DIR/one-free-me/extensions"
-    if [ -d "$recap_dir" ]; then
-        rm -rf "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
-        mkdir -p "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
-        cp -rf "$recap_dir"/* "$target_dir/.omp/extensions/"
-        cp -rf "$recap_dir"/* "$target_dir/.pi/extensions/"
-    fi
 }
 
 echo -e "\033[1;34m>>> 正在全量更新 \$github_dir 本目录及所有子仓库 (先删后装)... \033[0m"
