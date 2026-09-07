@@ -32,11 +32,11 @@ update_repo() {
 
     # 2. 忽略配置
     if [ -f "$target_dir/.gitignore" ]; then
-        for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
+        for ig in "\.agents" "\.claude" "\.ua" "\.pi" "\.omp"; do
             sed -i "/^$ig/d" "$target_dir/.gitignore"
         done
     fi
-    for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
+    for ig in ".agents/" ".claude/" ".ua/" ".pi/" ".omp/"; do
         if [ -f "$target_dir/.gitignore" ]; then
             grep -qF "$ig" "$target_dir/.gitignore" || echo "$ig" >> "$target_dir/.gitignore"
         else
@@ -53,6 +53,14 @@ update_repo() {
             mkdir -p "$target_dir/.agents/skills"
             cp -rf "$src" "$target_dir/.agents/skills/"
         done
+    fi
+
+    # 4. OMP / Pi 扩展文件 (自动海马体记忆沉淀)
+    local recap_ext="$SCRIPT_DIR/one-free-me/extensions/hippocampus-recap.ts"
+    if [ -f "$recap_ext" ]; then
+        mkdir -p "$target_dir/.omp/extensions" "$target_dir/.pi/extensions"
+        cp -f "$recap_ext" "$target_dir/.omp/extensions/hippocampus-recap.ts"
+        cp -f "$recap_ext" "$target_dir/.pi/extensions/hippocampus-recap.ts"
     fi
 }
 
