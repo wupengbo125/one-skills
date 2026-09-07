@@ -1,15 +1,23 @@
 #!/bin/bash
-# post-commit: 提交完成后的记忆提醒
-# 不验证、不阻挡——只提醒"别忘了更新今日记忆"
-# 海马体自身的记忆提交（含 memory/）静默
+# post-commit: 记忆提醒（时间判定版）
+# 当日记忆文件 mtime 与本次提交时间差 ≤ 60 秒 → 视为已记录，静默
+# 否则提醒。不阻挡任何 git 操作。
 
-self=$(git show --name-only --format='' HEAD 2>/dev/null | grep -E 'memory/[0-9]{4}-[0-9]{2}/' | head -1)
-if [ -n "$self" ]; then
+ct=$(git log -1 --format='%ct' 2>/dev/null)
+[ -z "$ct" ] && exit 0
+
+mem=~/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md
+mt=$(stat -c %Y "$mem" 2>/dev/null || echo 0)
+
+diff=$(( ct - mt ))
+[ "$diff" -lt 0 ] && diff=$(( -diff ))
+
+if [ "$diff" -le 60 ]; then
   exit 0
 fi
 
 last=$(git log -1 --format='%h %s' 2>/dev/null)
 echo ""
-echo "🔔 记忆提醒：本次提交 ${last} 已完成"
-echo "   别忘了按宪法更新海马体今日记忆（memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md），已记录可忽略"
+echo "🔔 记忆提醒：提交 ${last} 前后 1 分钟内未见记忆更新"
+echo "   请按宪法向 ${mem} 追加流水段（先记后提，提交前完成记忆写入）"
 echo ""
