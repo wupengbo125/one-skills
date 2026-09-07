@@ -18,7 +18,7 @@ def get_hippocampus_dir():
     if custom and os.path.isdir(os.path.expanduser(custom)):
         return os.path.abspath(os.path.expanduser(custom))
     d = os.path.abspath(DEFAULT_HIPPOCAMPUS_DIR)
-    return d if os.path.isdir(d) else "/home/ctyun/onespace/github/one-hippocampus"
+    return d
 
 def get_db_path(repo_dir):
     return os.path.join(repo_dir, ".fts.db")
