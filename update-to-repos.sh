@@ -64,7 +64,6 @@ update_repo "$github_dir"
 # 2. 更新 $github_dir 下的所有子仓库
 for d in "$github_dir"/*; do
     if [ -d "$d" ]; then
-        [ "$d" == "$SCRIPT_DIR" ] && continue
         update_repo "$d"
     fi
 done
