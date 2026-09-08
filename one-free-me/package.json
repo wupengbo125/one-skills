@@ -1,0 +1,15 @@
+{
+  "name": "one-free-me",
+  "version": "1.0.0",
+  "description": "Hippocampus memory extension for Pi & OMP with live memory rules and wrap command.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension"
+  ],
+  "pi": {
+    "extensions": [
+      "./pi-extension/index.ts"
+    ]
+  }
+}

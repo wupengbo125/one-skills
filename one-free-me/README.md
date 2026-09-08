@@ -11,22 +11,53 @@ One Free-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocamp
 ```
 one-skills/one-free-me/
 ├── SKILL.md                 # 【技能核心入口】：意图分流与按需索引
+├── package.json             # 【Pi 扩展清单】：支持 pi install / pi remove
+├── pi-extension/            # 【Pi & OMP 专属扩展层】
+│   ├── index.ts             # 扩展入口：常驻规则注入与命令注册
+│   └── memory-rules.md      # 动态台词：定义触发/抑制规则（改动实时生效）
+├── hooks/                   # 【通用 Git 钩子层】
+│   ├── post-commit          # 跨 Agent 强指令提醒
+│   └── install-hooks.sh     # 批量分发脚本
 ├── scripts/                 # 【脚本目录】
-│   └── free_me.py          # BM25 检索、增量/全量建库、近期流水与自清洁
+│   └── free_me.py           # BM25 检索、增量/全量建库、流水与自清洁
 ├── references/              # 【按需执行指南】
-│   ├── routing.md           # 检索寻路：别名消歧、BM25 检索与语义索引
-│   ├── auto-memory.md       # 自动记忆：干活中顺手增量追加到 memory/（主航道）
-│   ├── manual-memory.md     # 收工记忆：输入"收工"或"超级我"沉淀到 memory/（兜底）
-│   ├── wiki.md              # 实操规程：踩坑实操规程沉淀到 light-skills/（复用资产）
-│   └── scripts.md           # 脚本详解与检索索引生命周期
 ├── docs/                    # 【架构与设计资产】
-│   └── PRD.md               # 产品需求文档
 └── README.md                # 【说明文档】
 ```
 
 ---
 
-## 二、 核心数据仓设计 (`one-hippocampus`)
+## 二、 安装方式 (Installation Modes)
+
+提供两种独立且互不污染的接入方式，可按需组合：
+
+### 1. 模式 A：通用 Git 钩子 (Universal Git Hooks)
+- **适用**：任何终端 Git、任何 AI Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
+- **机制**：提交代码时检测海马体更新，超时则输出强系统指令阻止交差。
+- **安装**：
+  ```bash
+  bash one-skills/one-free-me/hooks/install-hooks.sh
+  ```
+- **卸载**：删除对应仓库 `.git/hooks/post-commit`。
+
+### 2. 模式 B：Pi & OMP 原生扩展 (Pi Extension Package)
+- **适用**：Pi Coding Agent 与 Oh My Pi。
+- **机制**：
+  - **动态台词**：每轮前注入 `pi-extension/memory-rules.md`，修改该 MD 文件秒级生效。
+  - **命令支持**：提供 `/wrap`（收工沉淀）与 `/freeme sync`（索引同步）。
+- **安装**：
+  ```bash
+  pi install /home/ctyun/onespace/github/one-skills/one-free-me
+  ```
+- **卸载**：
+  ```bash
+  pi remove one-free-me
+  ```
+- **验证**：运行 `pi list` 查看已安装扩展。
+
+---
+
+## 三、 核心数据仓设计 (`one-hippocampus`)
 
 数据仓物理分立设计：
 
@@ -39,7 +70,7 @@ one-skills/one-free-me/
 
 ---
 
-## 三、 记忆沉淀机制
+## 四、 记忆沉淀机制
 
 ### 1. 自动记忆（编码产生实质修改时自动落盘）
 - 遵循 `references/memory.md`；
@@ -54,7 +85,7 @@ one-skills/one-free-me/
 
 ---
 
-## 四、 辅助脚本命令 (`scripts/free_me.py`)
+## 五、 辅助脚本命令 (`scripts/free_me.py`)
 
 终端可通过 `python3 scripts/free_me.py` 或全局命令 `free-me` 执行：
 
