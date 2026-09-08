@@ -1,6 +1,6 @@
 ---
 name: one-implement
-description: "编写、修改、重构代码或开发功能时使用。架构者模式：主Agent只做设计与分发，严禁亲自写业务代码；修改即同步全局活蓝图(BLUEPRINT.md)；派发Worker Sub-agent隔离写代码(支持CP物理剪贴板防瞎写)，派发双Reviewer Sub-agent严查Git Diff。"
+description: "编写、修改、重构代码或开发功能时使用。"
 argument-hint: "需求描述、修改说明或需求文档路径"
 ---
 
@@ -64,6 +64,7 @@ argument-hint: "需求描述、修改说明或需求文档路径"
 - **CP 物理剪贴板优先（/one-refactor-implement-cp）**：涉及已有代码的合并、迁移、重构与拆分时，**绝对禁止凭记忆 hand-type 重写大段代码**（极易脑补出逻辑 Bug）。必须通过物理复制文件（`cp`/`mv`）作为基准，或按行号物理抽取插入，只做微创修改。
 
 ### 3. 至简至上 (Simplicity First)
+- 使用ponytail技能去做精简
 - **拒绝防御性代码**：环境已知、文件必存时，直接操作，不写多余 `try-catch`。
 - **拒绝多层兜底**：不写“A 不行试 B，B 不行试 C”；直接用正统 A，挂了直接修 A。
 - **绝对路径**：优先使用明确的 `~/` 路径，避免脆弱环境变数。
