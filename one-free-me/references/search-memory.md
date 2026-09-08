@@ -37,9 +37,7 @@ python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关
 
 ## 三、 兜底大纲与索引维护
 
-- **大纲导航（仅兜底）**：只有在 BM25 多次换词仍无法准确定位时，才降级读取大纲：
-  - 实操规程导航：`~/onespace/github/one-hippocampus/light-skills/index.md`
-  - 全局总索引：`~/onespace/github/one-hippocampus/INDEX.md`
+- **全局总索引**：`~/onespace/github/one-hippocampus/INDEX.md`
 - **全量重建索引**：若发现新写入的文档检索不到，或索引库异常，运行重建：
   ```bash
   python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py rebuild

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/free_me.py - 海马体记忆检索与索引同步工具 (极简版 ~200行)
+scripts/light_skills.py - 轻 Skill 专用 BM25 FTS5 全文检索与索引同步工具
+
+数据仓：~/onespace/github/one-skills/light-skills
 """
 
 import os
@@ -9,15 +11,15 @@ import sys
 import re
 import sqlite3
 
-DEFAULT_HIPPOCAMPUS_DIR = os.path.expanduser(
-    os.environ.get("ONE_HIPPOCAMPUS_DIR", "~/onespace/github/one-hippocampus")
+DEFAULT_LIGHT_SKILLS_DIR = os.path.expanduser(
+    os.environ.get("ONE_LIGHT_SKILLS_DIR", "~/onespace/github/one-skills/light-skills")
 )
 
-def get_hippocampus_dir():
-    custom = os.environ.get("ONE_HIPPOCAMPUS_DIR")
+def get_skills_dir():
+    custom = os.environ.get("ONE_LIGHT_SKILLS_DIR")
     if custom and os.path.isdir(os.path.expanduser(custom)):
         return os.path.abspath(os.path.expanduser(custom))
-    d = os.path.abspath(DEFAULT_HIPPOCAMPUS_DIR)
+    d = os.path.abspath(DEFAULT_LIGHT_SKILLS_DIR)
     return d
 
 def get_db_path(repo_dir):
@@ -82,12 +84,7 @@ def extract_title(content, default_name):
     return default_name
 
 def parse_entries(raw_content):
-    """把 markdown 拆成条目列表 [(anchor, title, content), ...]。
-
-    规则：`##`/`###` 开头为小节锚点；`- `/`* ` 列表项为一条记录
-    （`- **名称**：内容` 用名称做 title）；其余段落按整体一条。
-    每日流水等无结构的文件退化为整篇一条。
-    """
+    """把 markdown 拆成条目列表 [(anchor, title, content), ...]"""
     entries = []
     anchor = ""
     buf_title = None
@@ -155,7 +152,7 @@ def make_clean_snippet(raw_text, words):
     return clean[:120] + ('...' if len(clean) > 120 else '')
 
 def cmd_sync(target_path):
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_skills_dir()
     rel_path = resolve_rel_path(target_path, repo_dir)
     full_path = os.path.join(repo_dir, rel_path)
     conn = get_db_connection(repo_dir)
@@ -185,7 +182,7 @@ def cmd_sync(target_path):
     print(f"✅ 已增量同步至索引: {rel_path} ({n} 条)")
 
 def cmd_rebuild():
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_skills_dir()
     db_path = get_db_path(repo_dir)
     for ext in ["", "-wal", "-shm"]:
         f = db_path + ext
@@ -197,9 +194,8 @@ def cmd_rebuild():
 
     conn = get_db_connection(repo_dir)
     count = 0
-    valid_dirs = {"memory", "system"}
     for root, dirs, files in os.walk(repo_dir):
-        dirs[:] = [d for d in dirs if not d.startswith(".") and (root != repo_dir or d in valid_dirs)]
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for file in files:
             if file.endswith(".md"):
                 full_path = os.path.join(root, file)
@@ -219,10 +215,10 @@ def cmd_rebuild():
 
     conn.commit()
     conn.close()
-    print(f"🎉 索引重建完成，已索引 {count} 篇海马体文档 -> {db_path}")
+    print(f"🎉 索引重建完成，已索引 {count} 篇轻 Skill 文档 -> {db_path}")
 
 def cmd_search(query_str):
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_skills_dir()
     db_path = get_db_path(repo_dir)
     if not os.path.isfile(db_path):
         cmd_rebuild()
@@ -239,18 +235,16 @@ def cmd_search(query_str):
                 words.extend(bigrams)
                 clauses.append(" OR ".join(f'"{bg}"' for bg in bigrams))
         else:
-            w = seg.lower()
-            clauses.append(f'"{w}"')
-    
-    fts_query = " AND ".join(f"({c})" if " OR " in c else c for c in clauses) if clauses else ""
-    if not fts_query:
-        print(">>> 请输入有效的检索关键词")
+            clauses.append(f'"{seg.lower()}"*')
+
+    if not clauses:
+        print("⚠️ 请提供有效的检索词。")
         return
 
+    fts_query = " OR ".join(clauses)
     conn = get_db_connection(repo_dir)
     sql = """
-        SELECT path, raw_title, category, raw_content, anchor,
-               bm25(docs_fts, 0.0, 0.0, 0.0, 5.0, 1.0, 2.0, 3.0) as rank
+        SELECT path, raw_title, raw_content, category, anchor, bm25(docs_fts, 5.0, 1.0, 2.0, 1.0) as rank
         FROM docs_fts
         WHERE docs_fts MATCH ?
         ORDER BY rank
@@ -265,43 +259,42 @@ def cmd_search(query_str):
         return
 
     conn.close()
+
     if not rows:
-        print(f"🔍 未检索到关于 \"{query_str}\" 的内容。")
+        print(f"🔍 未检索到与 \"{query_str}\" 相关的轻 Skill。")
         return
 
-    valid_words = sorted(list(dict.fromkeys(words)), key=len, reverse=True)
-    pattern = re.compile('|'.join(re.escape(k) for k in valid_words if k), re.IGNORECASE) if valid_words else None
-
-    print(f"⚡ [BM25 检索命中 {len(rows)} 条] 关键词: {query_str}")
-    for idx, row in enumerate(rows, 1):
-        rel_path, raw_title, category, raw_content, anchor, score = row
-        snip = make_clean_snippet(raw_content, valid_words)
-        loc = f"{rel_path} › {anchor}" if anchor else rel_path
-        print(f"\n{idx}. 📄 {loc} (类别: {category})")
+    print(f"🔍 检索关键词: \"{query_str}\" (匹配到 {len(rows)} 篇)")
+    print("-" * 50)
+    for path, title, raw_content, cat, anchor, rank in rows:
+        snip = make_clean_snippet(raw_content, words)
+        anchor_tag = f" > #{anchor}" if anchor else ""
+        print(f"📄 [{cat}] {title}{anchor_tag}")
+        print(f"   路径: {os.path.join(repo_dir, path)}")
         print(f"   摘要: {snip}")
+        print("-" * 50)
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python3 scripts/free_me.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
-        sys.exit(0)
+        print("用法: light_skills.py [search <关键词> | sync <文件相对路径> | rebuild]")
+        sys.exit(1)
 
-    cmd = sys.argv[1]
-    if cmd in ["-h", "--help", "help"]:
-        print("用法: python3 scripts/free_me.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
-    elif cmd == "rebuild":
-        cmd_rebuild()
-    elif cmd == "sync":
+    cmd = sys.argv[1].lower()
+    if cmd == "search":
         if len(sys.argv) < 3:
-            print(">>> 请指定待同步路径，如: python3 scripts/free_me.py sync 'memory/2026-09/xxx.md'")
-            sys.exit(1)
-        cmd_sync(sys.argv[2])
-    elif cmd == "search":
-        if len(sys.argv) < 3:
-            print(">>> 请输入检索关键词")
+            print("⚠️ 请提供搜索关键词。")
             sys.exit(1)
         cmd_search(" ".join(sys.argv[2:]))
+    elif cmd == "sync":
+        if len(sys.argv) < 3:
+            print("⚠️ 请提供待同步的文件路径。")
+            sys.exit(1)
+        cmd_sync(sys.argv[2])
+    elif cmd == "rebuild":
+        cmd_rebuild()
     else:
-        cmd_search(" ".join(sys.argv[1:]))
+        print(f"未知命令: {cmd}")
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
