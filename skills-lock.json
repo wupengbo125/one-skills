@@ -85,35 +85,11 @@
       "skillPath": "one-awesome-design/SKILL.md",
       "computedHash": "8261529530a71d513cb4d2aa09291c4c0b638350aa0627f0c36c70a12f6c34af"
     },
-    "one-build-blueprint": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-build-blueprint/SKILL.md",
-      "computedHash": "5d582a38f2289181e7ac399859fd860bf4854adb098a1711e8cfb42b8aab5fa6"
-    },
-    "one-build-drawio": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-build-drawio/SKILL.md",
-      "computedHash": "855c01802cf09fc8f1bb4943adb63b820af5229b4f7dff3a99233e8915b8d2bc"
-    },
-    "one-build-mermaid": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-build-mermaid/SKILL.md",
-      "computedHash": "7b9b9e90b01984709000c3bdc8ae47c03bbbaead5e0923e4917082e7f3939427"
-    },
     "one-cloudflare-nextjs": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
       "skillPath": "one-cloudflare-nextjs/SKILL.md",
       "computedHash": "7d16da13d92fd6b4e27b32b165ab1da30ea860582f8f50e1bad4d878a3775b00"
-    },
-    "one-code-map": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-code-map/SKILL.md",
-      "computedHash": "714a73305bd068720d0b97ec7069b0925170078f8a50240b4d52e9b8c8257cde"
     },
     "one-code-review": {
       "source": "wupengbo125/one-skills",
@@ -133,12 +109,6 @@
       "skillPath": "one-config-omni-model-to-your-app/SKILL.md",
       "computedHash": "e46d5dd30f34dce60193f5fe6e7d3c796ecd633cbca2f7d51fac1854efc2304d"
     },
-    "one-context": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-context/SKILL.md",
-      "computedHash": "49fe688731003eb24f641c7d71e0e235f0c7799f2755669481f4f7482f92fadb"
-    },
     "one-create-memory-skill": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
@@ -156,18 +126,6 @@
       "sourceType": "github",
       "skillPath": "one-git-commit/SKILL.md",
       "computedHash": "cfc21c7fc3cbfb92c8b5bd0df2f3188cc6d019347bf8a9e1e65ef3749b51e8f2"
-    },
-    "one-grill": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-grill/SKILL.md",
-      "computedHash": "fb7ffa23904504a74c1089892eab2e33f1672f5c46ca0dfa9c4c8a4657ffc356"
-    },
-    "one-grill-with-docs-prd": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-grill-with-docs-prd/SKILL.md",
-      "computedHash": "177456fd686ebd0ea4692a7025b3eb0a8b1f6104eeb2ea2fd4cef12b6e83b2c8"
     },
     "one-handoff": {
       "source": "wupengbo125/one-skills",
@@ -193,24 +151,6 @@
       "skillPath": "one-python-structure/SKILL.md",
       "computedHash": "b032f8910fc02e027009e30a8fbad9d5524b60a74cecf60e714b521669294bd0"
     },
-    "one-refactor-implement": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-refactor-implement/SKILL.md",
-      "computedHash": "c2fe9a4bb018fa25c4712a40101f0e097338c3e90e121001bb0f4ecbb612611a"
-    },
-    "one-refactor-implement-cp": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-refactor-implement-cp/SKILL.md",
-      "computedHash": "ee4145186d73c0109b230f064c1be743f289cd17ce88643d5b49b7d8a26678ce"
-    },
-    "one-simplifying": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-simplifying/SKILL.md",
-      "computedHash": "41b9a5663b2a89fcf343354f12e72a0ffdd7651c0577a0867e14164aa18f9d96"
-    },
     "one-summarize-chat": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
@@ -228,12 +168,6 @@
       "sourceType": "github",
       "skillPath": "one-take-notes/SKILL.md",
       "computedHash": "95b2aa638a23f8b045acc2a676e865c92cab0b60754ab80ad9c60cca14ddefdc"
-    },
-    "one-to-prd": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-to-prd/SKILL.md",
-      "computedHash": "f97f170b16516650eaafc7e9acb0faa2872fee3a36b1a0a42d85d8beb7764dd5"
     },
     "one-update-notes": {
       "source": "wupengbo125/one-skills",
@@ -336,6 +270,10 @@
       "sourceType": "github",
       "skillPath": "skills/productivity/writing-for-agents/SKILL.md",
       "computedHash": "95da47fc97af998e85b7d7e6d57b3ac76727c1e290cfe9ea09005aacb826959f"
+    },
+    "one-refactor-implement-cp": {
+      "source": "one-refactor-implement-cp",
+      "sourceType": "local"
     }
   }
 }

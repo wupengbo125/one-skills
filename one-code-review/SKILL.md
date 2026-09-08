@@ -1,74 +1,60 @@
 ---
 name: one-code-review
-description: "Use when: 审查代码变更。默认对比工作区与上次提交的差异，支持用户指定 diff 范围和参考文档。"
+description: "Use when: 审查代码变更。默认对比工作区与上次提交的差异(git diff HEAD)，自动对齐项目全局活蓝图(PRD/BLUEPRINT)，双Sub-agent独立审查质量与范围。"
 argument-hint: "[diff范围] [参考文档路径]"
 ---
 
 # Code Review
 
 审查代码变更，两个独立轴并行检查，互不干扰。
+完全基于 Git Diff 与项目全局活蓝图，拒绝多余提问，开箱即审。
 
 ---
 
 ## 两个审查轴
 
-### 代码质量
+### 1. 代码质量与反过度设计 (Standards)
+检查代码本身的质量问题，内置 Fowler 坏味道与 Matt Pocock 规则。
+重点严查：
+- **Speculative Generality**（投机抽象、过度设计、预留未来无用参数/类）
+- **Middle Man / Duplicated Code**（无效中间件、空套壳、重复逻辑）
 
-检查代码本身的质量问题：命名、重复、结构、坏味道等。内置 Fowler 代码坏味道基线，项目有额外规范时项目优先。
-
-### 需求符合
-
-检查代码变更是否符合用户提供的参考文档（需求、设计、issue 等）。没有参考文档时跳过此轴。
+### 2. 需求符合与反范围蔓延 (Scope)
+检查代码变更是否与需求/全局活蓝图严格对齐：
+- 是否存在未要求的文件改动或自作主张的“顺手重构”（Scope Creep）。
+- 需求要求的核心目标是否全部落地。
 
 ---
 
-## 流程
+## 自动化审查流程
 
-### 1. 确定 diff 范围
+### 1. 确定 Diff 范围
+默认直接提取：工作区未提交的改动，即 `git diff HEAD`。
+用户指定范围时（如 `HEAD~1`、`main...HEAD`），以用户指定为准。
 
-默认：工作区未提交的改动，即 `git diff HEAD`。
+### 2. 自动检索参考基准（无需询问用户）
+1. 若用户在参数中显式指定了文档路径 ➔ 直接作为参考基准。
+2. 若未指定，自动检测项目是否存在全局活蓝图：
+   - `docs/prd/BLUEPRINT.md`
+   - `PRD.md`
+   - 最近修改的 `docs/prd/*.md`
+3. 找到则自动作为需求符合轴的对比基准；若项目中不存在任何蓝图/PRD，则跳过需求轴，仅执行代码质量轴审查。
 
-用户可以指定其他范围，比如：
-- `HEAD~3`（对比 3 次提交前）
-- `main...HEAD`（从 main 分支到现在）
-- 任何 git ref 或 range
+### 3. 并行双 Sub-agent 审查
 
-确认 diff 非空后再继续。
+派发两个全新的独立 Sub-agent：
 
-### 2. 确定参考文档
+- **Sub-agent A（代码质量轴）**：
+  - 收到完整 diff。
+  - 检查坏味道基线：Mysterious Name, Duplicated Code, Speculative Generality, Middle Man, Shotgun Surgery 等。
+  - 报告：定位到具体文件和行号，指出硬性违规或优化点。
 
-询问用户是否有参考文档（需求、设计稿、issue 等）。
+- **Sub-agent B（需求与范围轴）**：
+  - 收到完整 diff 与检测到的参考蓝图/PRD。
+  - 报告：(a) 缺失功能；(b) 范围蔓延（未经要求的私自改动）；(c) 与蓝图不一致之处。引用原文档条款。
 
-- 有 → 读取该文档内容
-- 没有 → 只跑代码质量审查，需求符合轴跳过
+### 4. 汇总与输出
 
-### 3. 并行审查
-
-**代码质量 sub-agent**：
-- 收到完整 diff
-- 收到项目编码规范（如有 CODING_STANDARDS.md、CONTRIBUTING.md 等）
-- 按以下坏味道基线逐条检查，项目规范优先于基线：
-  - Mysterious Name（命名不清）
-  - Duplicated Code（重复逻辑）
-  - Feature Envy（方法过度依赖其他对象的数据）
-  - Data Clumps（同样的字段总是一起出现）
-  - Primitive Obsession（用原始类型代替领域概念）
-  - Repeated Switches（同样的 switch/if 级联反复出现）
-  - Shotgun Surgery（一个改动需要改很多文件）
-  - Divergent Change（一个文件因多个不相关原因被改）
-  - Speculative Generality（为不存在的需求做抽象）
-  - Message Chains（过长的链式调用）
-  - Middle Man（只做转发的中间层）
-  - Refused Bequest（子类忽略大部分继承内容）
-- 报告：每个问题引用具体文件和行，说明是硬性违规还是主观判断
-
-**需求符合 sub-agent**：
-- 收到完整 diff
-- 收到参考文档内容
-- 报告：(a) 文档要求但缺失的功能；(b) 文档没要求但多出来的改动（范围蔓延）；(c) 看似实现但实际有误的地方。引用文档原文。
-
-### 4. 汇总
-
-两个报告分别放在 `## 代码质量` 和 `## 需求符合` 下，不合并不重排。
-
-末尾一行总结：每个轴的问题数量和最严重的问题。
+两个 Sub-agent 的报告分别输出在 `## 代码质量` 和 `## 需求与范围` 下，末尾给出一行极简判定：
+- 是否通过（PASS / REJECT）
+- 核心修改意见（如有）
