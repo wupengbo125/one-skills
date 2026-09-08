@@ -1,33 +1,12 @@
 #!/bin/bash
-# post-commit: 海马体提交自动入库 + 记忆提醒（时间判定版）
-# 1) 若提交发生在 one-hippocampus 仓库，先把改动 .md 增量同步进检索索引（无条件执行）。
-# 2) 当日记忆文件 mtime 与本次提交时间差 ≤ 60 秒 → 视为已记录，静默；否则提醒。
-# 不阻挡任何 git 操作。
+# post-commit: 海马体提交自动同步索引
+# 仅在 one-hippocampus 仓库提交时，把改动的 .md 文件增量同步进检索索引。
+# 记忆强制验证由 commit-msg hook 负责，本文件不再做提醒。
 
-# --- 海马体提交自动入库（非阻断） ---
 repo=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ "$repo" = "$HOME/onespace/github/one-hippocampus" ]; then
   git diff --name-only HEAD^ HEAD 2>/dev/null | grep '\.md$' | while read -r f; do
     python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py sync "$f" >/dev/null 2>&1
   done
 fi
-
-# --- 记忆提醒（时间判定） ---
-ct=$(git log -1 --format='%ct' 2>/dev/null)
-[ -z "$ct" ] && exit 0
-
-mem=~/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md
-mt=$(stat -c %Y "$mem" 2>/dev/null || echo 0)
-
-diff=$(( ct - mt ))
-[ "$diff" -lt 0 ] && diff=$(( -diff ))
-
-if [ "$diff" -le 60 ]; then
-  exit 0
-fi
-
-last=$(git log -1 --format='%h %s' 2>/dev/null)
-echo ""
-echo "⚠️ [系统指令: 宪法未完成] 提交 ${last} 未记录海马体。必须立即追加流水至 ${mem}，完成后方可向用户交付！"
-echo ""
 exit 0
