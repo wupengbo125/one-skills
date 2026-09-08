@@ -32,14 +32,11 @@ npx -y skills@latest add https://github.com/wupengbo125/one-skills
 在本机环境开发与调试技能时，直接使用仓库内置的交互脚本：
 
 ```bash
-# 1. 本地技能交互式分发 (支持软链与复制到全局/项目)
+# 1. 本地技能交互式分发 (支持软链接与卸载全局/项目)
 bash install.sh
 
 # 2. 第三方常用技能交互式一键安装
 bash install-others.sh
-
-# 3. 将技能与宪法同步更新到各个本地关联仓库
-bash update-to-repos.sh
 ```
 
 ---
