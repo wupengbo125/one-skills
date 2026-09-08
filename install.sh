@@ -174,7 +174,16 @@ if [ ${#SELECTED_INDICES[@]} -eq 0 ]; then
 fi
 
 USER_GLOBAL_DIRS=("$HOME/.agents/skills")
-USER_GLOBAL_RULES=("$HOME/.agents/AGENTS.md")
+USER_GLOBAL_RULES=(
+    "$HOME/.pi/agent/AGENTS.md"
+    "$HOME/.gemini/config/AGENTS.md"
+    "$HOME/.gemini/GEMINI.md"
+    "$HOME/.claude/CLAUDE.md"
+    "$HOME/.cursor/AGENTS.md"
+    "$HOME/.config/opencode/AGENTS.md"
+    "$HOME/.copilot/copilot-instructions.md"
+    "$HOME/.agents/AGENTS.md"
+)
 
 processed=0
 
