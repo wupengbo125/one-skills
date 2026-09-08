@@ -159,8 +159,8 @@ op_options=(
     "安装到当前项目 (./.agents/skills)"
     "卸载自当前项目 (./.agents/skills)"
     "更新到当前项目 (先删除后安装)"
-    "安装到用户全局 (~/.gemini, ~/.claude)"
-    "卸载自用户全局 (~/.gemini, ~/.claude)"
+    "安装到用户全局 (~/.agents/skills)"
+    "卸载自用户全局 (~/.agents/skills)"
     "更新到用户全局 (先删除后安装)"
 )
 select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
@@ -173,8 +173,8 @@ if [ ${#SELECTED_INDICES[@]} -eq 0 ]; then
     exit 0
 fi
 
-USER_GLOBAL_DIRS=("$HOME/.claude/skills" "$HOME/.gemini/config/skills" "$HOME/.gemini/antigravity/skills" "$HOME/.config/opencode/skills")
-USER_GLOBAL_RULES=("$HOME/.claude/CLAUDE.md" "$HOME/.gemini/GEMINI.md" "$HOME/.gemini/config/AGENTS.md" "$HOME/.gemini/antigravity/AGENTS.md" "$HOME/.config/opencode/AGENTS.md" "$HOME/.cursor/AGENTS.md" "$HOME/.copilot/copilot-instructions.md")
+USER_GLOBAL_DIRS=("$HOME/.agents/skills")
+USER_GLOBAL_RULES=("$HOME/.agents/AGENTS.md")
 
 processed=0
 
@@ -215,7 +215,7 @@ for idx in "${special_indices[@]}"; do
                 ;;
             3) # 安装到用户全局
                 for t in "${USER_GLOBAL_RULES[@]}"; do
-                    mkdir -p "$(dirname "$t")" && cp -f "$src" "$t"
+                    mkdir -p "$(dirname "$t")" && ln -sfn "$src" "$t"
                 done
                 echo "已安装 AGENTS 规则到用户全局配置文件"
                 ;;
@@ -228,7 +228,7 @@ for idx in "${special_indices[@]}"; do
             5) # 更新到用户全局 (先删后装)
                 for t in "${USER_GLOBAL_RULES[@]}"; do
                     rm -f "$t"
-                    mkdir -p "$(dirname "$t")" && cp -f "$src" "$t"
+                    mkdir -p "$(dirname "$t")" && ln -sfn "$src" "$t"
                 done
                 echo "已更新 AGENTS 规则到用户全局配置文件 (先删后装)"
                 ;;
@@ -301,11 +301,11 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
             done
             echo "已更新当前项目: ${#skill_indices[@]} 个 skills (先删后装)"
             ;;
-        3) # 安装到用户全局 - 整体复制
+        3) # 安装到用户全局 - 软链接
             for g in "${USER_GLOBAL_DIRS[@]}"; do
                 mkdir -p "$g"
                 for idx in "${skill_indices[@]}"; do
-                    cp -rf "${skill_paths[idx]}" "$g/"
+                    ln -sfn "${skill_paths[idx]}" "$g/${skill_names[idx]}"
                 done
             done
             echo "已整体安装到用户全局: ${#skill_indices[@]} 个 skills"
@@ -323,7 +323,7 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
                 mkdir -p "$g"
                 for idx in "${skill_indices[@]}"; do
                     rm -rf "$g/${skill_names[idx]}"
-                    cp -rf "${skill_paths[idx]}" "$g/"
+                    ln -sfn "${skill_paths[idx]}" "$g/${skill_names[idx]}"
                 done
             done
             echo "已更新用户全局: ${#skill_indices[@]} 个 skills (先删后装)"
