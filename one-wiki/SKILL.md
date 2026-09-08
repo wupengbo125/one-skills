@@ -6,7 +6,7 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 
 # Markdown Wiki
 
-知识库根目录为 `$one_llmwiki_dir/`。
+知识库根目录为 `~/onespace/github/one-llmwiki`。
 
 ## 意图分流
 
