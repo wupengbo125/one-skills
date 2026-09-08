@@ -1,6 +1,6 @@
 ---
 name: one-memory
-description: "海马体记忆系统：管理每日流水与用户偏好（memory/preference/task_history，可读写，涉及用户喜好/习惯/历史决策时查用）；修改代码后commit前自动记录流水；'收工'兜底补记。"
+description: "海马体记忆系统：管理每日流水与用户偏好（memory/preference/task，可读写，涉及用户喜好/习惯/历史决策时查用）；修改代码后commit前自动记录流水；'收工'兜底补记。"
 ---
 
 # One Memory (海马体记忆系统)
@@ -10,7 +10,7 @@ description: "海马体记忆系统：管理每日流水与用户偏好（memory
 记忆分**三态（对齐豆包）**：
 - **daily（每日流水）**：`memory/<YYYY-MM>/<YYYY-MM-DD>.md`，每天一个文件，记当天做了什么 + 结论 + 待办。
 - **preference（偏好）**：`preference.md`，获知用户稳定偏好（回复风格、习惯、喜好）时追加或更新，一条一条不按天。
-- **task_history（任务）**：`task_history.md`，完成有长期价值的关键任务后追加"做了什么 + 结论"，一条一条不按天。
+- **task（任务）**：`tasks/<taskID>.md`，task ID=会话 ID，每会话一个文件，写流水时自动更新过程摘要。
 
 格式与写入步骤见 [references/memory.md](references/memory.md)。
 
@@ -24,8 +24,8 @@ description: "海马体记忆系统：管理每日流水与用户偏好（memory
   - 规则见 [references/memory.md](references/memory.md)
 - **获知用户稳定偏好（自动行为，无需用户开口）**：
   - AI 发现用户表达了新的稳定偏好（如"以后都…""我喜欢…"）时，自动追加 `preference.md`，一条一条，不按天
-- **完成有长期价值的关键任务后（自动行为）**：
-  - 自动追加 `task_history.md`，一条"做了什么 + 结论"
+- **写流水时自动更新 task（自动行为）**：
+  - 用当前会话 ID 作为 task ID，检查 `tasks/<taskID>.md` 是否存在，存在则更新过程摘要，不存在则新建。
 
 ## 禁止
 - 用户说"记笔记"不要用这个技能——记笔记走 one-wiki 个人知识库；
