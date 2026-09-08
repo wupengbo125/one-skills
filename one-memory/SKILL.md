@@ -1,6 +1,6 @@
 ---
 name: one-memory
-description: "海马体记忆系统：管理每日流水与用户偏好（memory/preference/task，可读写，涉及用户喜好/习惯/历史决策时查用）；修改代码后commit前自动记录流水；'收工'兜底补记。"
+description: "海马体记忆系统：管理每日流水与用户偏好（memory/preference/task，可读写，涉及用户喜好/习惯/历史决策时查用）；提交代码强制先写记忆——commit-msg hook 验证代码仓库提交必须带 [memory: <hash>]，hash 需存在于海马体；'收工'兜底补记。"
 ---
 
 # One Memory (海马体记忆系统)
@@ -14,7 +14,9 @@ description: "海马体记忆系统：管理每日流水与用户偏好（memory
 
 格式与写入步骤见 [references/memory.md](references/memory.md)。
 
-记忆提醒钩子：`bash hooks/install-hooks.sh` 一键安装 post-commit 提醒到各仓库（云电脑重装后需重跑）。
+两套 git hook：
+- **commit-msg（强制）**：代码仓库提交必须带 `[memory: <hash>]`，hash 需存在于海马体，否则拒绝。安装：`bash ~/onespace/github/one-skills/hooks/install.sh`
+- **post-commit（索引同步）**：海马体仓库提交后自动同步检索索引。安装：`bash hooks/install-hooks.sh`
 
 ## 意图分流
 

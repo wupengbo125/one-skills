@@ -3,7 +3,7 @@
 # 用户手动提交：git commit --no-verify 跳过
 
 MSG_FILE="$1"
-HASH=$(grep -oP '\[memory:\s*\K[a-f0-9]{7,40}' "$MSG_FILE" 2>/dev/null)
+HASH=$(grep -oP '\[memory:\s*\K[a-f0-9]{7,40}' "$MSG_FILE" 2>/dev/null | head -1)
 
 if [ -z "$HASH" ]; then
   echo "❌ 拒绝提交：commit message 必须带 [memory: <commit-hash>]"
@@ -12,7 +12,7 @@ if [ -z "$HASH" ]; then
   exit 1
 fi
 
-if ! cd ~/onespace/github/one-hippocampus && git cat-file -t "$HASH" 2>/dev/null | grep -q commit; then
+if ! (git -C ~/onespace/github/one-hippocampus cat-file -t "$HASH" 2>/dev/null | grep -q commit); then
   echo "❌ 拒绝提交：海马体仓库不存在 commit $HASH"
   exit 1
 fi
