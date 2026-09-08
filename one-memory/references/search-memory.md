@@ -29,7 +29,7 @@ python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "<关�
 2. **查稳定偏好（“我的偏好”、“习惯”、“喜不喜欢”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/preference.md`
 3. **查已完成任务（“之前做过什么改造”、“任务历史”）**：
-   - 直接检索：`python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "任务"`，或读 `~/onespace/github/one-hippocampus/task_history.md`
+   - 直接列目录：ls ~/onespace/github/one-hippocampus/tasks/，按会话 ID 读取对应 tasks/<taskID>.md；旧任务档案见 task_history.md
 4. **查用户画像与环境拓扑（“用户习惯”、“局域网IP”、“端口”、“项目路径”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/system/profile.md`
 
