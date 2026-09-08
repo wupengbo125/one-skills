@@ -1,6 +1,6 @@
 ---
 name: one-code-review
-description: "Use when: 审查代码变更。默认对比工作区与上次提交的差异(git diff HEAD)，自动对齐项目全局活蓝图(PRD/BLUEPRINT)，双Sub-agent独立审查质量与范围。"
+description: "Use when: 审查代码变更。默认对比工作区与上次提交的差异(git diff HEAD)，自动对齐项目全局活蓝图(BLUEPRINT.md)，双Sub-agent独立审查质量与范围。"
 argument-hint: "[diff范围] [参考文档路径]"
 ---
 
@@ -35,10 +35,9 @@ argument-hint: "[diff范围] [参考文档路径]"
 ### 2. 自动检索参考基准（无需询问用户）
 1. 若用户在参数中显式指定了文档路径 ➔ 直接作为参考基准。
 2. 若未指定，自动检测项目是否存在全局活蓝图：
-   - `docs/prd/BLUEPRINT.md`
-   - `PRD.md`
-   - 最近修改的 `docs/prd/*.md`
-3. 找到则自动作为需求符合轴的对比基准；若项目中不存在任何蓝图/PRD，则跳过需求轴，仅执行代码质量轴审查。
+   - 根目录 `BLUEPRINT.md`
+   - `docs/BLUEPRINT.md`
+3. 找到则自动作为需求符合轴的对比基准；若项目中不存在任何蓝图，则跳过需求轴，仅执行代码质量轴审查。
 
 ### 3. 并行双 Sub-agent 审查
 
@@ -50,7 +49,7 @@ argument-hint: "[diff范围] [参考文档路径]"
   - 报告：定位到具体文件和行号，指出硬性违规或优化点。
 
 - **Sub-agent B（需求与范围轴）**：
-  - 收到完整 diff 与检测到的参考蓝图/PRD。
+  - 收到完整 diff 与检测到的全局活蓝图。
   - 报告：(a) 缺失功能；(b) 范围蔓延（未经要求的私自改动）；(c) 与蓝图不一致之处。引用原文档条款。
 
 ### 4. 汇总与输出

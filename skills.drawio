@@ -7,16 +7,16 @@
                 <mxCell id="n7" value="map系统&lt;br&gt;(地图/，项目结构与上下文视图) 这个完全由AI出的，和代码本质上是一样的，llm直接看代码就够了，因此暂时不用这个。如果要用，就用graphify" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="380" y="80" width="396.25" height="63" as="geometry"/>
                 </mxCell>
-                <mxCell id="n5" value="one-build-blueprint&lt;br&gt;(功能蓝图/白盒文档，调用自由，格式自由，可以直接基于该文档开发，此乃白盒的关键，人工控制，介绍这个项目是干啥的，啥都在哪，既有功能视图，又有map粗略能力，代码是最好的知识库，所以本技能主要是在代码前，让人和agent能大略了解代码项目，比如三个目录是我们现在用的，old里面是以前旧流程，这种东西不人工写，AI永远不知道，别人看了也不知道，代码只反映了所有目录有啥功能，不知道你的old原来竟然是旧的啊，用来供新的参考呢。&lt;br&gt;)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                <mxCell id="n5" value="one-blueprint&lt;br&gt;(全局功能蓝图/白盒文档，格式自由，可以直接基于该文档开发，此乃白盒的关键，人工控制，介绍这个项目是干啥的，啥都在哪，既有功能视图，又有业务规则与边界，代码是最好的知识库，所以本技能主要是在代码前，让人和agent能大略了解代码项目。&lt;br&gt;)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="380" y="-60" width="450" height="130" as="geometry"/>
                 </mxCell>
-                <mxCell id="n1" value="one-grill-with-docs-prd&lt;br&gt;(交互式需求 Grilling 与分析)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                <mxCell id="n1" value="SPA 单页应用原型&lt;br&gt;(可交互单页原型与即时体验)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="178.34" y="30" width="170" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="n2" value="产出文档&#10;(CONTEXT.md / ADR / PRD)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
+                <mxCell id="n2" value="交互与活蓝图&#10;(SPA / BLUEPRINT.md)" style="whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;rounded=1;labelBackgroundColor=none;fontColor=#46495D;" parent="1" vertex="1">
                     <mxGeometry x="173.84" y="109" width="180" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="n3" value="用户确认/阅读 PRD？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;labelBackgroundColor=none;fontColor=#46495D;rounded=1;" parent="1" vertex="1">
+                <mxCell id="n3" value="用户确认 SPA 交互？" style="rhombus;whiteSpace=wrap;html=1;fillColor=#B2C9AB;strokeColor=#788AA3;fontStyle=1;labelBackgroundColor=none;fontColor=#46495D;rounded=1;" parent="1" vertex="1">
                     <mxGeometry x="170.49999999999997" y="193" width="140" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="wb-VkNjcUJ-bbWk1ekWD-4" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=1;hachureGap=4;orthogonalLoop=1;jettySize=auto;html=1;fontFamily=Architects Daughter;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DArchitects%2BDaughter;curved=0;exitX=0.5;exitY=1;entryX=0.5;entryY=0;labelBackgroundColor=none;strokeColor=#788AA3;fontColor=default;" parent="1" target="wb-VkNjcUJ-bbWk1ekWD-1" edge="1">

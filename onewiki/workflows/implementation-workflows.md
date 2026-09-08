@@ -42,4 +42,4 @@ stateDiagram-v2
 ## 相关知识库关系
 
 - [技能安装与管理系统](file://$github_dir/one-skills/onewiki/core/skill-installer.md) 管理本工作流技能在各环境的安装。
-- [需求讨论与设计规划工作流](file://$github_dir/one-skills/onewiki/workflows/design-planning-workflows.md) 在编码实施之前提供 PRD 和架构蓝图输入。
+- [需求交互与架构规划工作流](file://$github_dir/one-skills/onewiki/workflows/design-planning-workflows.md) 在编码实施之前提供 SPA 交互与架构蓝图输入。

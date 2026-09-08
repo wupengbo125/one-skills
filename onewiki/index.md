@@ -20,9 +20,9 @@ last_ingest_commit: 64a03ddbc96df695f86f53d7a288bae3a560d61b
 - [Code Wiki 源码知识库](file://$github_dir/one-skills/onewiki/wiki-systems/code-wiki.md)：由 [`one-code-wiki`](file://$github_dir/one-skills/one-code-wiki/SKILL.md) 驱动，实现以源码和测试为凭据的轻量级、确定性代码库 Wiki 增量摄入与维护 (`ingest`, `query`, `lint`)。
 - [LLM Wiki 纯 Prompt 知识库](file://$github_dir/one-skills/onewiki/wiki-systems/llm-wiki.md)：由 [`one-wiki`](file://$github_dir/one-skills/one-wiki/SKILL.md) 驱动，为 `$one_llmwiki_dir/` 个人通用知识库提供纯 Prompt 的无代码编排、Obsidian 双链、长文档解析与检索问答体系。
 ### 3. AI 开发与设计工作流 (Workflows)
-- [代码实现与精简工作流](file://$github_dir/one-skills/onewiki/workflows/implementation-workflows.md)：包含 [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md)、[`one-minimal-implement`](file://$github_dir/one-skills/one-minimal-implement/SKILL.md)、[`one-refactor-implement`](file://$github_dir/one-skills/one-refactor-implement/SKILL.md) 和 [`one-simplifying`](file://$github_dir/one-skills/one-simplifying/SKILL.md)，严格受暗号控制与至简原则驱动的代码修改闭环。
-- [需求讨论与设计规划工作流](file://$github_dir/one-skills/onewiki/workflows/design-planning-workflows.md)：涵盖 [`one-grill-with-docs-prd`](file://$github_dir/one-skills/one-grill-with-docs-prd/SKILL.md)、[`one-build-blueprint`](file://$github_dir/one-skills/one-build-blueprint/SKILL.md) 和 [`one-handoff`](file://$github_dir/one-skills/one-handoff/SKILL.md)，负责需求 Clarification、PRD 产出、架构蓝图绘制与交接文档生成。
-- [结构映射与可视化工作流](file://$github_dir/one-skills/onewiki/workflows/structure-visualization.md)：集成了 [`one-code-map`](file://$github_dir/one-skills/one-code-map/SKILL.md)、[`one-build-mermaid`](file://$github_dir/one-skills/one-build-mermaid/SKILL.md)、[`one-build-drawio`](file://$github_dir/one-skills/one-build-drawio/SKILL.md) 与 [`one-python-structure`](file://$github_dir/one-skills/one-python-structure/SKILL.md)，负责架构图表自动化与标准子项目结构推行。
+- [代码实现与重构工作流](file://$github_dir/one-skills/onewiki/workflows/implementation-workflows.md)：包含 [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md) 与 [`one-refactor-implement-cp`](file://$github_dir/one-skills/one-refactor-implement-cp/SKILL.md)，架构者派发、CP 物理剪贴板与代码-蓝图强同步机制。
+- [需求交互与架构规划工作流](file://$github_dir/one-skills/onewiki/workflows/design-planning-workflows.md)：涵盖 SPA 可交互单页原型、[`one-blueprint`](file://$github_dir/one-skills/one-blueprint/SKILL.md) 业务活蓝图与 [`one-handoff`](file://$github_dir/one-skills/one-handoff/SKILL.md)，负责以 SPA 原型验证交互体验与沉淀业务活蓝图。
+- [代码审查工作流](file://$github_dir/one-skills/one-code-review/SKILL.md)：包含 [`one-code-review`](file://$github_dir/one-skills/one-code-review/SKILL.md)，独立 Sub-agent 双轴审查代码质量与蓝图对齐。
 
 ### 4. 跨环境集成 (Integrations)
 - [WSL Chrome 自动化集成](file://$github_dir/one-skills/onewiki/integrations/wsl-chrome.md)：由 [`one-wsl-chrome`](file://$github_dir/one-skills/one-wsl-chrome/SKILL.md) 与 [`chrome_pool.py`](file://$github_dir/one-skills/one-wsl-chrome/scripts/chrome_pool.py) 构成，通过 Playwright CDP 跨越 WSL/Windows 边界控制宿主机 Chrome 浏览器。
@@ -36,9 +36,9 @@ flowchart TD
     
     AgentsDir --> CodeWiki["one-code-wiki"]
     AgentsDir --> LLMWiki["one-wiki"]
-    AgentsDir --> Impl["one-implement 系列"]
-    AgentsDir --> Grill["one-grill-with-docs-prd 系列"]
-    AgentsDir --> Vis["one-code-map & 图表系列"]
+    AgentsDir --> Impl["one-implement & one-refactor-implement-cp"]
+    AgentsDir --> Blueprint["one-blueprint & SPA 交互原型"]
+    AgentsDir --> Review["one-code-review"]
     AgentsDir --> Chrome["one-wsl-chrome"]
     
     CodeWiki -->|解析源码与维护| OneWikiDir["onewiki/ 代码库知识库"]

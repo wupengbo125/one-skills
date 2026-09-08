@@ -21,6 +21,6 @@ The generated `handoff.md` must focus strictly on engineering facts and actionab
 ## Guidelines
 
 - **Filter Fluff**: Ignore conversational chatter, trial-and-error noise, or intermediate chat discussion.
-- **Reference, Don't Duplicate**: Link to existing artifacts (`MAP.md`, `BLUEPRINT.md`, `docs/prd/`, git diffs) instead of copying their contents.
+- **Reference, Don't Duplicate**: Link to existing artifacts (`BLUEPRINT.md`, git diffs) instead of copying their contents.
 - **Security**: Redact all sensitive credentials (API keys, tokens, passwords).
 - **Tailored Focus**: If arguments are provided, incorporate them into the Next Steps as the primary objective for the next session.

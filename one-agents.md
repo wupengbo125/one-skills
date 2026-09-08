@@ -10,6 +10,5 @@
 - `one-context.md` - **项目上下文**
 - `CONTEXT.md` - **领域模型与术语词汇表**（DDD 统一语言与业务概念定义）。
 - `docs/adr/` - 架构决策记录
-- `docs/prd/` - 当前需求与实现计划
-- `docs/prd/BLUEPRINT.md`（或 `BLUEPRINT.md`） - **项目全局业务活蓝图**（全景功能地图与业务真理之源，随聊随更，指导实现与核对）
+- `BLUEPRINT.md`（或 `docs/BLUEPRINT.md`） - **项目全局业务活蓝图**（项目唯一全景功能地图与业务真理之源，随聊随更，指导实现与核对）
 

@@ -1,6 +1,6 @@
 ---
 name: one-implement
-description: "编写、修改、重构代码或开发功能时使用。架构者模式：主Agent只做设计与分发，严禁亲自写业务代码；修改即同步全局活蓝图(Code-Blueprint Lockstep)；派发Worker Sub-agent隔离写代码(支持CP物理剪贴板防瞎写)，派发双Reviewer Sub-agent严查Git Diff。"
+description: "编写、修改、重构代码或开发功能时使用。架构者模式：主Agent只做设计与分发，严禁亲自写业务代码；修改即同步全局活蓝图(BLUEPRINT.md)；派发Worker Sub-agent隔离写代码(支持CP物理剪贴板防瞎写)，派发双Reviewer Sub-agent严查Git Diff。"
 argument-hint: "需求描述、修改说明或需求文档路径"
 ---
 
@@ -43,7 +43,7 @@ argument-hint: "需求描述、修改说明或需求文档路径"
    - 从用户的日常自然对话或文档中，提炼出清晰的 **Target（必做目标）** 与 **Non-Goals（严禁扩展项）**。
    - 拒绝死板八股文盘问，快速收拢边界进入实现。
 3. **全局活蓝图接入 (Living Blueprint)**：
-   - 自动检测项目全局活蓝图（优先路径：`docs/prd/BLUEPRINT.md`，其次根目录 `PRD.md`）。
+   - 自动检测项目全局活蓝图（优先路径：根目录 `BLUEPRINT.md`，其次 `docs/BLUEPRINT.md`）。
    - 将蓝图中的相关业务上下文提取并注入给 Worker，命令 Worker：**修改代码的同时必须同步更新蓝图，作为同一次 Commit 交付！**
 
 ---
@@ -53,7 +53,7 @@ argument-hint: "需求描述、修改说明或需求文档路径"
 主 Agent 通过 Sub-agent 工具启动一个**全新的独立工作代理（Worker）**，在 Prompt 中注入任务边界与以下《编码实施守则》：
 
 ### 1. 代码-蓝图强同步铁律 (Code-Blueprint Lockstep)
-- **改代码必改蓝图**：任何业务功能的增加、逻辑调整、规则变更或删除，**修改全局蓝图（`docs/prd/BLUEPRINT.md` 或 `PRD.md`）是 Worker 的法定必交工作**。
+- **改代码必改蓝图**：任何业务功能的增加、逻辑调整、规则变更或删除，**修改全局蓝图（`BLUEPRINT.md`）是 Worker 的法定必交工作**。
 - **纯逻辑无 UI**：更新蓝图时严格遵循 `one-blueprint` 规范，只记录业务逻辑、触发时机、流转与规则边界，不写视觉 UI 样式。
 - **防文档腐化**：坚决杜绝“代码跑通了但蓝图还是老的”；若项目暂无蓝图，Worker 负责顺手初始化骨架并写入本次功能。
 
