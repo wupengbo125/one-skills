@@ -145,6 +145,12 @@
       "skillPath": "one-wiki/SKILL.md",
       "computedHash": "71f3fd49e7bd908b8f8117ad2fc7f0f3fa31b352efcad05089240f11a9c8ac46"
     },
+    "one-wsl-chrome": {
+      "source": "wupengbo125/one-skills",
+      "sourceType": "github",
+      "skillPath": "one-wsl-chrome/SKILL.md",
+      "computedHash": "afa60392dcb2af5836c2b323ad481979dc414750c641294f2226306e4e31f758"
+    },
     "prototype": {
       "source": "mattpocock/skills",
       "sourceType": "github",
