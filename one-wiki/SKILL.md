@@ -1,6 +1,6 @@
 ---
 name: one-wiki
-description: "记笔记、存资料、总结聊天、更新笔记文档、摄入编译 Wiki、查询 Wiki 或巡检 Wiki 质量时触发。"
+description: "记笔记、存资料、总结聊天、更新笔记文档、摄入编译 Wiki、查询 Wiki、巡检 Wiki 质量、或记读书笔记时触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 ---
 
