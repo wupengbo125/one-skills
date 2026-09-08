@@ -1,7 +1,8 @@
 ---
 name: one-harness
-description: "编写、修改、重构代码或开发功能时使用。"
+description: "代码开发与重构流程（主架构 + Worker + 双轴审查 + 蓝图同步）。"
 argument-hint: "需求描述、修改说明或需求文档路径"
+disable-model-invocation: true
 ---
 
 # 代码开发与实施流程 (Implementation & Workflow)
