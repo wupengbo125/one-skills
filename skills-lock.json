@@ -91,6 +91,12 @@
       "skillPath": "one-code-wiki/SKILL.md",
       "computedHash": "0d497a90f1931b8078c494cb7f14c625c59afe1728c969c522f4bbec05d56de1"
     },
+    "one-context": {
+      "source": "wupengbo125/one-skills",
+      "sourceType": "github",
+      "skillPath": "one-context/SKILL.md",
+      "computedHash": "49fe688731003eb24f641c7d71e0e235f0c7799f2755669481f4f7482f92fadb"
+    },
     "one-ebbiii": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
