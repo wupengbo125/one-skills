@@ -9,7 +9,7 @@
 遇到任何**查资料、搜记忆、查踩坑手册、查历史技术决策或方案**时，**第一步必须直接执行 BM25 全文检索**。严禁一上来就盲目遍历或通读大纲/目录：
 
 ```bash
-python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关键词>"
+python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "<关键词>"
 ```
 
 ### 检索执行与结果处理 SOP：
@@ -29,7 +29,7 @@ python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关
 2. **查稳定偏好（“我的偏好”、“习惯”、“喜不喜欢”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/preference.md`
 3. **查已完成任务（“之前做过什么改造”、“任务历史”）**：
-   - 直接检索：`free_me.py search "任务"`，或读 `~/onespace/github/one-hippocampus/task_history.md`
+   - 直接检索：`python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "任务"`，或读 `~/onespace/github/one-hippocampus/task_history.md`
 4. **查用户画像与环境拓扑（“用户习惯”、“局域网IP”、“端口”、“项目路径”）**：
    - 直接读取：`~/onespace/github/one-hippocampus/system/profile.md`
 
@@ -40,5 +40,5 @@ python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py search "<关
 - **全局总索引**：`~/onespace/github/one-hippocampus/INDEX.md`
 - **全量重建索引**：若发现新写入的文档检索不到，或索引库异常，运行重建：
   ```bash
-  python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py rebuild
+  python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py rebuild
   ```

@@ -121,10 +121,10 @@
       "skillPath": "one-summarize-chat/SKILL.md",
       "computedHash": "7eae375d0ec3fe2c3fb34f07de98c1de45073db2679fe94cc0162b6f6f1a4dee"
     },
-    "one-free-me": {
+    "one-memory": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
-      "skillPath": "one-free-me/SKILL.md",
+      "skillPath": "one-memory/SKILL.md",
       "computedHash": "92c4e6034bbdb86d9868f11de15deb9fd9a6f9df7191a5333c81e77e2494f886"
     },
     "one-take-notes": {

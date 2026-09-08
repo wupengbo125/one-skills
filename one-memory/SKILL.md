@@ -1,9 +1,9 @@
 ---
-name: one-free-me
+name: one-memory
 description: "海马体记忆系统：管理每日流水与用户偏好（memory/preference/task_history，可读写，涉及用户喜好/习惯/历史决策时查用）；修改代码后commit前自动记录流水；'收工'兜底补记。"
 ---
 
-# One Free-Me (解脱我)
+# One Memory (海马体记忆系统)
 
 数据仓位于 `~/onespace/github/one-hippocampus/`
 

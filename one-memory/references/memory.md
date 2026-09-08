@@ -18,7 +18,7 @@
 2. 获知用户身份、习惯或喜好时，更新 `system/profile.md`。
 3. 获知**稳定偏好**时，追加/更新 `preference.md`（一条一条，不按天）；无对应分类时新建 `## 分类名` 小节，不新建文件、不加新态。
 4. 完成**有长期价值的关键任务**时，向 `task_history.md` 追加一条"做了什么 + 结论"。
-5. 同步索引：`python3 scripts/free_me.py sync "<当天文件路径>"`。
+5. 同步索引：`python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py sync "<当天文件路径>"`。
 6. git commit（此步骤前必须完成 1-5）。
 
 ## 每日文件内容格式（与豆包一致）

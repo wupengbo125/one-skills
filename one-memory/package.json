@@ -1,5 +1,5 @@
 {
-  "name": "one-free-me",
+  "name": "one-memory",
   "version": "1.0.0",
   "description": "Hippocampus memory extension for Pi & OMP with live memory rules and wrap command.",
   "type": "module",

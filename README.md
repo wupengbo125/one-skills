@@ -12,7 +12,7 @@
 
 ```bash
 # 安装单个技能到当前项目 (./.agents/skills/)
-npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-free-me
+npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-memory
 
 # 全局安装到用户的 Agent 技能库 (-g)
 npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-implement -g

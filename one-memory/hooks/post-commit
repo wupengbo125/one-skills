@@ -8,7 +8,7 @@
 repo=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ "$repo" = "$HOME/onespace/github/one-hippocampus" ]; then
   git diff --name-only HEAD^ HEAD 2>/dev/null | grep '\.md$' | while read -r f; do
-    python3 ~/onespace/github/one-skills/one-free-me/scripts/free_me.py sync "$f" >/dev/null 2>&1
+    python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py sync "$f" >/dev/null 2>&1
   done
 fi
 

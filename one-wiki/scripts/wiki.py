@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/wiki.py - 个人 Wiki FTS5 全文检索与索引同步脚本 (参考 one-free-me 架构)
+scripts/wiki.py - 个人 Wiki FTS5 全文检索与索引同步脚本 (参考 one-memory 架构)
 
 功能：
 1. search <关键词>: BM25 全文检索 onewiki 文档，输出高亮片段与相关度评分

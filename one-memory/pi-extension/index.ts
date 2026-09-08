@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RULES_PATH = path.join(__dirname, "memory-rules.md");
-const SCRIPT_PATH = path.join(__dirname, "../scripts/free_me.py");
+const SCRIPT_PATH = path.join(__dirname, "../scripts/memory.py");
 
 interface AgentStartEvent {
   systemPrompt?: string;

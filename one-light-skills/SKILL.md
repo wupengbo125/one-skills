@@ -21,4 +21,4 @@ description: "轻Skill体系：查阅、检索与创建低频专用技能/避坑
 
 ## 禁止
 - 用户的个人笔记与资料不要存这里——记笔记走 one-wiki 个人笔记本（`one-llmwiki`）；
-- 用户的每日流水与行为偏好不要存这里——个人记忆走 one-free-me 海马体（`one-hippocampus`）。
+- 用户的每日流水与行为偏好不要存这里——个人记忆走 one-memory 海马体（`one-hippocampus`）。
