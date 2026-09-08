@@ -103,12 +103,6 @@
       "skillPath": "one-ebbiii/SKILL.md",
       "computedHash": "c2c5c8b974ba675f2a2224299f38da233bf2b5b294123fd58ae8107cd0958a1c"
     },
-    "one-git-commit": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-git-commit/SKILL.md",
-      "computedHash": "cfc21c7fc3cbfb92c8b5bd0df2f3188cc6d019347bf8a9e1e65ef3749b51e8f2"
-    },
     "one-handoff": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
@@ -150,12 +144,6 @@
       "sourceType": "github",
       "skillPath": "one-wiki/SKILL.md",
       "computedHash": "71f3fd49e7bd908b8f8117ad2fc7f0f3fa31b352efcad05089240f11a9c8ac46"
-    },
-    "one-wsl-chrome": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-wsl-chrome/SKILL.md",
-      "computedHash": "afa60392dcb2af5836c2b323ad481979dc414750c641294f2226306e4e31f758"
     },
     "prototype": {
       "source": "mattpocock/skills",
