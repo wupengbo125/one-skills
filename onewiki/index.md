@@ -22,7 +22,6 @@ last_ingest_commit: 64a03ddbc96df695f86f53d7a288bae3a560d61b
 ### 3. AI 开发与设计工作流 (Workflows)
 - [代码实现与重构工作流](file://$github_dir/one-skills/onewiki/workflows/implementation-workflows.md)：包含 [`one-implement`](file://$github_dir/one-skills/one-implement/SKILL.md) 与 [`one-refactor-implement-cp`](file://$github_dir/one-skills/one-refactor-implement-cp/SKILL.md)，架构者派发、CP 物理剪贴板与代码-蓝图强同步机制。
 - [需求交互与架构规划工作流](file://$github_dir/one-skills/onewiki/workflows/design-planning-workflows.md)：涵盖 SPA 可交互单页原型、[`one-blueprint`](file://$github_dir/one-skills/one-blueprint/SKILL.md) 业务活蓝图与 [`one-handoff`](file://$github_dir/one-skills/one-handoff/SKILL.md)，负责以 SPA 原型验证交互体验与沉淀业务活蓝图。
-- [代码审查工作流](file://$github_dir/one-skills/one-code-review/SKILL.md)：包含 [`one-code-review`](file://$github_dir/one-skills/one-code-review/SKILL.md)，独立 Sub-agent 双轴审查代码质量与蓝图对齐。
 
 ### 4. 跨环境集成 (Integrations)
 - [WSL Chrome 自动化集成](file://$github_dir/one-skills/onewiki/integrations/wsl-chrome.md)：由 [`one-wsl-chrome`](file://$github_dir/one-skills/one-wsl-chrome/SKILL.md) 与 [`chrome_pool.py`](file://$github_dir/one-skills/one-wsl-chrome/scripts/chrome_pool.py) 构成，通过 Playwright CDP 跨越 WSL/Windows 边界控制宿主机 Chrome 浏览器。
@@ -38,7 +37,6 @@ flowchart TD
     AgentsDir --> LLMWiki["one-wiki"]
     AgentsDir --> Impl["one-implement & one-refactor-implement-cp"]
     AgentsDir --> Blueprint["one-blueprint & SPA 交互原型"]
-    AgentsDir --> Review["one-code-review"]
     AgentsDir --> Chrome["one-wsl-chrome"]
     
     CodeWiki -->|解析源码与维护| OneWikiDir["onewiki/ 代码库知识库"]

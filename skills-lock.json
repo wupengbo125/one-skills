@@ -91,12 +91,6 @@
       "skillPath": "one-cloudflare-nextjs/SKILL.md",
       "computedHash": "7d16da13d92fd6b4e27b32b165ab1da30ea860582f8f50e1bad4d878a3775b00"
     },
-    "one-code-review": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-code-review/SKILL.md",
-      "computedHash": "3b61dc34b5f4070b36097aa624198be03ea195086beb8adfbd5e6f3f89bf9fd7"
-    },
     "one-code-wiki": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
