@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/free_me.py - 海马体记忆检索与索引同步工具 (极简版 ~200行)
+scripts/memory.py - 海马体记忆检索与索引同步工具 (极简版 ~200行)
 """
 
 import os
@@ -282,17 +282,17 @@ def cmd_search(query_str):
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python3 scripts/free_me.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
+        print("用法: python3 scripts/memory.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
         sys.exit(0)
 
     cmd = sys.argv[1]
     if cmd in ["-h", "--help", "help"]:
-        print("用法: python3 scripts/free_me.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
+        print("用法: python3 scripts/memory.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
     elif cmd == "rebuild":
         cmd_rebuild()
     elif cmd == "sync":
         if len(sys.argv) < 3:
-            print(">>> 请指定待同步路径，如: python3 scripts/free_me.py sync 'memory/2026-09/xxx.md'")
+            print(">>> 请指定待同步路径，如: python3 scripts/memory.py sync 'memory/2026-09/xxx.md'")
             sys.exit(1)
         cmd_sync(sys.argv[2])
     elif cmd == "search":

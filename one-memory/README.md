@@ -9,7 +9,7 @@ One Free-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocamp
 遵循标准 Skill 结构，脚本集中于 `scripts/` 目录下，并提供分层参考指南：
 
 ```
-one-skills/one-free-me/
+one-skills/one-memory/
 ├── SKILL.md                 # 【技能核心入口】：意图分流与按需索引
 ├── package.json             # 【Pi 扩展清单】：支持 pi install / pi remove
 ├── pi-extension/            # 【Pi & OMP 专属扩展层】
@@ -19,7 +19,7 @@ one-skills/one-free-me/
 │   ├── post-commit          # 跨 Agent 强指令提醒
 │   └── install-hooks.sh     # 批量分发脚本
 ├── scripts/                 # 【脚本目录】
-│   └── free_me.py           # BM25 检索、增量/全量建库、流水与自清洁
+│   └── memory.py           # BM25 检索、增量/全量建库、流水与自清洁
 ├── references/              # 【按需执行指南】
 ├── docs/                    # 【架构与设计资产】
 └── README.md                # 【说明文档】
@@ -36,7 +36,7 @@ one-skills/one-free-me/
 - **机制**：提交代码时检测海马体更新，超时则输出强系统指令阻止交差。
 - **安装**：
   ```bash
-  bash one-skills/one-free-me/hooks/install-hooks.sh
+  bash one-skills/one-memory/hooks/install-hooks.sh
   ```
 - **卸载**：删除对应仓库 `.git/hooks/post-commit`。
 
@@ -44,14 +44,14 @@ one-skills/one-free-me/
 - **适用**：Pi Coding Agent 与 Oh My Pi。
 - **机制**：
   - **动态台词**：每轮前注入 `pi-extension/memory-rules.md`，修改该 MD 文件秒级生效。
-  - **命令支持**：提供 `/wrap`（收工沉淀）与 `/freeme sync`（索引同步）。
+  - **命令支持**：提供 `/wrap`（收工沉淀）与 `/memory sync`（索引同步）。
 - **安装**：
   ```bash
-  pi install /home/ctyun/onespace/github/one-skills/one-free-me
+  pi install /home/ctyun/onespace/github/one-skills/one-memory
   ```
 - **卸载**：
   ```bash
-  pi remove one-free-me
+  pi remove one-memory
   ```
 - **验证**：运行 `pi list` 查看已安装扩展。
 
@@ -80,28 +80,28 @@ one-skills/one-free-me/
 - 遵循 `references/memory.md`；
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **流水沉淀**：向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
-- **索引同步**：执行 `scripts/free_me.py sync` 同步当日文件索引。
+- **索引同步**：执行 `scripts/memory.py sync` 同步当日文件索引。
 
 
 ---
 
-## 五、 辅助脚本命令 (`scripts/free_me.py`)
+## 五、 辅助脚本命令 (`scripts/memory.py`)
 
-终端可通过 `python3 scripts/free_me.py` 或全局命令 `free-me` 执行：
+终端可通过 `python3 scripts/memory.py` 或全局命令 `one-memory` 执行：
 
 ```bash
 # 1. 关键词 BM25 极速检索 (毫秒响应，零 Token 消耗)
-python3 scripts/free_me.py search "<关键词>"
+python3 scripts/memory.py search "<关键词>"
 
 # 2. 增量同步索引 (新写/改动文档后同步检索索引)
-python3 scripts/free_me.py sync "<文档路径>"
+python3 scripts/memory.py sync "<文档路径>"
 
 # 3. 近期记忆治理 (手动执行 60 天 / 100 条双阈值淘汰)
-python3 scripts/free_me.py clean
+python3 scripts/memory.py clean
 
 # 4. 增量同步单篇文档索引
-python3 scripts/free_me.py sync "<相对路径>"
+python3 scripts/memory.py sync "<相对路径>"
 
 # 5. 全量重建海马体 .fts.db 索引
-python3 scripts/free_me.py rebuild
+python3 scripts/memory.py rebuild
 ```

@@ -59,9 +59,9 @@ export default function hippocampusExtension(pi: ExtensionAPI): void {
     },
   });
 
-  // 3. /freeme: Memory utilities and status
-  pi.registerCommand("freeme", {
-    description: "Hippocampus memory utilities: /freeme status, /freeme sync",
+  // 3. /memory: Memory utilities and status
+  pi.registerCommand("memory", {
+    description: "Hippocampus memory utilities: /memory status, /memory sync",
     handler: async (args: string, ctx: CommandContext) => {
       const sub = typeof args === "string" ? args.trim().toLowerCase() : "";
       if (sub === "sync") {
@@ -78,7 +78,7 @@ export default function hippocampusExtension(pi: ExtensionAPI): void {
         }
         return;
       }
-      ctx?.ui?.notify?.("Hippocampus extension active (rules: memory-rules.md)", "info");
+      ctx?.ui?.notify?.("Hippocampus memory extension active (rules: memory-rules.md)", "info");
     },
   });
 }
