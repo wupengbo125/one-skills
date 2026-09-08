@@ -1,5 +1,5 @@
 ---
-name: one-implement
+name: one-harness
 description: "编写、修改、重构代码或开发功能时使用。"
 argument-hint: "需求描述、修改说明或需求文档路径"
 ---

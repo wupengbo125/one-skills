@@ -109,10 +109,10 @@
       "skillPath": "one-handoff/SKILL.md",
       "computedHash": "c005eac460a5744167bfdcf17febc0433d06f2f7c1069688b6090e7b57179250"
     },
-    "one-implement": {
+    "one-harness": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
-      "skillPath": "one-implement/SKILL.md",
+      "skillPath": "one-harness/SKILL.md",
       "computedHash": "853bcc40e1fdeb2c939cdf9cb0f358210d95711e9a5e796216622eb8c9c0c687"
     },
     "one-summarize-chat": {

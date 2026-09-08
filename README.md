@@ -15,7 +15,7 @@
 npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-memory
 
 # 全局安装到用户的 Agent 技能库 (-g)
-npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-implement -g
+npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-harness -g
 ```
 
 ### 2. 交互式选择并批量安装
