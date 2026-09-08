@@ -19,7 +19,9 @@
 3. 获知**稳定偏好**时，追加/更新 `preference.md`（一条一条，不按天）；无对应分类时新建 `## 分类名` 小节，不新建文件、不加新态。
 4. **任务管理（task ID）**：每次写流水时，流水里每条记录带 task ID（=会话 ID）。检查 `tasks/<taskID>.md` 是否存在，存在则更新过程摘要，不存在则新建。
 5. 同步索引：`python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py sync "<当天文件路径>"`。
-6. git commit（此步骤前必须完成 1-5）。
+6. **先提交海马体**：在 `~/onespace/github/one-hippocampus/` 执行 `git commit && git push`，拿到本次 commit hash（如 `1c81185`）。
+7. **再提交代码仓库**：回到代码仓库，commit message 必须带 `[memory: <hash>]`（如 `[memory: 1c81185] 实际改动说明`），然后 `git push`。pre-commit hook 会验证 hash 真实存在于海马体仓库，不存在则拒绝提交。
+8. 用户手动提交：用 `git commit --no-verify` 跳过 hook。
 
 ## 每日文件内容格式（与豆包一致）
 
