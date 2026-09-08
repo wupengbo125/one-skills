@@ -85,29 +85,11 @@
       "skillPath": "one-awesome-design/SKILL.md",
       "computedHash": "8261529530a71d513cb4d2aa09291c4c0b638350aa0627f0c36c70a12f6c34af"
     },
-    "one-cloudflare-nextjs": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-cloudflare-nextjs/SKILL.md",
-      "computedHash": "7d16da13d92fd6b4e27b32b165ab1da30ea860582f8f50e1bad4d878a3775b00"
-    },
     "one-code-wiki": {
       "source": "wupengbo125/one-skills",
       "sourceType": "github",
       "skillPath": "one-code-wiki/SKILL.md",
       "computedHash": "0d497a90f1931b8078c494cb7f14c625c59afe1728c969c522f4bbec05d56de1"
-    },
-    "one-config-omni-model-to-your-app": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-config-omni-model-to-your-app/SKILL.md",
-      "computedHash": "e46d5dd30f34dce60193f5fe6e7d3c796ecd633cbca2f7d51fac1854efc2304d"
-    },
-    "one-create-memory-skill": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-create-memory-skill/SKILL.md",
-      "computedHash": "27633e8e64eaedc461f7419c4a61c59c5b660c2d246aa31a0f9c9cef09ddb121"
     },
     "one-ebbiii": {
       "source": "wupengbo125/one-skills",
@@ -132,18 +114,6 @@
       "sourceType": "github",
       "skillPath": "one-implement/SKILL.md",
       "computedHash": "853bcc40e1fdeb2c939cdf9cb0f358210d95711e9a5e796216622eb8c9c0c687"
-    },
-    "one-ov-teach": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-ov-teach/SKILL.md",
-      "computedHash": "36ecf5e602e56352ecd0e62328dbea49f890adf08c4adbeaf94268cf7a809f67"
-    },
-    "one-python-structure": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-python-structure/SKILL.md",
-      "computedHash": "b032f8910fc02e027009e30a8fbad9d5524b60a74cecf60e714b521669294bd0"
     },
     "one-summarize-chat": {
       "source": "wupengbo125/one-skills",
@@ -174,12 +144,6 @@
       "sourceType": "github",
       "skillPath": "one-wiki/SKILL.md",
       "computedHash": "71f3fd49e7bd908b8f8117ad2fc7f0f3fa31b352efcad05089240f11a9c8ac46"
-    },
-    "one-wsl-chrome": {
-      "source": "wupengbo125/one-skills",
-      "sourceType": "github",
-      "skillPath": "one-wsl-chrome/SKILL.md",
-      "computedHash": "afa60392dcb2af5836c2b323ad481979dc414750c641294f2226306e4e31f758"
     },
     "prototype": {
       "source": "mattpocock/skills",

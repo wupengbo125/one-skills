@@ -1,11 +1,4 @@
----
-name: one-python-structure
-description: 创建标准的 Python 工具子项目。采用标准三件套结构 (<script.py> + 配置文件 + readme.md)，由 AI 根据参数复杂度自适应选择 .env 或 config.yaml。
-argument-hint: "子项目名称，以及要实现的 Python 功能描述"
-disable-model-invocation: true
----
-
-# Build Python Project (one-python-structure)
+# Python 工具项目标准三件套规范
 
 根据用户指令，在指定目录下初始化或构建标准的 Python 工具子项目。
 
@@ -27,10 +20,9 @@ disable-model-invocation: true
 
 ## 流程
 
-1. **前置实施准则**：调用 `/one-implement`，在整个项目构建过程中贯彻极简代码与 0->1 精准交付规范。
-2. **结构初始化**：在目标路径下创建项目文件夹，建立标准三件套：`<script.py>`、自适应配置文件（`.env` 或 `config.yaml`）、极简全小写 `readme.md`。
-3. **编写配置**：扁平/API 类编写 `.env`；复杂嵌套类编写 `config.yaml`。
-4. **实现脚本逻辑**：编写 `<script.py>`，核心逻辑由配置驱动，同时暴露 CLI 参数接口。
-5. **编写说明文档**：编写极简全小写 `readme.md`，记录 `uv run <script.py>` 运行范例。
-6. **验证运行**：
+1. **结构初始化**：在目标路径下创建项目文件夹，建立标准三件套：`<script.py>`、自适应配置文件（`.env` 或 `config.yaml`）、极简全小写 `readme.md`。
+2. **编写配置**：扁平/API 类编写 `.env`；复杂嵌套类编写 `config.yaml`。
+3. **实现脚本逻辑**：编写 `<script.py>`，核心逻辑由配置驱动，同时暴露 CLI 参数接口。
+4. **编写说明文档**：编写极简全小写 `readme.md`，记录 `uv run <script.py>` 运行范例。
+5. **验证运行**：
    - **完成标准**：运行 `uv run <script.py>` 成功执行并产生预期输出，三件套文件均已就绪且格式符合规范。

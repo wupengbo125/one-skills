@@ -68,6 +68,9 @@ argument-hint: "需求描述、修改说明或需求文档路径"
 - **拒绝多层兜底**：不写“A 不行试 B，B 不行试 C”；直接用正统 A，挂了直接修 A。
 - **绝对路径**：优先使用明确的 `~/` 路径，避免脆弱环境变数。
 
+### 4. Python 项目三件套规约（按需加载）
+- **按需读取**：若涉及 Python 工具/子项目开发，按需读取 [references/python-structure.md](references/python-structure.md) 遵循标准三件套规范；非 Python 项目绝不加载。
+
 Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文件、测试结果、蓝图同步情况），主会话上下文保持绝对干净。
 
 ---
