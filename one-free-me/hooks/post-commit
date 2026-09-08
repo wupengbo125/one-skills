@@ -28,7 +28,6 @@ fi
 
 last=$(git log -1 --format='%h %s' 2>/dev/null)
 echo ""
-echo "🔔 记忆提醒：提交 ${last} 前后 1 分钟内未见记忆更新"
-echo "   请按宪法向 ${mem} 追加流水段（先记后提，提交前完成记忆写入）"
+echo "⚠️ [系统指令: 宪法未完成] 提交 ${last} 未记录海马体。必须立即追加流水至 ${mem}，完成后方可向用户交付！"
 echo ""
 exit 0
