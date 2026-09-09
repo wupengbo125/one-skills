@@ -15,7 +15,7 @@ description: "海马体记忆系统：管理每日流水与用户偏好（memory
 格式与写入步骤见 [references/memory.md](references/memory.md)。
 
 两套 git hook：
-- **commit-msg（强制）**：代码仓库提交必须带 `[memory: <hash>]`，hash 需存在于海马体，否则拒绝。安装：`bash ~/onespace/github/one-skills/hooks/install.sh`
+- **commit-msg（强制）**：代码仓库提交必须带 `[memory: <hash>]`，hash 需存在于海马体，否则拒绝。安装：`bash ~/onespace/github/one-skills/one-memory/hooks/install.sh`
 - **post-commit（索引同步）**：海马体仓库提交后自动同步检索索引。安装：`bash hooks/install-hooks.sh`
 
 ## 意图分流

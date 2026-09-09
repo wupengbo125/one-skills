@@ -16,7 +16,9 @@ one-skills/one-memory/
 │   ├── index.ts             # 扩展入口：常驻规则注入与命令注册
 │   └── memory-rules.md      # 动态台词：定义触发/抑制规则（改动实时生效）
 ├── hooks/                   # 【通用 Git 钩子层】
-│   ├── post-commit          # 跨 Agent 强指令提醒
+│   ├── commit-msg           # 提交信息强校验（必须带海马体 hash）
+│   ├── install.sh           # 单仓安装脚本
+│   ├── post-commit          # 海马体提交自动同步索引
 │   └── install-hooks.sh     # 批量分发脚本
 ├── scripts/                 # 【脚本目录】
 │   └── memory.py           # BM25 检索、增量/全量建库、流水与自清洁

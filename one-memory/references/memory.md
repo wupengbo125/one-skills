@@ -22,7 +22,7 @@
 6. **先提交海马体**：在 `~/onespace/github/one-hippocampus/` 执行 `git commit && git push`，拿到本次 commit hash（如 `1c81185`）。
 7. **再提交代码仓库**：回到代码仓库，commit message 必须带 `[memory: <hash>]`（如 `[memory: 1c81185] 实际改动说明`），然后 `git push`。commit-msg hook 会验证 hash 真实存在于海马体仓库，不存在则拒绝提交。
 8. 用户手动提交：用 `git commit --no-verify` 跳过 hook。
-9. **Hook 安装**：hook 源文件在 `~/onespace/github/one-skills/hooks/commit-msg`，新仓库需执行 `bash ~/onespace/github/one-skills/hooks/install.sh` 安装。需装 hook 的仓库：one-skills、one-llmwiki（及后续新增的代码仓库）；海马体仓库（one-hippocampus）自身不装。
+9. **Hook 安装**：hook 源文件在 `~/onespace/github/one-skills/one-memory/hooks/commit-msg`，新仓库需执行 `bash ~/onespace/github/one-skills/one-memory/hooks/install.sh` 安装。需装 hook 的仓库：one-skills、one-llmwiki（及后续新增的代码仓库）；海马体仓库（one-hippocampus）自身不装。
 
 ## 每日文件内容格式（与豆包一致）
 
