@@ -1,0 +1,18 @@
+{
+  "name": "one-harness-light",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Pi Agent 轻量审查开发流程扩展包，改动文件时自动触发 Sub-agent 等号审查与蓝图同步",
+  "keywords": [
+    "pi-package",
+    "pi-extension"
+  ],
+  "pi": {
+    "extensions": [
+      "./pi-extension/index.ts"
+    ],
+    "skills": [
+      "./"
+    ]
+  }
+}
