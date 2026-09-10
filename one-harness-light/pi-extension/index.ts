@@ -3,7 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const RULES_PATH = path.join(__dirname, "harness-rules.md");
+const RULES_PATH = path.resolve(__dirname, "../SKILL.md");
 
 interface AgentStartEvent {
   systemPrompt?: string;
@@ -58,8 +58,9 @@ export default function harnessLightExtension(pi: ExtensionAPI): void {
   // 1. 每轮对话前动态将 Harness Light 准则注入 systemPrompt
   pi.on("before_agent_start", async (event: unknown) => {
     try {
-      const rules = await fs.readFile(RULES_PATH, "utf-8");
-      if (!rules.trim()) return;
+      const raw = await fs.readFile(RULES_PATH, "utf-8");
+      const rules = raw.replace(/^---[\s\S]*?---\n*/, "").trim();
+      if (!rules) return;
       const agentEvent = event as AgentStartEvent | undefined;
       const base = agentEvent?.systemPrompt ? `${agentEvent.systemPrompt}\n\n` : "";
       return { systemPrompt: `${base}${rules}` };
