@@ -27,9 +27,9 @@ disable-model-invocation: true
 3. 测试验证（Worker Sub-agent 运行针对性测试验证）
    │
    ▼
-4. 双轴审查（派 Reviewer A & B 两个全新 Sub-agent 并行查 Git Diff）
-   ├── Reviewer A（Standards 轴）：查过度设计、投机抽象、坏味道
-   └── Reviewer B（Scope & Blueprint 轴）：查范围蔓延、未要求改动、蓝图同步与对齐
+4. 双轴审查（按 code-review 规范派 Sub-agent A & B 并行查 Git Diff）
+   ├── Sub-agent A（Standards 轴）：继承 code-review 完整 12 项坏味道与项目规范
+   └── Sub-agent B（Spec & Blueprint 轴）：查范围蔓延、实现吻合、蓝图同步锁定
    │
    ▼
 5. 交付闸门（主 Agent 验收：确认代码与蓝图同步更新无误，写海马体记忆，Commit 并交付）
@@ -77,22 +77,26 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 
 ---
 
-## 三、派发  Sub-agent 双轴审查（改代码后）
+## 三、派发 Sub-agent 双轴审查（改代码后）
 
-代码写完后，主 Agent **绝不肉眼看代码**，而是派发两个独立的 Reviewer Sub-agent 直接审查 `git diff HEAD`：
+代码写完后，主 Agent **绝不肉眼看代码**。先执行 `git add -N .` 纳入新文件，提取 `git diff HEAD`（若已有多 commit 则用基准点对比），并行启动两个白板 Sub-agent 执行审查（可直接读取 `skill://code-review`）：
 
-### 1. Reviewer A（Standards 轴：代码质量与反过度设计）
-- 严查 **Speculative Generality**：是否偷塞了未要求的通用抽象？
-- 严查 **Duplicated Code / Middle Man**：是否有冗余函数与套壳中介？
-- 发现过度设计 ➔ **打回**。
+### 1. Sub-agent A（Standards 轴：代码规范与坏味道）
+- **输入**：`git diff` + 项目规范（`constitution.md` / `AGENTS.md`）+ `skill://code-review`。
+- **基线检查**：全量执行 `code-review` 的 12 项 Fowler 坏味道基线（Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest）。项目规范优先，区分硬违规与启发式判断。
+- **输出格式**：独立 `## Standards` 报告，逐项列出违规行与精简建议；无问题报 PASS。
 
-### 2. Reviewer B（Scope & Blueprint 轴：需求符合与蓝图同步）
-- 拿主 Agent 第 1 步的 Target/Non-Goals 及全局蓝图当尺子：
-  - **蓝图同步必检**：Git Diff 中是否包含了全局蓝图的同步更新？**改了功能却没改蓝图 ➔ 直接打回 REJECT**。
-  - **反范围蔓延**：Diff 里的改动，用户提了吗？改了不相干的文件 ➔ **打回**。
-  - **核心目标覆盖**：用户要求的业务逻辑是否全部真实落地，且与蓝图记录一致。
+### 2. Sub-agent B（Spec & Blueprint 轴：需求符合与蓝图同步）
+- **输入**：`git diff` + 原始需求（Target & Non-Goals）+ 全局活蓝图。
+- **核心检查**：
+  - **蓝图同步必检**：Diff 中是否包含全局活蓝图同步？**改了功能却没改蓝图 ➔ 直接打回 REJECT**。
+  - **反范围蔓延**：Diff 里是否存在用户没提的额外改动？
+  - **实现完整与正确性**：Target 是否全部落实，行为是否与需求画等号？
+- **输出格式**：独立 `## Spec & Blueprint` 报告，逐项列出差异与遗漏；无问题报 PASS。
 
----
+### 3. 两轴独立准入与打回
+- 两轴独立输出，严禁合并折中。
+- 仅当两轴皆为 PASS 时，方准进入交付闸门。任一轴打回：主 Agent 将具体意见打包派给 Worker 修复，严禁主 Agent 自行脑补改动。
 
 ## 四、失败处理与最终交付（主 Agent 闸门）
 
