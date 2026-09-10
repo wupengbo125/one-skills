@@ -77,7 +77,7 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 
 ---
 
-## 三、派发 Reviewer Sub-agent 双轴审查（改代码后）
+## 三、派发  Sub-agent 双轴审查（改代码后）
 
 代码写完后，主 Agent **绝不肉眼看代码**，而是派发两个独立的 Reviewer Sub-agent 直接审查 `git diff HEAD`：
 
