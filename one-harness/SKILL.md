@@ -29,7 +29,7 @@ disable-model-invocation: true
    ▼
 4. 双轴审查（按 code-review 规范派 Sub-agent A & B 并行查 Git Diff）
    ├── Sub-agent A（Standards 轴）：继承 code-review 完整 12 项坏味道与项目规范
-   └── Sub-agent B（Spec & Blueprint 轴）：查范围蔓延、实现吻合、蓝图同步锁定
+   └── Sub-agent B（Spec 轴）：将对话直接当 Spec，查遗漏、蔓延、实现错误
    │
    ▼
 5. 交付闸门（主 Agent 验收：确认代码与蓝图同步更新无误，写海马体记忆，Commit 并交付）
@@ -77,20 +77,20 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 
 ## 三、派发 Sub-agent 双轴审查（改代码后）
 
-代码写完后，主 Agent **绝不肉眼看代码**。先执行 `git add -N .` 纳入新文件，提取 `git diff HEAD`（若已有多 commit 则用基准点对比），并行启动两个白板 Sub-agent 执行审查（可直接读取 `skill://code-review`）：
+代码写完后，主 Agent **绝不肉眼看代码**。先执行 `git add -N .` 纳入新文件，提取 `git diff HEAD`（若已有多 commit 则用基准点对比），并行启动两个白板 Sub-agent 执行审查：
 
 ### 1. Sub-agent A（Standards 轴：代码规范与坏味道）
-- **输入**：`git diff` + 项目规范（`constitution.md` / `AGENTS.md`）+ `skill://code-review`。
+- **输入**：`git diff` + 项目规范（`constitution.md` / `AGENTS.md`）+ 读取 `skill://code-review`。
 - **基线检查**：全量执行 `code-review` 的 12 项 Fowler 坏味道基线（Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest）。项目规范优先，区分硬违规与启发式判断。
 - **输出格式**：独立 `## Standards` 报告，逐项列出违规行与精简建议；无问题报 PASS。
 
-### 2. Sub-agent B（Spec & Blueprint 轴：需求符合与蓝图同步）
-- **输入**：`git diff` + 原始需求（Target & Non-Goals）+ 全局活蓝图。
-- **核心检查**：
-  - **蓝图一致**：功能改动同步蓝图，代码与蓝图保持一致。
-  - **反范围蔓延**：Diff 里是否存在用户没提的额外改动？
-  - **实现完整与正确性**：Target 是否全部落实，行为是否与需求画等号？
-- **输出格式**：独立 `## Spec & Blueprint` 报告，逐项列出差异与遗漏；无问题报 PASS。
+### 2. Sub-agent B（Spec 轴：需求符合与实现正确性）
+- **输入**：`git diff` + 用户当前对话原话 / 提炼的 Target & Non-Goals（无需 Spec 文件，直接将对话当 Spec 注入）。
+- **原版对齐检查**：
+  1. **需求遗漏**（Requirements missing or partial）
+  2. **范围蔓延**（Scope creep：Diff 里写了用户没提的改动）
+  3. **实现错误**（Implementation wrong：看起来做了但做错了）
+- **输出格式**：独立 `## Spec` 报告，逐项列出差异与遗漏；无问题报 PASS。
 
 ### 3. 两轴独立准入与打回
 - 两轴独立输出，严禁合并折中。
@@ -100,6 +100,7 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 
 1. **被打回**：主 Agent 重新唤醒 Worker Sub-agent，命令其补正蓝图或剔除违规代码，修完重新 Review。
 2. **交付闸门**：
-   - Review 全部通过后，主 Agent 记录今日海马体记忆并同步索引。
-   - 本地 `git commit`（包含代码与蓝图更新）并 `git push`。
+   - 两轴审查通过后，自检若涉及功能变更确认蓝图已保持一致。
+   - 主 Agent 记录今日海马体记忆并同步索引。
+   - 本地 `git commit` 并 `git push`。
    - 向用户极简交付结果。
