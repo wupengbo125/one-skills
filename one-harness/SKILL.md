@@ -46,7 +46,10 @@ disable-model-invocation: true
 3. **全局活蓝图接入 (Living Blueprint)**：
    - 自动检测项目全局活蓝图（优先路径：根目录 `BLUEPRINT.md`，其次 `docs/BLUEPRINT.md`）。
    - 将蓝图中的相关业务上下文提取并注入给 Worker，命令 Worker：**修改代码的同时必须同步更新蓝图，作为同一次 Commit 交付！**
-
+4. **动手前计划确认（铁律）**：
+   - 改代码/派活前必须向用户亮出一行一行的平铺计划清单（严禁嵌套复杂Markdown模板大纲）。
+   - 必须等待用户明确同意（如回复“动手”）后方可开工。
+   - 后续派 Sub-agent 审查时，必须将该计划清单一字不差原样透传，严禁擅自总结转译。
 ---
 
 ## 二、派发 Worker Sub-agent 实现（改代码中）
@@ -85,7 +88,7 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 - **输出格式**：独立 `## Standards` 报告，逐项列出违规行与精简建议；无问题报 PASS。
 
 ### 2. Sub-agent B（Spec 轴：需求符合与实现正确性）
-- **输入**：`git diff` + 用户当前对话原话 / 提炼的 Target & Non-Goals（无需 Spec 文件，直接将对话当 Spec 注入）。
+- **输入**：`git diff` + 用户明确同意的计划清单与原话（无需 Spec 文件，严格一字不差原样透传，严禁主 Agent 擅自总结转译）。
 - **原版对齐检查**：
   1. **需求遗漏**（Requirements missing or partial）
   2. **范围蔓延**（Scope creep：Diff 里写了用户没提的改动）
