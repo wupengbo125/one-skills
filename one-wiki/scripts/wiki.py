@@ -33,29 +33,20 @@ def get_repo_dir():
 def get_db_path(repo_dir):
     return os.path.join(repo_dir, ".fts.db")
 
+def _expand_cjk(match):
+    s = match.group(0)
+    n = len(s)
+    tokens = []
+    for i in range(n):
+        tokens.append(s[i])
+        if i + 1 < n:
+            tokens.append(s[i:i+2])
+    return f" {' '.join(tokens)} "
+
 def tokenize(text):
     if not text:
         return ""
-    text = re.sub(r'[\r\n\t]+', ' ', text)
-    tokens = []
-    i = 0
-    n = len(text)
-    while i < n:
-        char = text[i]
-        if '\u4e00' <= char <= '\u9fff':
-            tokens.append(char)
-            if i + 1 < n and '\u4e00' <= text[i+1] <= '\u9fff':
-                tokens.append(char + text[i+1])
-            i += 1
-        elif char.isalnum() or char in ['_', '-']:
-            start = i
-            while i < n and (text[i].isalnum() or text[i] in ['_', '-']):
-                i += 1
-            word = text[start:i].lower()
-            tokens.append(word)
-        else:
-            i += 1
-    return " ".join(tokens)
+    return re.sub(r'[\u4e00-\u9fff]+', _expand_cjk, text)
 
 def get_db_connection(repo_dir):
     db_path = get_db_path(repo_dir)
@@ -70,29 +61,24 @@ def get_db_connection(repo_dir):
             tokenize='unicode61'
         );
     """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS file_meta (
+            path TEXT PRIMARY KEY,
+            mtime REAL
+        );
+    """)
     conn.commit()
     return conn
 
-def cmd_sync(rel_path):
-    repo_dir = get_repo_dir()
-    if rel_path.startswith("./"):
-        rel_path = rel_path[2:]
-    full_path = os.path.join(repo_dir, rel_path)
-
-    if not os.path.isfile(full_path):
-        conn = get_db_connection(repo_dir)
-        conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
-        conn.commit()
-        conn.close()
-        print(f"🗑️ 已从索引库移除已删除文档: {rel_path}")
-        return
-
+def _index_file(conn, repo_dir, rel_path, full_path=None):
+    if full_path is None:
+        full_path = os.path.join(repo_dir, rel_path)
     try:
+        mtime = os.path.getmtime(full_path)
         with open(full_path, "r", encoding="utf-8") as f:
             content = f.read()
-    except Exception as e:
-        print(f"❌ 读取文件失败: {e}")
-        return
+    except Exception:
+        return False
 
     title = os.path.basename(rel_path)
     for line in content.splitlines():
@@ -110,12 +96,75 @@ def cmd_sync(rel_path):
     tok_title = tokenize(title)
     tok_content = tokenize(content)
 
-    conn = get_db_connection(repo_dir)
     conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
     conn.execute(
         "INSERT INTO docs_fts(path, title, category, content) VALUES (?, ?, ?, ?)",
         (rel_path, tok_title, category, tok_content)
     )
+    conn.execute(
+        "INSERT OR REPLACE INTO file_meta(path, mtime) VALUES (?, ?)",
+        (rel_path, mtime)
+    )
+    return True
+
+def _remove_file(conn, rel_path):
+    conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
+    conn.execute("DELETE FROM file_meta WHERE path = ?", (rel_path,))
+
+def ensure_synced(repo_dir, conn):
+    target_dir = os.path.join(repo_dir, "onewiki")
+    if not os.path.isdir(target_dir):
+        target_dir = repo_dir
+
+    cursor = conn.execute("SELECT path, mtime FROM file_meta")
+    db_files = dict(cursor.fetchall())
+
+    disk_files = {}
+    for root, dirs, files in os.walk(target_dir):
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
+        for file in files:
+            if file.endswith(".md"):
+                full_path = os.path.join(root, file)
+                rel_path = os.path.relpath(full_path, repo_dir)
+                try:
+                    disk_files[rel_path] = (full_path, os.path.getmtime(full_path))
+                except OSError:
+                    pass
+
+    changed = False
+    for rel_path, (full_path, mtime) in disk_files.items():
+        db_mtime = db_files.get(rel_path)
+        if db_mtime is None or mtime > db_mtime:
+            if _index_file(conn, repo_dir, rel_path, full_path):
+                changed = True
+
+    for rel_path in db_files:
+        if rel_path not in disk_files:
+            _remove_file(conn, rel_path)
+            changed = True
+
+    if changed:
+        conn.commit()
+
+def cmd_sync(rel_path):
+    repo_dir = get_repo_dir()
+    if rel_path.startswith("./"):
+        rel_path = rel_path[2:]
+    full_path = os.path.join(repo_dir, rel_path)
+
+    conn = get_db_connection(repo_dir)
+    if not os.path.isfile(full_path):
+        _remove_file(conn, rel_path)
+        conn.commit()
+        conn.close()
+        print(f"🗑️ 已从索引库移除已删除文档: {rel_path}")
+        return
+
+    if not _index_file(conn, repo_dir, rel_path, full_path):
+        conn.close()
+        print(f"❌ 读取文件失败: {rel_path}")
+        return
+
     conn.commit()
     conn.close()
     print(f"✅ 已增量同步至索引: {rel_path} -> .fts.db")
@@ -123,13 +172,18 @@ def cmd_sync(rel_path):
 def cmd_rebuild():
     repo_dir = get_repo_dir()
     db_path = get_db_path(repo_dir)
-    if os.path.exists(db_path):
-        try:
-            os.remove(db_path)
-        except Exception:
-            pass
+    for ext in ["", "-wal", "-shm"]:
+        f = db_path + ext
+        if os.path.exists(f):
+            try:
+                os.remove(f)
+            except Exception:
+                pass
 
     conn = get_db_connection(repo_dir)
+    conn.execute("DELETE FROM docs_fts;")
+    conn.execute("DELETE FROM file_meta;")
+
     target_dir = os.path.join(repo_dir, "onewiki")
     if not os.path.isdir(target_dir):
         target_dir = repo_dir
@@ -141,33 +195,8 @@ def cmd_rebuild():
             if file.endswith(".md"):
                 full_path = os.path.join(root, file)
                 rel_path = os.path.relpath(full_path, repo_dir)
-                try:
-                    with open(full_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                except Exception:
-                    continue
-
-                title = file
-                for line in content.splitlines():
-                    line_s = line.strip()
-                    if line_s.startswith("# "):
-                        title = line_s[2:].strip()
-                        break
-                    elif line_s.startswith("title:"):
-                        title = line_s[6:].strip().strip("\"'")
-                        break
-
-                parts = rel_path.split(os.sep)
-                category = parts[1] if len(parts) > 2 and parts[0] == "onewiki" else (parts[0] if len(parts) > 1 else "root")
-
-                tok_title = tokenize(title)
-                tok_content = tokenize(content)
-
-                conn.execute(
-                    "INSERT INTO docs_fts(path, title, category, content) VALUES (?, ?, ?, ?)",
-                    (rel_path, tok_title, category, tok_content)
-                )
-                count += 1
+                if _index_file(conn, repo_dir, rel_path, full_path):
+                    count += 1
 
     conn.commit()
     conn.close()
@@ -180,14 +209,18 @@ def cmd_search(query_str):
         print(">>> 索引库不存在，自动执行首次全量建库...")
         cmd_rebuild()
 
+    conn = get_db_connection(repo_dir)
+    ensure_synced(repo_dir, conn)
+
     raw_tokens = tokenize(query_str).split()
-    if not raw_tokens:
+    tokens = [t.replace('"', '""') for t in raw_tokens if t.strip()]
+    if not tokens:
         print(">>> 请输入有效的检索关键词")
+        conn.close()
         return
 
-    fts_query = " OR ".join([f'"{t}"' for t in raw_tokens])
+    fts_query = " OR ".join([f'"{t}"' for t in tokens])
 
-    conn = get_db_connection(repo_dir)
     sql = """
         SELECT path,
                highlight(docs_fts, 1, '【', '】') as hl_title,
@@ -208,7 +241,6 @@ def cmd_search(query_str):
         return
 
     conn.close()
-
     if not rows:
         print(f"🔍 未检索到关于 \"{query_str}\" 的内容。")
         return

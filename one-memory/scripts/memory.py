@@ -35,26 +35,20 @@ def resolve_rel_path(p, repo_dir):
         return os.path.relpath(abs_p, repo_dir)
     return os.path.normpath(p).lstrip(os.sep)
 
+def _expand_cjk(match):
+    s = match.group(0)
+    n = len(s)
+    tokens = []
+    for i in range(n):
+        tokens.append(s[i])
+        if i + 1 < n:
+            tokens.append(s[i:i+2])
+    return f" {' '.join(tokens)} "
+
 def tokenize(text):
     if not text:
         return ""
-    text = re.sub(r'[\r\n\t]+', ' ', text)
-    tokens, i, n = [], 0, len(text)
-    while i < n:
-        char = text[i]
-        if '\u4e00' <= char <= '\u9fff':
-            tokens.append(char)
-            if i + 1 < n and '\u4e00' <= text[i+1] <= '\u9fff':
-                tokens.append(char + text[i+1])
-            i += 1
-        elif char.isalnum() or char in ['_', '-']:
-            start = i
-            while i < n and (text[i].isalnum() or text[i] in ['_', '-']):
-                i += 1
-            tokens.append(text[start:i].lower())
-        else:
-            i += 1
-    return " ".join(tokens)
+    return re.sub(r'[\u4e00-\u9fff]+', _expand_cjk, text)
 
 def get_db_connection(repo_dir):
     conn = sqlite3.connect(get_db_path(repo_dir))

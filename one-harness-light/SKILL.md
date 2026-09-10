@@ -1,9 +1,8 @@
 ---
 name: one-harness-light
-description: "轻量开发流程：改任何文件自动触发。主Agent自己写代码，写完派一个Sub-agent拿用户需求+git diff审查需求与改动是否画等号，通过后判断是否更新蓝图再提交。若已调用重型one-harness则不触发。"
+description: "轻量开发流程：改任何文件自动触发。若已调用重型one-harness则不触发。"
 argument-hint: "用户需求描述"
 ---
-
 # 轻量开发流程 (Harness Light)
 
 改任何文件时自动触发的轻量审查流程。若本会话已调用重型 `one-harness`，则本流程不触发。
@@ -27,10 +26,12 @@ argument-hint: "用户需求描述"
 ### 4. 派 Sub-agent 审查
 
 派一个全新的 Sub-agent，给它两样东西：
-- **用户原始需求**（Target & Non-Goals）
-- **`git diff HEAD`**（最后一次提交到当前的全部改动）
+
+- **用户原始需求**（Target &amp; Non-Goals）
+- `**git diff HEAD**`（最后一次提交到当前的全部改动）
 
 Sub-agent 只查一件事：**需求和改动是否画等号**
+
 - 改多了？（Diff 里有用户没提的改动）
 - 改少了？（用户提了但 Diff 里没有）
 - 功能一致吗？（实现的和需求说的是一回事吗）
@@ -45,6 +46,7 @@ Sub-agent 无记忆、拿需求文档看，最准确。
 ### 6. 判断是否更新蓝图
 
 主 Agent 自己判断：本次改动是否涉及功能/规则/逻辑变化？
+
 - 是 → 同步更新全局活蓝图（`BLUEPRINT.md` 或 `docs/BLUEPRINT.md`）
 - 否（变量名、格式、注释等微小改动）→ 跳过
 
@@ -52,11 +54,3 @@ Sub-agent 无记忆、拿需求文档看，最准确。
 
 `git commit` + `git push`，极简交付。
 
----
-
-## 不管的事
-
-- 不跑测试（能测就自己测，不强制）
-- 不双轴审查（只有一个需求符合轴）
-- 不查代码质量/坏味道
-- 不派 Worker（主 Agent 自己写）

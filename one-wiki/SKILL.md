@@ -1,6 +1,6 @@
 ---
 name: one-wiki
-description: "记笔记、更新笔记、查询笔记触发。"
+description: "记笔记、记到大本子、更新笔记、查询笔记，ingest，lint触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 ---
 
@@ -14,7 +14,7 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 
 | 操作 | 说明 | 读取文件 |
 | :--- | :--- | :--- |
-| `note` | 向 `raw/` 记笔记、存资料、总结对话或更新旧文 | `./references/note.md` |
-| `ingest` | 提炼 `raw/` 资料编译入 `onewiki/`（概念、实体与双链） | `./references/ingest.md` |
+| `note` | 向 `raw/` 记笔记、存资料、或更新笔记、记到大本子| `./references/note.md` |
+| `ingest` | 提炼 `raw/` 资料编译入 `onewiki/`| `./references/ingest.md` |
 | `query` | 从 `onewiki/` 检索知识并追溯出处规范页面 | `./references/query.md` |
 | `lint` | 检查 `onewiki/` 死链、孤儿页面与冲突矛盾并修复 | `./references/lint.md` |
