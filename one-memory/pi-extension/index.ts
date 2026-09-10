@@ -30,20 +30,32 @@ interface ExtensionAPI {
   exec: (command: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
 }
 
+function extractSessionId(event: unknown, ctx: unknown): string {
+  const sessionManager = (ctx as { sessionManager?: { getSessionId?: () => unknown } } | null)?.sessionManager;
+  const fromManager = sessionManager?.getSessionId?.();
+  if (typeof fromManager === "string" && fromManager.trim()) return fromManager.trim();
+  const e = event as Record<string, unknown> | undefined;
+  if (typeof e?.sessionId === "string" && e.sessionId.trim()) return e.sessionId.trim();
+  if (typeof e?.session_id === "string" && e.session_id.trim()) return e.session_id.trim();
+  return "";
+}
+
 export default function hippocampusExtension(pi: ExtensionAPI): void {
-  // 1. Hot-reload memory rules into system prompt before every turn
-  pi.on("before_agent_start", async (event: unknown) => {
+  // 1. Hot-reload memory rules into system prompt before every turn, injecting current sessionId if available
+  pi.on("before_agent_start", async (event: unknown, ctx: unknown) => {
     try {
-      const rules = await fs.readFile(RULES_PATH, "utf-8");
-      if (!rules.trim()) return;
+      const raw = await fs.readFile(RULES_PATH, "utf-8");
+      const rules = raw.trim();
+      if (!rules) return;
+      const sessionId = extractSessionId(event, ctx);
+      const sessionNote = sessionId ? `\n\n当前会话ID：${sessionId}` : "";
       const agentEvent = event as AgentStartEvent | undefined;
       const base = agentEvent?.systemPrompt ? `${agentEvent.systemPrompt}\n\n` : "";
-      return { systemPrompt: `${base}${rules}` };
+      return { systemPrompt: `${base}${rules}${sessionNote}` };
     } catch {
       return;
     }
   });
-
   // 2. /wrap: Trigger session wrap-up and hippocampus recording
   pi.registerCommand("wrap", {
     description: "Wrap up current session and record to hippocampus daily log",
