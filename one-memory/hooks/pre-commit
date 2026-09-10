@@ -1,0 +1,15 @@
+#!/bin/bash
+# pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交
+# 用户手动提交可用：git commit --no-verify 跳过
+
+NON_MEMORY=$(git diff --cached --name-only | grep -vE '^onememory/' | head -1)
+MEMORY=$(git diff --cached --name-only | grep -E '^onememory/' | head -1)
+
+if [ -n "$NON_MEMORY" ] && [ -z "$MEMORY" ]; then
+  echo "❌ 拒绝提交：检测到代码/配置修改，但暂存区未包含 onememory/ 记忆沉淀！"
+  echo "   规程：必须同步更新 onememory/timeline.md 并维护 tasks/<ID>.md 与代码同批提交。"
+  echo "   跳过门禁：git commit --no-verify"
+  exit 1
+fi
+
+exit 0
