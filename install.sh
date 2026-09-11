@@ -163,9 +163,27 @@ op_options=(
     "卸载自当前项目 (./.agents/skills)"
     "软链接到用户全局 (~/.agents/skills)"
     "卸载自用户全局 (~/.agents/skills)"
+    "安装记忆钩子到所有同级仓库 (pre-commit + post-commit)"
 )
 select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
 dest_idx="${SELECTED_INDICES[0]}"
+
+# 安装记忆钩子：遍历 ~/onespace/github/* 的 git 仓库，装 one-memory 的 pre-commit 与 post-commit
+install_memory_hooks() {
+    local hooks_dir="$SCRIPT_DIR/one-memory/hooks"
+    [ -d "$hooks_dir" ] || { echo "错误: 未找到 $hooks_dir"; return 1; }
+    local n=0
+    for repo in "$HOME"/onespace/github/*; do
+        [ -d "$repo/.git" ] || continue
+        [ -d "$repo/.git/hooks" ] || mkdir -p "$repo/.git/hooks"
+        cp -f "$hooks_dir/pre-commit"  "$repo/.git/hooks/pre-commit"  && chmod +x "$repo/.git/hooks/pre-commit"
+        cp -f "$hooks_dir/post-commit" "$repo/.git/hooks/post-commit" && chmod +x "$repo/.git/hooks/post-commit"
+        [ -f "$repo/.git/hooks/commit-msg" ] && rm -f "$repo/.git/hooks/commit-msg"
+        echo "  已安装: $(basename "$repo")"
+        n=$((n + 1))
+    done
+    echo "✅ 记忆钩子已安装到 $n 个仓库 (pre-commit 记忆门禁 + post-commit 索引同步)"
+}
 
 USER_GLOBAL_DIRS=("$HOME/.agents/skills")
 USER_GLOBAL_RULES=(
@@ -180,6 +198,12 @@ USER_GLOBAL_RULES=(
 )
 
 processed=0
+
+# 操作 4：安装记忆钩子（与具体 skill 无关，直接执行后退出）
+if [ "$dest_idx" -eq 4 ]; then
+    install_memory_hooks
+    exit 0
+fi
 
 # 收集特殊项和常规 skills
 special_indices=()

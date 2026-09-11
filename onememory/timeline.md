@@ -1,2 +1,3 @@
 - 2026-09-10 23:28 [01a08ba7] 重构双轨记忆系统：确立项目 onememory/ 案卷与海马体跨项目全景时间线规范，完成 pre-commit 本地门禁
 - 2026-09-10 23:48 [01a08ba7] 确立单次生成双处落盘规则，项目路径强制 ~ 前缀
+- 2026-09-12 01:21 install.sh 新增「安装记忆钩子」操作：遍历 ~/onespace/github/* 各 git 仓库，装 one-memory 的 pre-commit 门禁与 post-commit 索引同步（替代 dotfiles 里已失效的 one-free-me 死链）
