@@ -10,6 +10,39 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# 跨平台建链接：Windows 的 ln -sfn 会静默退化成复制文件，改用硬链接
+case "$OSTYPE" in
+    msys*|cygwin*|mingw*) IS_WINDOWS=1 ;;
+    *)                    IS_WINDOWS=0 ;;
+esac
+
+# /c/Users/x -> C:\Users\x（纯 bash 参数替换，不依赖 cygpath/tr/sed）
+win_path() {
+    local p="${1//\//\\}"
+    case "$p" in
+        \\[a-zA-Z]\\*)
+            local drive="${p:1:1}"
+            printf '%s:%s' "${drive^^}" "${p:2}"
+            ;;
+        *) printf '%s' "$p" ;;
+    esac
+}
+
+link() {
+    local src="$1" dst="$2" win_src win_dst
+    src="$(cd "$(dirname "$src")" 2>/dev/null && pwd)/$(basename "$src")"
+    win_src="$(win_path "$src")"
+    win_dst="$(win_path "$dst")"
+    rm -f "$dst" 2>/dev/null
+    mkdir -p "$(dirname "$dst")" 2>/dev/null
+    if [ "$IS_WINDOWS" -eq 1 ]; then
+        powershell -NoProfile -Command \
+            "New-Item -ItemType HardLink -Path '$win_dst' -Target '$win_src' -Force | Out-Null" 2>/dev/null
+    else
+        ln -sfn "$src" "$dst"
+    fi
+}
+
 # 通用 ANSI 交互菜单函数 (支持单选 single 与 多选 multi)
 SELECTED_INDICES=()
 select_menu() {
@@ -168,8 +201,8 @@ for idx in "${special_indices[@]}"; do
         case "$dest_idx" in
             0) # 软链接到当前项目
                 [ ! -f "./one-context.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
-                ln -sfn "$src" "./AGENTS.md"
-                ln -sfn "$src" "./CLAUDE.md"
+                link "$src" "./AGENTS.md"
+                link "$src" "./CLAUDE.md"
                 echo "已软链接 AGENTS 规则 -> ./AGENTS.md, ./CLAUDE.md"
                 ;;
             1) # 卸载自当前项目
@@ -178,7 +211,7 @@ for idx in "${special_indices[@]}"; do
                 ;;
             2) # 软链接到用户全局
                 for t in "${USER_GLOBAL_RULES[@]}"; do
-                    mkdir -p "$(dirname "$t")" && ln -sfn "$src" "$t"
+                    link "$src" "$t"
                 done
                 echo "已软链接 AGENTS 规则到用户全局配置文件"
                 ;;
@@ -224,7 +257,7 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
         0) # 软链接到当前项目
             mkdir -p "./.agents/skills"
             for idx in "${skill_indices[@]}"; do
-                ln -sfn "${skill_paths[idx]}" "./.agents/skills/${skill_names[idx]}"
+                link "${skill_paths[idx]}" "./.agents/skills/${skill_names[idx]}"
             done
             echo "已软链接到当前项目: ${#skill_indices[@]} 个 skills"
             ;;
@@ -238,7 +271,7 @@ if [ ${#skill_indices[@]} -gt 0 ]; then
             for g in "${USER_GLOBAL_DIRS[@]}"; do
                 mkdir -p "$g"
                 for idx in "${skill_indices[@]}"; do
-                    ln -sfn "${skill_paths[idx]}" "$g/${skill_names[idx]}"
+                    link "${skill_paths[idx]}" "$g/${skill_names[idx]}"
                 done
             done
             echo "已软链接到用户全局: ${#skill_indices[@]} 个 skills"
