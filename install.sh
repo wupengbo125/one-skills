@@ -169,12 +169,14 @@ select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}
 dest_idx="${SELECTED_INDICES[0]}"
 
 # 安装记忆钩子：遍历 ~/onespace/github/* 的 git 仓库，装 one-memory 的 pre-commit 与 post-commit
+# 跳过 one-hippocampus：它本身就是记忆中枢，记忆目录是 memory/ 而非 onememory/，装上反会被自己的门禁拦住
 install_memory_hooks() {
     local hooks_dir="$SCRIPT_DIR/one-memory/hooks"
     [ -d "$hooks_dir" ] || { echo "错误: 未找到 $hooks_dir"; return 1; }
     local n=0
     for repo in "$HOME"/onespace/github/*; do
         [ -d "$repo/.git" ] || continue
+        [ "$(basename "$repo")" == "one-hippocampus" ] && { echo "  跳过: one-hippocampus (记忆中枢)"; continue; }
         [ -d "$repo/.git/hooks" ] || mkdir -p "$repo/.git/hooks"
         cp -f "$hooks_dir/pre-commit"  "$repo/.git/hooks/pre-commit"  && chmod +x "$repo/.git/hooks/pre-commit"
         cp -f "$hooks_dir/post-commit" "$repo/.git/hooks/post-commit" && chmod +x "$repo/.git/hooks/post-commit"
