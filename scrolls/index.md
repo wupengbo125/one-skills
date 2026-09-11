@@ -1,4 +1,4 @@
-Light Skill Index
+Scroll Index
 
 ---
 

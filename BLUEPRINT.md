@@ -10,6 +10,7 @@
 - **关键背景与边界说明**：
   - **one-wiki 模块**：个人 Wiki/第二大脑知识库检索与同步工具，底层存储为 Markdown，检索层基于 SQLite FTS5（`.fts.db`）提供 BM25 检索。
   - **one-memory 模块**：海马体长期记忆系统，用于管理用户偏好、每日流水与历史决策，底层同样基于 SQLite FTS5。
+  - **one-scrolls 模块（卷轴）**：低频专用的实操手册与避坑指南封存库，平时卷起不占常驻上下文，按需展开。底层存储为 Markdown，检索层同样为 SQLite FTS5（`.fts.db`）+ BM25。
   - **依赖约束**：严禁引入外部重型分词库（如 jieba）或常驻守护进程；坚持 Python 标准库与 SQLite 原生能力（WAL 模式 + FTS5 + unicode61 tokenizer）。
 
 ---
@@ -87,7 +88,30 @@
 
 ---
 
+### 2.3 one-scrolls 卷轴库检索与封存
+
+- **模块定位**：封存低频专用的本机实操手册与避坑指南，形成"平时卷起、用时展开"的按需知识层，避免常驻上下文膨胀。
+
+#### 2.3.1 卷轴封存与检索机制
+- **使用者/角色**：Agent、终端用户。
+- **触发条件 (Trigger)**：
+  - 检索：用户说“查卷轴”“展开卷轴”“查避坑手册”“怎么配置 XX”时，执行 `scrolls.py search <关键词>`。
+  - 封存：用户说“封存卷轴”“记一份卷轴”“创建卷轴”时，写入 `scrolls/<英文分类>/<中文主题>.md`。
+- **业务逻辑与流转 (Logic & Behavior)**：
+  1. 卷轴库位于 `~/onespace/github/one-skills/scrolls/`，按英文领域分类（如 `tech/`、`mindset/`），由 `index.md` 提供大纲导航。
+  2. 检索走 `scrolls.py` 的 BM25 FTS5 全文检索，返回 Top-5 候选（含分类、标题、锚点、高亮摘要），Agent 仅精准展开最相关的 1~2 篇。
+  3. 封存后需执行 `scrolls.py sync "<分类>/<主题>.md"` 增量同步索引，并更新 `index.md` 大纲。
+- **预期结果 (Result)**：低频实操知识零常驻开销，检索毫秒级召回。
+- **业务规则与边界 (Rules & Boundaries)**：
+  - **严禁**兼容旧命名（`light-skills` / `one-light-skills` / `light_skills.py` / `ONE_LIGHT_SKILLS_DIR`）——用户明确要求彻底改名，不留任何旧别名。
+  - 个人笔记走 one-wiki，个人记忆走 one-memory，均不存入卷轴库。
+
+---
+
 ## 3. 全局演进记录 (Roadmap & Status)
+
+- [x] **2026-09-11**:
+  - `one-light-skills` → `one-scrolls`，`light-skills/` → `scrolls/` 全面改名；`light_skills.py` → `scrolls.py`，环境变量 `ONE_LIGHT_SKILLS_DIR` → `ONE_SCROLLS_DIR`，触发词改为「查卷轴/展开卷轴/封存卷轴」，**不留旧别名**。
 
 - [x] **2026-09-10**:
   - `one-wiki`：优化 `tokenize` 为 CJK 单双字展开 + `unicode61` 西文放行。

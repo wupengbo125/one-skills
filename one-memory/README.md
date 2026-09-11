@@ -67,7 +67,7 @@ one-skills/one-memory/
    - 静态系统级定义与配置：`constitution.md`（行为规范）、`profile.md`（硬件与用户画像）、`aliases.md`（代号别名）。
 2. **`memory/`（记忆流水层）**：
    - 每日一个文件 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`，豆包式流水（做了什么、结论、待办），按天归档。
-3. **`light-skills/`（实操规程层）**：
+3. **`scrolls/`（卷轴/实操规程层）**：
    - 专供本机操作的技能与环境手册，按领域分类（如 `tech/`、`workflow/`），外层由 `index.md` 提供大纲导航。
 
 ---

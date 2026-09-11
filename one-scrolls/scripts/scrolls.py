@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/light_skills.py - 轻 Skill 专用 BM25 FTS5 全文检索与索引同步工具
+scripts/scrolls.py - 卷轴专用 BM25 FTS5 全文检索与索引同步工具
 
-数据仓：~/onespace/github/one-skills/light-skills
+数据仓：~/onespace/github/one-skills/scrolls
 """
 
 import os
@@ -11,15 +11,15 @@ import sys
 import re
 import sqlite3
 
-DEFAULT_LIGHT_SKILLS_DIR = os.path.expanduser(
-    os.environ.get("ONE_LIGHT_SKILLS_DIR", "~/onespace/github/one-skills/light-skills")
+DEFAULT_SCROLLS_DIR = os.path.expanduser(
+    os.environ.get("ONE_SCROLLS_DIR", "~/onespace/github/one-skills/scrolls")
 )
 
-def get_skills_dir():
-    custom = os.environ.get("ONE_LIGHT_SKILLS_DIR")
+def get_scrolls_dir():
+    custom = os.environ.get("ONE_SCROLLS_DIR")
     if custom and os.path.isdir(os.path.expanduser(custom)):
         return os.path.abspath(os.path.expanduser(custom))
-    d = os.path.abspath(DEFAULT_LIGHT_SKILLS_DIR)
+    d = os.path.abspath(DEFAULT_SCROLLS_DIR)
     return d
 
 def get_db_path(repo_dir):
@@ -152,7 +152,7 @@ def make_clean_snippet(raw_text, words):
     return clean[:120] + ('...' if len(clean) > 120 else '')
 
 def cmd_sync(target_path):
-    repo_dir = get_skills_dir()
+    repo_dir = get_scrolls_dir()
     rel_path = resolve_rel_path(target_path, repo_dir)
     full_path = os.path.join(repo_dir, rel_path)
     conn = get_db_connection(repo_dir)
@@ -161,7 +161,7 @@ def cmd_sync(target_path):
         conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
         conn.commit()
         conn.close()
-        print(f"🗑️ 已从索引移除已删除文档: {rel_path}")
+        print(f"🗑️ 已从索引移除已删除卷轴: {rel_path}")
         return
 
     try:
@@ -182,7 +182,7 @@ def cmd_sync(target_path):
     print(f"✅ 已增量同步至索引: {rel_path} ({n} 条)")
 
 def cmd_rebuild():
-    repo_dir = get_skills_dir()
+    repo_dir = get_scrolls_dir()
     db_path = get_db_path(repo_dir)
     for ext in ["", "-wal", "-shm"]:
         f = db_path + ext
@@ -215,10 +215,10 @@ def cmd_rebuild():
 
     conn.commit()
     conn.close()
-    print(f"🎉 索引重建完成，已索引 {count} 篇轻 Skill 文档 -> {db_path}")
+    print(f"🎉 索引重建完成，已索引 {count} 条卷轴 -> {db_path}")
 
 def cmd_search(query_str):
-    repo_dir = get_skills_dir()
+    repo_dir = get_scrolls_dir()
     db_path = get_db_path(repo_dir)
     if not os.path.isfile(db_path):
         cmd_rebuild()
@@ -261,22 +261,22 @@ def cmd_search(query_str):
     conn.close()
 
     if not rows:
-        print(f"🔍 未检索到与 \"{query_str}\" 相关的轻 Skill。")
+        print(f"🔍 未检索到与 \"{query_str}\" 相关的卷轴。")
         return
 
-    print(f"🔍 检索关键词: \"{query_str}\" (匹配到 {len(rows)} 篇)")
+    print(f"🔍 检索关键词: \"{query_str}\" (匹配到 {len(rows)} 卷)")
     print("-" * 50)
     for path, title, raw_content, cat, anchor, rank in rows:
         snip = make_clean_snippet(raw_content, words)
         anchor_tag = f" > #{anchor}" if anchor else ""
-        print(f"📄 [{cat}] {title}{anchor_tag}")
+        print(f"📜 [{cat}] {title}{anchor_tag}")
         print(f"   路径: {os.path.join(repo_dir, path)}")
         print(f"   摘要: {snip}")
         print("-" * 50)
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: light_skills.py [search <关键词> | sync <文件相对路径> | rebuild]")
+        print("用法: scrolls.py [search <关键词> | sync <文件相对路径> | rebuild]")
         sys.exit(1)
 
     cmd = sys.argv[1].lower()
