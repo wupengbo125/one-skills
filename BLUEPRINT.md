@@ -96,9 +96,9 @@
 - **使用者/角色**：Agent、终端用户。
 - **触发条件 (Trigger)**：
   - 检索：用户说“查卷轴”“展开卷轴”“查避坑手册”“怎么配置 XX”时，执行 `scrolls.py search <关键词>`。
-  - 封存：用户说“封存卷轴”“记一份卷轴”“创建卷轴”时，写入 `scrolls/<英文分类>/<中文主题>.md`。
+  - 封存：用户说“封存卷轴”“记一份卷轴”“创建卷轴”时，写入 `one-scrolls/scrolls/<英文分类>/<中文主题>.md`。
 - **业务逻辑与流转 (Logic & Behavior)**：
-  1. 卷轴库位于 `~/onespace/github/one-skills/scrolls/`，按英文领域分类（如 `tech/`、`mindset/`），由 `index.md` 提供大纲导航。
+  1. 卷轴库位于 `~/onespace/github/one-skills/one-scrolls/scrolls/`，按英文领域分类（如 `tech/`、`mindset/`），由 `index.md` 提供大纲导航。卷轴库随 one-scrolls skill 目录内分发（即 one-scrolls/scrolls 作为 skill 自维护资产随 skill 一起分发）。
   2. 检索走 `scrolls.py` 的 BM25 FTS5 全文检索，返回 Top-5 候选（含分类、标题、锚点、高亮摘要），Agent 仅精准展开最相关的 1~2 篇。
   3. 封存后需执行 `scrolls.py sync "<分类>/<主题>.md"` 增量同步索引，并更新 `index.md` 大纲。
 - **预期结果 (Result)**：低频实操知识零常驻开销，检索毫秒级召回。

@@ -3,7 +3,7 @@
 """
 scripts/scrolls.py - 卷轴专用 BM25 FTS5 全文检索与索引同步工具
 
-数据仓：~/onespace/github/one-skills/scrolls
+数据仓：~/onespace/github/one-skills/one-scrolls/scrolls
 """
 
 import os
@@ -11,8 +11,8 @@ import sys
 import re
 import sqlite3
 
-DEFAULT_SCROLLS_DIR = os.path.expanduser(
-    os.environ.get("ONE_SCROLLS_DIR", "~/onespace/github/one-skills/scrolls")
+DEFAULT_SCROLLS_DIR = os.path.abspath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scrolls")
 )
 
 def get_scrolls_dir():
