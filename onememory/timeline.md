@@ -2,3 +2,4 @@
 - 2026-09-10 23:48 [01a08ba7] 确立单次生成双处落盘规则，项目路径强制 ~ 前缀
 - 2026-09-12 01:21 install.sh 新增「安装记忆钩子」操作：遍历 ~/onespace/github/* 各 git 仓库，装 one-memory 的 pre-commit 门禁与 post-commit 索引同步（替代 dotfiles 里已失效的 one-free-me 死链）
 - 2026-09-12 01:25 install_memory_hooks 增加跳过 one-hippocampus：海马体记忆目录为 memory/ 而非 onememory/，装门禁会拦死自身提交
+- 2026-09-13 16:13 [5031379730946] install.sh 用户全局规则分发新增 TRAE(~/.trae/user_rules/AGENTS.md)、TRAE-CN(~/.trae-cn/user_rules/AGENTS.md)、CodeBuddy/WorkBuddy(~/.codebuddy/CODEBUDDY.md + ~/.codebuddy/rules/AGENTS.md) 四路软链接目标

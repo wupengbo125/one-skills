@@ -197,6 +197,10 @@ USER_GLOBAL_RULES=(
     "$HOME/.config/opencode/AGENTS.md"
     "$HOME/.copilot/copilot-instructions.md"
     "$HOME/.agents/AGENTS.md"
+    "$HOME/.trae/user_rules/AGENTS.md"
+    "$HOME/.trae-cn/user_rules/AGENTS.md"
+    "$HOME/.codebuddy/CODEBUDDY.md"
+    "$HOME/.codebuddy/rules/AGENTS.md"
 )
 
 processed=0
