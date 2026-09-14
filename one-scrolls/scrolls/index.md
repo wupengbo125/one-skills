@@ -20,6 +20,8 @@ Scroll Index
   - **核心解决**：OpenViking 开源上下文数据库架构说明、本地与服务器部署、各 Agent 集成与分层加载规范。
 - [WSL控制Windows宿主Chrome自动化](./tech/WSL控制Windows宿主Chrome自动化.md)
   - **核心解决**：WSL Linux 环境下通过 PowerShell 与 CDP 跨系统拉起并控制 Windows 宿主 Chrome，提取 Cookie 与执行网页自动化。
+- [关于moss左右切换失败的问题](./tech/关于moss左右切换失败的问题.md)
+  - **核心解决**：Moshi 滑动需先由 moshi-hook 确认复用器状态；bashrc 里的 printf 转义污染了 App 捕获的 SSH_CONNECTION（报到"无法确认复用器状态"），已删。含状态确认三步骤、手势层级映射（tab/workspace/session）与排错手法。
 
 ---
 
