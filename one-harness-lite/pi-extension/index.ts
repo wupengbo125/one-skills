@@ -52,10 +52,10 @@ interface ExtensionAPI {
 }
 
 const HARNESS_REMINDER =
-  "\n\n[Harness Light 提醒] 文件已修改。请牢记轻量审查流程：改动完成后切勿直接 commit，必须派全新 Sub-agent 传入用户原始需求与 `git diff HEAD` 进行等号审查，通过后判断是否更新活蓝图再提交。";
+  "\n\n[Harness Lite 提醒] 文件已修改。请牢记轻量审查流程：改动完成后切勿直接 commit，必须派全新 Sub-agent 传入用户原始需求与`git diff HEAD`进行等号审查，通过后判断是否更新活蓝图再提交。";
 
-export default function harnessLightExtension(pi: ExtensionAPI): void {
-  // 1. 每轮对话前动态将 Harness Light 准则注入 systemPrompt
+export default function harnessLiteExtension(pi: ExtensionAPI): void {
+  // 1. 每轮对话前动态将 Harness Lite 准则注入 systemPrompt
   pi.on("before_agent_start", async (event: unknown) => {
     try {
       const raw = await fs.readFile(RULES_PATH, "utf-8");
@@ -74,7 +74,7 @@ export default function harnessLightExtension(pi: ExtensionAPI): void {
     const e = event as ToolCallEvent;
     if (e.toolName === "edit" || e.toolName === "write") {
       const commandCtx = ctx as CommandContext | undefined;
-      commandCtx?.ui?.notify?.("【Harness Light】检测到文件修改操作，已激活审查追踪", "info");
+      commandCtx?.ui?.notify?.("【Harness Lite】检测到文件修改操作，已激活审查追踪", "info");
     }
   });
 
@@ -97,9 +97,9 @@ export default function harnessLightExtension(pi: ExtensionAPI): void {
 
   // 4. 注册 /harness 命令，支持查看状态
   pi.registerCommand("harness", {
-    description: "Harness Light 轻量审查状态与指引",
+    description: "Harness Lite 轻量审查状态与指引",
     handler: async (_args: string, ctx: CommandContext) => {
-      ctx?.ui?.notify?.("Harness Light 插件处于激活状态：改动文件后将强制 Sub-agent 等号审查", "info");
+      ctx?.ui?.notify?.("Harness Lite 插件处于激活状态：改动文件后将强制 Sub-agent 等号审查", "info");
     },
   });
 }

@@ -1,5 +1,5 @@
 {
-  "name": "one-harness-light",
+  "name": "one-harness-lite",
   "version": "1.0.0",
   "type": "module",
   "description": "Pi Agent 轻量审查开发流程扩展包，改动文件时自动触发 Sub-agent 等号审查与蓝图同步",

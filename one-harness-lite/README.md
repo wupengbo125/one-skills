@@ -1,6 +1,6 @@
-# one-harness-light
+# one-harness-lite
 
-轻量审查开发流程 (Harness Light) Pi 扩展包。
+轻量审查开发流程 (Harness Lite) 扩展包。
 
 当 Agent 在会话中修改代码或文件时，自动触发轻量审查流程，确保改动与需求画等号。
 
@@ -22,15 +22,15 @@
 ### 安装 (Install)
 ```bash
 # 全局安装
-pi install /home/ctyun/onespace/github/one-skills/one-harness-light
+pi install /home/ctyun/onespace/github/one-skills/one-harness-lite
 
 # 或在当前仓库局部安装
-pi install -l ./one-harness-light
+pi install -l ./one-harness-lite
 ```
 
 ### 卸载 (Remove)
 ```bash
-pi remove one-harness-light
+pi remove one-harness-lite
 ```
 
 ### 验证 (Verify)

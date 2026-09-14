@@ -1,9 +1,9 @@
 ---
-name: one-harness-light
+name: one-harness-lite
 description: "轻量开发流程：改任何文件自动触发。若已调用重型one-harness则不触发。"
 argument-hint: "用户需求描述"
 ---
-# 轻量开发流程 (Harness Light)
+# 轻量开发流程 (Harness Lite)
 
 改任何文件时自动触发的轻量审查流程。若本会话已调用重型 `one-harness`，则本流程不触发。
 
