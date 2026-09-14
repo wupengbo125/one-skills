@@ -25,7 +25,7 @@ one-skills/
 ├── one-memory/              # 海马体记忆：SKILL.md + references/{memory,search-memory}.md + scripts/memory.py + hooks/ + pi-extension/
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
-├── one-harness-light/       # 轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 包）
+├── one-harness-lite/      轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 扩展）
 ├── one-blueprint/           # 业务蓝图：SKILL.md + BLUEPRINT-TEMPLATE.md
 ├── one-context/             # 项目上下文：SKILL.md + CONTEXT-TEMPLATE.md
 ├── one-refactor-implement-cp/  # 物理剪贴重构（禁自动触发）
@@ -40,7 +40,7 @@ one-skills/
 外部数据仓（不在本仓）：
 
 - `~/onespace/github/one-llmwiki/`：wiki 数据。`raw/` 原始材料，`onewiki/` 编译知识库（summaries/concepts/entities 三层 + Obsidian 双链）。
-- `~/onespace/github/one-hippocampus/`：记忆中枢。`memory/<YYYY-MM>/<YYYY-MM-DD>.md` 每日流水、`preference.md` 偏好、`system/profile.md` 画像、`system/constitution.md` 行为宪法。
+- `~/onespace/github/one-hippocampus/`：记忆中枢。`memory/<YYYY-MM>/<YYYY-MM-DD>.md` 每日流水、`personal/preferences.md` 偏好、`personal/profile.md` 画像。
 - `one-scrolls/scrolls/`：卷轴数据随本技能分发，`tech/`、`mindset/` 分类 + `index.md` 大纲。
 
 ## 3. 技能清单
@@ -53,7 +53,7 @@ one-skills/
 | one-blueprint | 自动：蓝图维护/核对 | 维护项目唯一 `BLUEPRINT.md`（只写业务逻辑，不写 UI） | 被 one-harness 作基准 |
 | one-context | 自动：init/update | 生成/更新根目录 `CONTEXT.md`，绝不覆盖人工背景 | 模板 CONTEXT-TEMPLATE.md |
 | one-harness | 仅显式调用 | 重型流程：主 Agent 只架构，Worker 写码+同步蓝图，双轴审查（Standards/Spec），交付闸门写记忆 | 引用 one-blueprint、one-memory、code-review |
-| one-harness-light | 自动（改文件即触发；已用重型则跳过） | 主 Agent 自己改，改完不 commit，派无记忆 Sub-agent 拿原话+`git diff HEAD` 等号审查 | Pi 扩展自动注入 |
+| one-harness-lite | 自动（改文件即触发；已用重型则跳过） | 主 Agent 自己改，改完不 commit，派无记忆 Sub-agent 拿原话+`git diff HEAD`等号审查 | Pi 扩展自动注入 |
 | one-refactor-implement-cp | 仅显式调用 | 重构禁凭记忆重打代码：`cp`/`sed` 物理复制，5 步法 | 前置遵循 one-harness |
 | one-handoff | 仅显式调用 | 生成覆盖式 `handoff.md`，脱敏 | 引用 BLUEPRINT/git diff |
 | one-ebbiii | 自动："艾宾浩斯" | 闪卡 CRUD：`Bearer $EBBIII_API_TOKEN`，答案 ≤200 字，先查重 | HTTP `${EBBIII_BASE_URL:-http://localhost:3000}/api/v1/cards` |
@@ -109,7 +109,7 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 仅用 `node:fs/promises`、`node:path`、`node:url`，TS 由 Pi 宿主直接加载，无构建步骤。API：`pi.on(event, handler)`、`pi.registerCommand(name, {description, handler})`、`pi.sendUserMessage(msg, {deliverAs})`、`pi.exec(cmd, args)`；事件：`before_agent_start`（改 systemPrompt）、`tool_call`、`tool_result`（可追加 content 文本）。
 
 - one-memory：注入 memory-rules.md；`/wrap`、`/memory sync`。
-- one-harness-light：注入去 Frontmatter 的 SKILL.md；edit/write 的 tool_call 发 UI 通知、tool_result 追加审查提醒（禁止直接 commit，强制 Sub-agent 等号审查）；`/harness` 状态命令。
+- one-harness-lite：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加审查提醒（禁止直接 commit，强制 Sub-agent 等号审查）；`/harness` 状态命令。
 
 ## 8. 分发与安装
 

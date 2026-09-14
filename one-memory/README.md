@@ -63,8 +63,9 @@ one-skills/one-memory/
 
 数据仓物理分立设计：
 
-1. **`system/`（系统层）**：
-   - 静态系统级定义与配置：`constitution.md`（行为规范）、`profile.md`（硬件与用户画像）、`aliases.md`（代号别名）。
+1. **`personal/`（个人层）**：
+   - 个人画像：`personal/profile.md`（用户身份、信仰、健康、车辆、出行等）。
+   - 追加式偏好：`personal/preferences.md`（跨项目个人稳定偏好，一条一条追加）。
 2. **`memory/`（记忆流水层）**：
    - 每日一个文件 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`，豆包式流水（做了什么、结论、待办），按天归档。
 3. **`scrolls/`（卷轴/实操规程层）**：
@@ -72,7 +73,7 @@ one-skills/one-memory/
 
 ---
 
-## 四、 记忆沉淀机制
+## 四、 记忆沉淀机制（三轨）
 
 ### 1. 自动记忆（编码产生实质修改时自动落盘）
 - 遵循 `references/memory.md`；
@@ -83,6 +84,13 @@ one-skills/one-memory/
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **流水沉淀**：向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
 - **索引同步**：执行 `scripts/memory.py sync` 同步当日文件索引。
+
+### 3. 规则记忆（规则轨，写入项目 `onememory/rules.md`）
+- 遵循 `references/rules-memory.md`；
+- **触发**：用户教导行为模式 / 纠正助手行为 / 表达偏好实现方式，或 Agent 在构建/测试/调试/部署中发现项目知识时；
+- **边界**：只记"怎么做"（行为规则），不记"做了什么"（落入事实轨 tasks/ 案卷）；跨项目个人偏好走海马体 `personal/preferences.md`；
+- **治理**：单文件上限 150 行，超限同类合并；改动与代码同批提交，不参与门禁强校验；
+- **读取**：进入项目首次回复前，若存在 `onememory/rules.md` 必须先读，作为项目级指令。
 
 
 ---
