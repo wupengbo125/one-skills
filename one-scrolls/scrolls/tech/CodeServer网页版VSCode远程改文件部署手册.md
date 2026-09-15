@@ -117,7 +117,7 @@ journalctl --user -u code-server -f      # 看日志
 
 手机真实诉求（列目录 → 点开 → 改 → 保存）用 code-server 是错配，改用自研零依赖站点 `~/onespace/github/fileweb/`：
 
-- `app.py`：Python 标准库 `http.server`，无第三方依赖；`ROOT` 默认 `$HOME`（可设 `ONE_FILES_ROOT`）
+- `app.py`：Python 标准库 `http.server`，无第三方依赖；`ROOT` 默认 `$HOME/onespace/github`，可用环境变量 `ONE_FILES_ROOT` 覆盖（systemd unit 的 ExecStart 里改）
 - `index.html`：手机优先单页——大行列表、面包屑返回、全屏 textarea 编辑器（原生 textarea 比 CodeMirror 在手机上更稳）
 - 接口：`/api/list`、`/api/file`（GET 读 / POST 存）
 - 安全：路径 `resolve()` 后必须 `is_relative_to(ROOT)`（防 `../../` 遍历）；仅允许编辑已存在的文本；>2MB 或含 `\x00` 拒绝
