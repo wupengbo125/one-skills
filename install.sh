@@ -177,6 +177,8 @@ install_memory_hooks() {
     for repo in "$HOME"/onespace/github/*; do
         [ -d "$repo/.git" ] || continue
         [ "$(basename "$repo")" == "one-hippocampus" ] && { echo "  跳过: one-hippocampus (记忆中枢)"; continue; }
+        # one-life 自带 post-commit（调 life.py 同步生活日记索引），不该被代码记忆门禁拦
+        [ "$(basename "$repo")" == "one-life" ] && { echo "  跳过: one-life (生活日记仓自带索引钩子)"; continue; }
         [ -d "$repo/.git/hooks" ] || mkdir -p "$repo/.git/hooks"
         cp -f "$hooks_dir/pre-commit"  "$repo/.git/hooks/pre-commit"  && chmod +x "$repo/.git/hooks/pre-commit"
         cp -f "$hooks_dir/post-commit" "$repo/.git/hooks/post-commit" && chmod +x "$repo/.git/hooks/post-commit"

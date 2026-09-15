@@ -2,10 +2,16 @@
 # post-commit: 海马体提交自动同步索引
 # 仅在 one-hippocampus 仓库提交时，把改动的 .md 文件增量同步进检索索引。
 # 记忆强制验证由 commit-msg hook 负责，本文件不再做提醒。
+# 注：首次提交没有 HEAD^，回退为 git show HEAD 取文件列表，否则索引漏同步。
 
 repo=$(git rev-parse --show-toplevel 2>/dev/null)
 if [ "$repo" = "$HOME/onespace/github/one-hippocampus" ]; then
-  git diff --name-only HEAD^ HEAD 2>/dev/null | grep '\.md$' | while read -r f; do
+  if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+    changed=$(git diff --name-only HEAD^ HEAD 2>/dev/null)
+  else
+    changed=$(git show --pretty=format: --name-only HEAD 2>/dev/null)
+  fi
+  echo "$changed" | grep '\.md$' | while read -r f; do
     python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py sync "$f" >/dev/null 2>&1
   done
 fi
