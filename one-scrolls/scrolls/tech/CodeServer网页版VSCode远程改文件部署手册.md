@@ -19,7 +19,7 @@
 | Filestash | 聚合本地 + SFTP + S3 + 网盘 | 需要统一多后端入口时选它 |
 | ~~File Browser~~ | — | **仓库 2026-08-31 已归档（read-only），新装不要用它** |
 
-判断标准：只想看/传/小改 → 见「10. 手机上只想要文件列表 + 能改：one-files」；要写代码 → code-server。
+判断标准：只想看/传/小改 → 见「10. 手机上只想要文件列表 + 能改：fileweb」；要写代码 → code-server。
 
 **重要教训**：code-server 没有手机版，浏览器里就是缩小的桌面 IDE（侧边栏 + 面板在手机上挤爆），手机场景不要用它。
 
@@ -113,9 +113,9 @@ systemctl --user status|restart|stop code-server
 journalctl --user -u code-server -f      # 看日志
 ```
 
-## 10. 手机上只想要文件列表 + 能改：one-files
+## 10. 手机上只想要文件列表 + 能改：fileweb
 
-手机真实诉求（列目录 → 点开 → 改 → 保存）用 code-server 是错配，改用自研零依赖站点 `~/onespace/github/one-files/`：
+手机真实诉求（列目录 → 点开 → 改 → 保存）用 code-server 是错配，改用自研零依赖站点 `~/onespace/github/fileweb/`：
 
 - `app.py`：Python 标准库 `http.server`，无第三方依赖；`ROOT` 默认 `$HOME`（可设 `ONE_FILES_ROOT`）
 - `index.html`：手机优先单页——大行列表、面包屑返回、全屏 textarea 编辑器（原生 textarea 比 CodeMirror 在手机上更稳）
