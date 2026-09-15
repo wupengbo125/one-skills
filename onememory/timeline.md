@@ -16,3 +16,4 @@
 - 2026-09-14 23:25 [01a0a069] 重命名 one-harness-light 为 one-harness-lite：重命名包名、SKILL、README、pi-extension 插件与 CODE_WIKI，同步更新 ~/.pi/agent/settings.json 与全局软链接；经 Sub-agent 严格等号审查通过。
 - 2026-09-14 23:26 [01a0a074] 宪法网络规则改为 127.0.0.1 + Tailscale Serve 暴露：one-agents.md 更新「- **启动与暴露服务**：服务监听 127.0.0.1，执行 `tailscale serve --https <PORT> --bg <PORT>` 暴露 HTTPS。」，同步改造 dotfiles/bin/buddyw 监听 127.0.0.1 并由 Tailscale 托管。
 - 2026-09-15 11:22 [8625ac99] 逆向通读全仓代码，从用户视角与 PRD 规范输出全局业务功能蓝图 BLUEPRINT.md
+- 2026-09-15 11:28 [3b5c9981] 严格遵循 one-blueprint 规范重构 BLUEPRINT.md：提炼项目一句话定位与 20 项稳定短 ID 单层功能清单，移除冗余架构图与流程说明
