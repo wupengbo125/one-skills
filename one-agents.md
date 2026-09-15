@@ -25,4 +25,4 @@
 非我的GitHub仓库：ogithub（others github）,要是下载别人的仓库，就放这里
 像素开花：pixelbloom
 dotfiles、环境配置：dotfiles
-记日记、记录生活：调用skill: one-life
+记录生活：调用skill: one-life
