@@ -127,7 +127,7 @@ pi remove one-memory && pi list
 ```
 
 - install.sh 软链在 Windows 退化为 PowerShell 硬链接。
-- 宪法 one-agents.md 全局分发 11 处：`~/.pi/agent/`、`~/.gemini/config/`、`~/.gemini/GEMINI.md`、`~/.claude/CLAUDE.md`、`~/.cursor/`、`~/.config/opencode/`、`~/.copilot/`、`~/.agents/`、`~/.trae-cn/user_rules/`、`~/.codebuddy/CODEBUDDY.md`、`~/.codebuddy/rules/`；项目级分发为 `./AGENTS.md`、`./CLAUDE.md`。
+- 宪法 one-agents.md 全局分发 11 处：`~/.pi/agent/`、`~/.gemini/config/`、`~/.gemini/GEMINI.md`、`~/.claude/CLAUDE.md`、`~/.cursor/`、`~/.config/opencode/`、`~/.copilot/`、`~/.agents/`、`~/.trae-cn/user_rules/`、`~/.codebuddy/rules/AGENTS.md`、`~/.qoder-cn/AGENTS.md`；项目级分发为 `./AGENTS.md`、`./CLAUDE.md`。
 - 装记忆钩子时跳过 one-hippocampus（其记忆目录是 memory/ 不是 onememory/，门禁会拦死自身提交）。
 
 ## 9. 环境变量

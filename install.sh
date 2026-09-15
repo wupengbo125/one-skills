@@ -196,7 +196,8 @@ USER_GLOBAL_DIRS=(
 #   CodeBuddy IDE 与 CodeBuddy Code CLI 同源，共享 ~/.codebuddy/ 配置与记忆
 #   ~/.codebuddy/CODEBUDDY.md 为用户级全局记忆文件（类似 ~/.claude/CLAUDE.md），会话自动全文注入
 #   （真权限在 ~/.codebuddy/settings.json 的 permissions 字段；CODEBUDDY.md 内曾残留的 YAML permissions 为无效死内容）
-#   ~/.codebuddy/rules/AGENTS.md 无效：无 rules 目录机制（记忆走 CODEBUDDY.md + @import 引用其他文件）
+#   ~/.codebuddy/rules/*.md 为用户级规则目录（User Rules），随 ~/.codebuddy/CODEBUDDY.md 一同全量加载（2026-09-15 实测订正）
+#   ~/.codebuddy/CODEBUDDY.md 是 `#` 快捷记忆与自动记忆的写入目标，不复用给宪法（避免自动记忆覆盖软链），宪法走 rules/ 单文件
 #   用户级技能目录 = ~/.codebuddy/skills（2026-09-15 二进制实测，非文档推断）：
 #     dist/codebuddy-headless.js 内 expandPaths 定义常量 es="~/.codebuddy/skills" 并做展开，
 #     同文件路径白名单同时含 "~/.codebuddy/skills/" 与 "~/.agents/skills/"，二者并列有效。
@@ -222,7 +223,7 @@ USER_GLOBAL_RULES=(
     "$HOME/.copilot/copilot-instructions.md"
     "$HOME/.agents/AGENTS.md"
     "$HOME/.trae-cn/user_rules/AGENTS.md"
-    "$HOME/.codebuddy/CODEBUDDY.md"
+    "$HOME/.codebuddy/rules/AGENTS.md"
     "$HOME/.qoder-cn/AGENTS.md"
 )
 
