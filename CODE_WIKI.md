@@ -23,6 +23,7 @@ one-skills/
 ├── install-others.sh        # 第三方技能/工具批量安装
 ├── one-wiki/                # 个人知识库：SKILL.md + references/{note,ingest,query,lint}.md + scripts/wiki.py
 ├── one-memory/              # 海马体记忆：SKILL.md + references/{memory,search-memory}.md + scripts/memory.py + hooks/ + pi-extension/
+├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
 ├── one-harness-lite/      轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 扩展）
@@ -49,6 +50,7 @@ one-skills/
 | :-- | :-- | :-- | :-- |
 | one-wiki | 自动："记笔记/记到大本子/ingest/lint" | raw 记录、ingest 编译、query 检索、lint 巡检 | one-llmwiki 仓；"记笔记"禁用 one-memory |
 | one-memory | 自动："查记忆/查偏好"；"收工"兜底；`/wrap` | 双轨记忆读写与检索 | one-hippocampus 仓 + 各项目 `onememory/` |
+| one-life | 自动："记日记/记录生活/我上次去…/最近干了啥" | 个人生活日记（情景记忆）写入、检索、月年蒸馏 | one-life 私有仓（diary/ summary/ entities/） |
 | one-scrolls | 自动："查卷轴/避坑指南/封存卷轴" | 低频实操手册封存与检索 | 自带 scrolls/；个人笔记/记忆禁存这里 |
 | one-blueprint | 自动：蓝图维护/核对 | 维护项目唯一 `BLUEPRINT.md`（只写业务逻辑，不写 UI） | 被 one-harness 作基准 |
 | one-context | 自动：init/update | 生成/更新根目录 `CONTEXT.md`，绝不覆盖人工背景 | 模板 CONTEXT-TEMPLATE.md |
