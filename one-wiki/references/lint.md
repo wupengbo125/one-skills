@@ -12,7 +12,7 @@
   - 知识盲区（提示用户可补充哪些方面的源材料）。
 2. **拟定方案**：向用户列出已确认的质量问题及修复建议，征求确认。
 3. **修复与流水**：
-  - 确认后精准执行修复。
+  - 确认后精准执行修复，直接写入远端（豆包用 MCP `create_or_update_file`，其他环境用 `gh api` PUT；自动提交，无本地文件）。
   - 向 `onewiki/log.md` 追加：`## [YYYY-MM-DD] lint | <简要说明>`。
-  - 同步索引：`python3 scripts/wiki.py sync "<改动文件相对路径>"`。
+  - 如需更新本地检索索引，再执行 `python3 scripts/wiki.py sync "<改动文件相对路径>"`。
 

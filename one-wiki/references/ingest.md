@@ -1,17 +1,17 @@
 # 摄入与编译 (ingest)
 
 将 `raw/` 中的原始源材料提炼编译入 `onewiki/` 持久知识库。
-知识库根目录为 `$one_llmwiki_dir/`。
+知识库为 GitHub 远端仓库 `wupengbo125/one-llmwiki`，所有文件操作直接改远端（豆包优先 github-remote MCP，无 MCP 用 `gh api`：读 GET、写 PUT、删 DELETE，流程见 SKILL.md），写入即提交远端，不做本地 git。
 
 ## 执行步骤
 
 1. **扫描与计划**：
-  - 扫描 `raw/` 根目录下的源文件，拟定分类 `<topic>`（若无匹配分类，与用户商量确认，严禁擅自新建）。
+  - 列远端 `raw/` 根目录下的源文件（豆包 MCP `get_file_contents`，其他环境 `gh api` GET），拟定分类 `<topic>`（若无匹配分类，与用户商量确认，严禁擅自新建）。
   - 特殊位置扫描 raw/misc/下文件，不移动，不分类，直接做其余动作。
   - 其他位置是已经做过分类的并ingest的，禁止再次扫描
   - 简短向用户列出拟新建/更新的页面计划。
 2. **移动与三层编译**：
-  - 源文件移入 `raw/<topic>/<filename>.md`。
+  - 移动 = 读原文（MCP `get_file_contents` / GET）→ 写入新位置（MCP `create_or_update_file` / PUT）→ 删除原位置（MCP `delete_file` / DELETE）。
   - **严禁自作主张翻译文件名**：原文是什么语言就用什么语言（中文概念直接用纯中文名，如 `车到山前必有路.md`；英文/技术专有名词保留英文，如 `Graphify.md`）。严禁机械转成英文 kebab-case。
   - **强制三层萃取**：
     - `summaries/<主题>.md`：一对一结构化浓缩，头部链向原文：`> 源文件：[[../../raw/<topic>/<filename>.md|查看原文]]`。
@@ -28,7 +28,7 @@
     ---
     ```
 3. **维护大纲与流水**：
-  - 更新分类大纲 `onewiki/[[ORCA_RICH_MD:fd00abcfa14c9ba2abfa6eca340175c0:inline-html:%3Ctopic%3E]]/index.md` 与总索引 `onewiki/index.md`。
+  - 更新分类大纲 `onewiki/<topic>/index.md` 与总索引 `onewiki/index.md`（豆包 MCP 或 `gh api` 写入）。
   - 向 `onewiki/log.md` 追加：`## [YYYY-MM-DD] ingest | <主题>` 记录。
-  - 同步索引：`python3 scripts/wiki.py sync "<相对路径>"`。
+  - 如需更新本地检索索引，再执行 `python3 scripts/wiki.py sync "<相对路径>"`。
 
