@@ -19,7 +19,9 @@
 | Filestash | 聚合本地 + SFTP + S3 + 网盘 | 需要统一多后端入口时选它 |
 | ~~File Browser~~ | — | **仓库 2026-08-31 已归档（read-only），新装不要用它** |
 
-判断标准：只想看/传/小改 → copyparty；要写代码 → code-server。
+判断标准：只想看/传/小改 → 见「10. 手机上只想要文件列表 + 能改：one-files」；要写代码 → code-server。
+
+**重要教训**：code-server 没有手机版，浏览器里就是缩小的桌面 IDE（侧边栏 + 面板在手机上挤爆），手机场景不要用它。
 
 ## 3. 安装（不走 `curl | sh`）
 
@@ -110,3 +112,16 @@ curl -s -o /dev/null -w "%{http_code}\n" -d "password=wrong"  http://127.0.0.1:8
 systemctl --user status|restart|stop code-server
 journalctl --user -u code-server -f      # 看日志
 ```
+
+## 10. 手机上只想要文件列表 + 能改：one-files
+
+手机真实诉求（列目录 → 点开 → 改 → 保存）用 code-server 是错配，改用自研零依赖站点 `~/onespace/github/one-files/`：
+
+- `app.py`：Python 标准库 `http.server`，无第三方依赖；`ROOT` 默认 `$HOME`（可设 `ONE_FILES_ROOT`）
+- `index.html`：手机优先单页——大行列表、面包屑返回、全屏 textarea 编辑器（原生 textarea 比 CodeMirror 在手机上更稳）
+- 接口：`/api/list`、`/api/file`（GET 读 / POST 存）
+- 安全：路径 `resolve()` 后必须 `is_relative_to(ROOT)`（防 `../../` 遍历）；仅允许编辑已存在的文本；>2MB 或含 `\x00` 拒绝
+- 认证：密码即 `common_password`，由 systemd ExecStart 注入 `ONE_FILES_PASSWORD`
+- 部署：`~/.config/systemd/user/one-files.service`，`127.0.0.1:8766`，`tailscale serve --https 8766 --bg 8766`
+
+**避坑**：新服务目录要 `git init` 才提交；新仓库没有 pre-commit 记忆门禁钩子，需手工补 `onememory/`。
