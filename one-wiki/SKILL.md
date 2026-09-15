@@ -15,7 +15,7 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 
 ### 远端通道（仅 note：记笔记 / 更新笔记）
 
-`note` 操作直接写远端，写入即提交，不走本地 git。按运行环境二选一：
+`note` 操作直接写远端，写入即提交，按运行环境二选一：
 
 **通道一（优先）：github-remote MCP** —— 豆包环境运行时存在 github-remote 工具时优先用，凭据由平台托管，无需 token：
 - 读/列目录：`get_file_contents`；写/改：`create_or_update_file`；多文件一次提交：`push_files`；删：`delete_file`
@@ -29,6 +29,8 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 - 删除：`--method DELETE`并带当前 sha。
 - sha 冲突，重新 GET 取最新 sha 再提交，禁止覆盖。
 
+操作完更新本地仓库，并汇报已更新本地仓库
+
 ### 本地通道（ingest / query / lint 及其他非 note 操作）
 
 直接操作本地仓库`~/onespace/github/one-llmwiki`，用标准文件读写（`read`/`write`/`edit`等工具）。
@@ -37,6 +39,7 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 cd ~/onespace/github/one-llmwiki && git add -A && git commit -m "<说明>" && git push
 ```
 操作前先`git pull`确保本地最新。
+操作完要汇报已推送到远端。
 
 ## 意图分流
 
