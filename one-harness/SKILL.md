@@ -1,6 +1,6 @@
 ---
 name: one-harness
-description: "代码开发与重构流程（主架构 + Worker + 双轴审查 + 蓝图同步）。"
+description: "代码开发与重构流程（主架构 + Worker + 双轴审查 + 蓝图同步）。用户手动调用，禁止自行使用本技能"
 argument-hint: "需求描述、修改说明或需求文档路径"
 disable-model-invocation: true
 ---
@@ -84,12 +84,12 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 代码写完后，主 Agent **绝不肉眼看代码**。先执行 `git add -N .` 纳入新文件，提取 `git diff HEAD`（若已有多 commit 则用基准点对比），并行启动两个白板 Sub-agent 执行审查：
 
 ### 1. Sub-agent A（Standards 轴：代码规范与坏味道）
-- **输入**：`git diff` + 项目规范（`constitution.md` / `AGENTS.md`）+ 读取 `skill://code-review`。
+- **输入**：`git diff` + 项目规范（ `AGENTS.md`）+ 读取 `skill://code-review`。
 - **基线检查**：全量执行 `code-review` 的 12 项 Fowler 坏味道基线（Mysterious Name, Duplicated Code, Feature Envy, Data Clumps, Primitive Obsession, Repeated Switches, Shotgun Surgery, Divergent Change, Speculative Generality, Message Chains, Middle Man, Refused Bequest）。项目规范优先，区分硬违规与启发式判断。
 - **输出格式**：独立 `## Standards` 报告，逐项列出违规行与精简建议；无问题报 PASS。
 
 ### 2. Sub-agent B（Spec 轴：需求符合与实现正确性）
-- **输入**：`git diff` + 用户明确同意的计划清单与原话（无需 Spec 文件，严格一字不差原样透传，严禁主 Agent 擅自总结转译）。
+- **输入**：`git diff` + 用户明确同意的计划清单。
 - **原版对齐检查**：
   1. **需求遗漏**（Requirements missing or partial）
   2. **范围蔓延**（Scope creep：Diff 里写了用户没提的改动）
