@@ -21,8 +21,9 @@
    确认后精准执行修复（本地文件操作）。
    向`onewiki/log.md`追加：`## [YYYY-MM-DD] lint | <简要说明>`
 
-5. **提交推送**：
+5. **提交推送并汇报**：
    ```bash
    cd ~/onespace/github/one-llmwiki && git add -A && git commit -m "lint: <简要说明>" && git push
    ```
+   操作完汇报已推送到远端。
    如需更新本地检索索引，再执行`python3 scripts/wiki.py sync "<改动文件相对路径>"`
