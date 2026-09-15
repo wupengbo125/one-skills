@@ -14,7 +14,7 @@ Deliverables are strictly gated by memory consistency.
    - Action: Summarize key decisions and ops into today's log.
 4. `[RULES_MEMORY]` Project-level Behavioral Rules:
    - Condition: User provides explicit behavioral instructions, corrects assistant behavior, expresses preferred implementation methods, explains expected task execution methods; OR Agent discovers project knowledge (operations/build/testing/debugging/deployment) during task execution.
-   - Action: **Every single** user input should be validated against these trigger conditions. Once matched, check the exclusion list first (see `one-memory/references/rules-memory.md`), then append to `<project root>/onememory/rules.md` (create from template on first record; merge same-category rules when exceeding 150 lines).
+   - Action: **Every single** user input should be validated against these trigger conditions. Once matched, check the exclusion list first (see `one-memory/references/rules-memory.md`), then append to `<project root>/onememory/rules.md` (on first record, create the file from the file skeleton — title line, one-line description, `## Entries` heading — and append the entry; merge same-category rules when exceeding 150 lines).
    - Read Gate: If `<project root>/onememory/rules.md` exists, MUST read it as project-level instructions before the first reply in that project.
 
 ## Negative Rules [WHEN_TO_SUPPRESS]

@@ -22,7 +22,7 @@
 
 ### 1. 规则轨：`onememory/rules.md`
 - 项目级行为规则记忆（用户教导 + Agent 发现的项目知识），全项目单文件，上限 150 行，超限触发同类合并。
-- 记录规则、排除清单、触发条件与文件模板：见 [rules-memory.md](rules-memory.md)。
+- 记录规则、排除清单、触发条件与文件骨架：见 [rules-memory.md](rules-memory.md)。
 - **进入项目首次回复前，若存在 `onememory/rules.md` 必须先读**，作为项目级指令。
 
 ### 2. 事实轨结构与定位

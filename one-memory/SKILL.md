@@ -24,8 +24,8 @@ description: "海马体记忆系统：管理AI记忆（每日流水/用户偏好
     3. User Expresses Preferred Implementation Methods
     4. User Explains Expected Task Execution Methods
     5. Agent Proactively Discovers Project Knowledge During Task Execution
-  - Full rules, exclusion list, examples and file template: [references/rules-memory.md](references/rules-memory.md)
-  - If `onememory/rules.md` exists, you **MUST** read it as project-level instructions **before the first reply**; if it does not exist, **when attempting to record content for the first time**, create the file using the **file template** and include the content to be recorded this time.
+  - Full rules, exclusion list, examples and file skeleton: [references/rules-memory.md](references/rules-memory.md)
+  - If `onememory/rules.md` exists, you **MUST** read it as project-level instructions **before the first reply**; if it does not exist, **when attempting to record content for the first time**, create the file from the **file skeleton** — title line, one-line description, `## Entries` heading — and append the entry to record this time (see [references/rules-memory.md](references/rules-memory.md)).
 
 ## 禁止
 - 用户说"记笔记"绝对禁止使用这个技能——记笔记走 one-wiki 个人知识库；

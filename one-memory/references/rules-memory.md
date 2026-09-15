@@ -1,215 +1,204 @@
-# Rules Memory (规则轨执行指南)
+# 规则记忆（规则轨执行指南）
 
 > 本文件为 one-memory 三轨体系的【规则轨】指南，定义项目级行为规则记忆的记录规范。
 > 记忆文件位置：`<项目根>/onememory/rules.md`（上限 150 行，超限触发合并治理）。
 > 正文提示词与上游保持一致（仅路径本地化），便于后续与上游同步替换。
 
-## Description
+## 说明（Description）
 
-When users teach or instruct the AI assistant on how to perform tasks or act in a certain way during conversations, these teachings should be recorded in the `onememory/rules.md` file located in the project repository. Additionally, when the Agent discovers valuable project knowledge during task execution, it should proactively record these findings into the same file.
+当用户在对话中教导或指示 AI 助手「该如何完成某项任务」或「应以何种方式行事」时，这些教导应记录到项目仓库中的 `onememory/rules.md` 文件。此外，当 Agent 在任务执行过程中发现了有价值的项目知识，也应主动将这些发现记录到同一文件中。
 
-### Core Principle of Recorded Content: Record "How to Do," Not "What Was Done"
+### 记录内容的核心原则：记录「怎么做」，而不是「做了什么」
 
-rules.md only records user instructions regarding the model's **behavioral patterns** (i.e., "how something should be done"), not the **specific tasks** the user asked the model to complete (i.e., "what was done").
+rules.md 只记录用户关于模型**行为模式**的指示（即「某件事应该怎么做」），而不记录用户要求模型完成的**具体任务**（即「做了什么」）。
 
-> 三轨分工：被本规则排除的"做了什么"类内容（实现细节、决策过程、任务事实）不丢弃，落入事实轨 `<项目根>/onememory/tasks/<会话ID>.md` 案卷；跨项目个人稳定偏好落入全局轨 `one-hippocampus/personal/preferences.md`。
+> 三轨分工：被本规则排除的「做了什么」类内容（实现细节、决策过程、任务事实）不丢弃，落入事实轨 `<项目根>/onememory/tasks/<会话ID>.md` 案卷；跨项目个人稳定偏好落入全局轨 `one-hippocampus/personal/preferences.md`。
 
-Correct Examples (Recording Behavioral Patterns):
-- "Run `npm run lint` after every code change" — This is a behavioral instruction.
-- "Use pnpm for this project, not npm" — This is a behavioral instruction.
+正确示例（记录行为模式）：
+- 「每次改完代码都跑一遍 `npm run lint`」——这是一条行为指示。
+- 「本项目用 pnpm，不要用 npm」——这是一条行为指示。
 
-Incorrect Examples (Recording Specific Tasks):
-- "The user asked me to fix a bug on the login page" — This is a task record and should not be written.
-- "Completed the CRUD interfaces for the user management module" — This is a task record and should not be written.
-
----
-
-## Exclusions (Strictly Prohibited from Recording)
-
-**The following content is absolutely NOT allowed in rules.md. Before each record attempt, you MUST check against the following exclusion list item by item. If any item matches, abandon the record.**
-
-### 1. Design and Code Implementation Requirements
-
-User requirements regarding UI layout, page structure, component patterns, code architecture, implementation methods, etc., during development. These requirements are already reflected in the code and can be obtained by reading the code; no extra memory is needed.
-
-> Judgment Criterion: Can this information be learned by reading the code? For example — how many grid columns a page uses, which shared module a component should read metadata from, field mapping required before submission, what architectural pattern the backend uses — these are all in the code and don't need to be memorized.
-
-### 2. Specific Implementation Details of a Development Task
-
-Records of feature implementation, technical details, code architecture explanations, final verification results, etc., fall under the category of "what was done." The code itself is the best documentation. 被此类排除的内容落入事实轨 `onememory/tasks/` 案卷。
-
-> Judgment Criterion: Is this content describing "what was done in this development task" or "how it should be done every time in the future"? The former should not be recorded; the latter may be recorded.
-
-### 3. Content Already Existing in Other Documents
-
-If content has already been written into project docs (`docs/`, `README.md`, `MAP.md`, `BLUEPRINT.md`) or other project documentation, do NOT record it again in rules.md. rules.md is not a document index.
-
-> Judgment Criterion: Is this information already fully documented elsewhere in the project? If yes, rules.md does not need another copy.
-
-### 4. Product Naming and Brand Expression Decisions
-
-Product naming, brand copywriting, visual expression styles, etc., belong to the scope of product documentation, not rules.md.
-
-> Judgment Criterion: Is this content about "what the product is called, how the product speaks, what the product looks like"? If yes, it belongs to product documentation.
-
-### 5. Information Directly Obtainable by Reading Code
-
-Interface definitions, type declarations, function signatures, module paths, file paths, constant definitions, code logic flows, etc. This information can be obtained by exploring the code.
-
-> Judgment Criterion: If another Agent can find the answer by searching the codebase using Grep/Glob tools, do not record it.
-
-### 6. Obvious Content
-
-Basic information that doesn't require special memorization, such as what language or framework the project uses.
+错误示例（记录具体任务）：
+- 「用户让我修复登录页的一个 bug」——这是任务记录，不应写入。
+- 「完成了用户管理模块的 CRUD 接口」——这是任务记录，不应写入。
 
 ---
 
-## Permitted Content Scope
+## 排除项（严禁记录）
 
-rules.md **only records** content within the following categories:
+**以下内容绝对不允许进入 rules.md。每次尝试记录前，必须逐条对照下述排除清单；只要命中任意一条，即放弃本次记录。**
 
-| Category | Description | Correct Examples |
+### 1. 设计与代码实现要求
+
+用户在开发过程中提出的关于 UI 布局、页面结构、组件模式、代码架构、实现方式等方面的要求。这些要求已经体现在代码中，通过读代码即可获得，无需额外记忆。
+
+> 判断标准：这条信息能不能靠读代码得知？例如——页面用几栏栅格、组件应从哪个共享模块读取元数据、提交前需要做的字段映射、后端采用什么架构模式——这些都在代码里，不必记忆。
+
+### 2. 开发任务的具体实现细节
+
+功能实现记录、技术细节、代码架构说明、最终验证结果等，都属于「做了什么」的范畴。代码本身就是最好的文档。被此类排除的内容落入事实轨 `onememory/tasks/` 案卷。
+
+> 判断标准：这条内容是在描述「本次开发任务做了什么」，还是在描述「以后每次都应该怎么做」？前者不应记录，后者可以记录。
+
+### 3. 其他文档中已存在的内容
+
+如果内容已经被写入项目文档（`docs/`、`README.md`、`MAP.md`、`BLUEPRINT.md`）或其他项目文档，就不要再在 rules.md 里重复记录。rules.md 不是文档索引。
+
+> 判断标准：这条信息是否已在项目的其他地方被完整记录？如果是，rules.md 就不需要再存一份。
+
+### 4. 产品命名与品牌表达决策
+
+产品命名、品牌文案、视觉表达风格等，属于产品文档的范畴，不属于 rules.md。
+
+> 判断标准：这条内容是否关于「产品叫什么、产品怎么说、产品长什么样」？如果是，属于产品文档。
+
+### 5. 读代码即可直接获得的信息
+
+接口定义、类型声明、函数签名、模块路径、文件路径、常量定义、代码逻辑流程等。这些信息通过探索代码即可获得。
+
+> 判断标准：如果换一个 Agent 用 Grep/Glob 工具搜一下代码库就能找到答案，就不要记录。
+
+### 6. 显而易见的常识性内容
+
+不需要专门记忆的基础信息，例如项目使用什么语言或框架。
+
+---
+
+## 允许记录的内容范围
+
+rules.md **只记录**以下几类内容：
+
+| 类别 | 说明 | 正确示例 |
 |----------|-------------|------------------|
-| **Operations & Deployment** | Server addresses, deployment directories, service names, health check URLs, deployment processes | "Production server public IP is xxx, SSH user is ubuntu" |
-| **Build & Compilation** | Build commands, build tools, build verification steps | "Frontend build: `cd /workspace/business-toolkit && npm run build`" |
-| **Troubleshooting & Debugging** | Troubleshooting workflows, debugging methodologies, common issue investigation steps | "When a tool is unavailable, follow the 'frontend page -> route mapping -> backend definition -> authentication -> interface retest' chain to confirm layer by layer" |
-| **Workflow & Collaboration** | Multi-Agent collaboration norms, development processes, commit strategies, progress documentation systems | "Different Agents must be responsible for different modules. After each modification, immediately git add + commit + push" |
-| **Environment Configuration** | Special configurations for the development environment, environment variables, tool availability | "The apply_patch tool does not exist in this environment. Please use Write/Edit tools to edit files." |
-| **Behavioral Instructions** | User's direct instructions regarding assistant behavior (reply language, operational constraints, etc.) | "All thought processes and replies must be in Chinese" |
+| **运维与部署** | 服务器地址、部署目录、服务名、健康检查 URL、部署流程 | 「生产服务器公网 IP 是 xxx，SSH 用户是 ubuntu」 |
+| **构建与编译** | 构建命令、构建工具、构建验证步骤 | 「前端构建：`cd /workspace/business-toolkit && npm run build`」 |
+| **排障与调试** | 排障流程、调试方法、常见问题的排查步骤 | 「工具不可用时，按『前端页面 -> 路由映射 -> 后端定义 -> 鉴权 -> 接口重测』链路逐层确认」 |
+| **流程与协作** | 多 Agent 协作规范、开发流程、提交策略、进度记录体系 | 「不同 Agent 必须各自负责不同模块；每次修改后立即 git add + commit + push」 |
+| **环境配置** | 开发环境的特殊配置、环境变量、工具可用性 | 「本环境不存在 apply_patch 工具，请使用 Write/Edit 工具编辑文件」 |
+| **行为指示** | 用户关于助手行为的直接指示（回复语言、操作约束等） | 「所有思考过程与回复必须使用中文」 |
 
-**Judgment Standard**: Before recording, ask yourself — "When another Agent joins the project later, will this information help them quickly get started with operations, building, troubleshooting, and collaboration?" If the answer is "yes," record it. If the answer is "can be known by reading the code" or "already written in the code," do not record it.
+**判断标准**：记录前先问自己——「以后有另一个 Agent 加入这个项目时，这条信息能否帮助它快速上手运维、构建、排障与协作？」如果答案是「能」，就记录；如果答案是「读代码就知道」或「已经写在代码里了」，就不要记录。
 
 ---
 
-## Implementation Method
+## 执行方式
 
-- Monitor the conversation for user's instructional commands.
-- During task execution, proactively identify and record project-specific knowledge related to **operations, building, troubleshooting, workflows, and environment configuration**.
-- **Before recording, MUST check against the exclusion list item by item.** If any item matches, abandon the record.
-- Before adding a new entry, scan `onememory/rules.md` to check for similar or identical instructions.
-- If a duplicate is found, skip the new entry or merge it with the existing one.
-- When merging, update the context or date of the existing entry.
-- If no duplicate exists, append the instruction to `onememory/rules.md`.
-- Entry format should include date, user instruction, and context.
-- When recording useful behavioral instructions, pay attention to protecting user privacy.
-- **File Size Management**: When updating rules.md, if the file content already exceeds 150 lines, you need to merge rules of the same module/category into a single rule to avoid rules.md becoming too large. When merging, retain key information and remove redundant descriptions.
+- 在对话中监听用户的指令式表达。
+- 在任务执行过程中，主动识别并记录与**运维、构建、排障、流程、环境配置**相关的项目专属知识。
+- **记录前必须逐条对照排除清单。** 只要命中任意一条，即放弃本次记录。
+- 新增条目之前，先通读 `onememory/rules.md`，检查是否已存在相似或相同的指示。
+- 若发现重复，则跳过新条目，或将其与已有条目合并。
+- 合并时，更新已有条目的上下文或日期。
+- 若不存在重复，则将该指示追加到 `onememory/rules.md`。
+- 条目格式应包含日期、用户指示与上下文。
+- 记录有用的行为指示时，注意保护用户隐私。
+- **文件体积管理**：更新 rules.md 时，若文件内容已超过 150 行，需要将同一模块/同一类别的规则合并为一条，避免 rules.md 过度膨胀。合并时保留关键信息，删除冗余描述。
 
-## Purpose
+## 目的
 
-To establish persistent memory of user preferences and instructions for guiding future interactions and customization.
+建立对用户偏好与指示的持久记忆，用于指导未来的交互与定制化行为。
 
-## Enforcement Items
+## 强制执行项
 
-- If the rules file (`onememory/rules.md`) does not exist, **when attempting to record content for the first time**, create the file using the **file template** and include the content to be recorded this time.
-- If the rules file (`onememory/rules.md`) exists, you **MUST** read it as project-level instructions **before the first reply**!
-- **Every single** user input should be validated against the following **trigger conditions**. Once a match is found, **you MUST immediately** check against the exclusion list first. After confirming it is not within the exclusion scope, then update the rules file (`onememory/rules.md`).
+- 若规则文件（`onememory/rules.md`）不存在，则**在首次尝试记录内容时**，按下方《rules.md 文件骨架》创建该文件，并同时写入本次要记录的条目。
+- `onememory/rules.md` 的内容由且仅由四部分组成：文件标题、一行说明、`## Entries` 标题、其后逐条追加的条目正文。
+- 若规则文件（`onememory/rules.md`）已存在，则**必须**在**首次回复之前**将其作为项目级指令读取！
+- **每一次**用户输入都要对照下述**触发条件**进行校验。一旦命中，就**必须立即**先对照排除清单检查；确认不属于排除范围后，再更新规则文件（`onememory/rules.md`）。
 
-## Trigger Conditions
+## 触发条件
 
-### 1. User Provides Explicit Instructions Regarding Behavioral Patterns
+### 1. 用户给出关于行为模式的明确指示
 
-> Examples:
-> - "Please use Chinese when replying to me"
-> - "Always respond in bullet points"
-> - "Write code comments uniformly in English"
-> - "Do not use emojis in replies"
+> 示例：
+> - 「请用中文回复我」
+> - 「始终用列表项的形式回答」
+> - 「代码注释统一用英文写」
+> - 「回复中不要使用 emoji」
 
-### 2. User Instructs or Corrects Assistant Behavior
+### 2. 用户指示或纠正助手的行为
 
-> Examples:
-> - **Do something when a condition is met**: "Automatically run lint after every code change", "When I ask you to refactor, always write unit tests first"
-> - **Do NOT do something when a condition is met**: "Do not automatically delete commented-out code", "Don't modify files outside the src/ directory unless I explicitly say so"
-> - **Use (or do not use) a certain tool in a specific project/module**: "Use pnpm for this project, not npm", "Use `pytest` instead of `unittest` in this repo", "In the backend module, do not use print, use logger"
+> 示例：
+> - **满足某条件时做某事**：「每次改完代码自动跑 lint」、「我让你重构时，先写单元测试」
+> - **满足某条件时不做某事**：「不要自动删除被注释掉的代码」、「除非我明确说明，否则不要修改 src/ 目录以外的文件」
+> - **在特定项目/模块中（不）使用某个工具**：「本项目用 pnpm，不要用 npm」、「本仓库用 `pytest`，不用 `unittest`」、「后端模块不要用 print，用 logger」
 
-### 3. User Expresses Preferred Implementation Methods
+### 3. 用户表达偏好的实现方式
 
-> Examples:
-> - "I prefer functional style, use fewer classes"
-> - "Prefer composition over inheritance in this project"
-> - "Use CTEs instead of subqueries when writing SQL"
-> - "For CSS, prioritize Tailwind utility classes, do not write custom styles"
+> 示例：
+> - 「我偏好函数式风格，少用类」
+> - 「本项目中优先用组合而非继承」
+> - 「写 SQL 时用 CTE，不要用子查询」
+> - 「CSS 优先使用 Tailwind 原子类，不要写自定义样式」
 
-**Constraint on Code Style Recording**: Avoid recording general code style preferences (like indentation, naming conventions, etc.) unless the user explicitly and strongly requests it (e.g., "Always write React components in functional style from now on, must follow this principle"). Code styles should be defined in project configuration files (like `.eslintrc`, `.prettierrc`). rules.md focuses on behavioral instructions and project knowledge that cannot be obtained from code.
+**代码风格记录约束**：除非用户明确且强烈要求（例如「以后 React 组件一律写成函数式，必须遵守这条原则」），否则避免记录通用代码风格偏好（如缩进、命名规范等）。代码风格应由项目配置文件（如 `.eslintrc`、`.prettierrc`）来定义。rules.md 关注的是行为指示，以及无法从代码中获得的项目知识。
 
-### 4. User Explains Expected Task Execution Methods
+### 4. 用户说明期望的任务执行方式
 
-> Examples:
-> - "Before fixing a bug, help me write a test case that can reproduce the issue"
-> - "Always run `make check` before committing code"
-> - "When refactoring, modify only one file at a time. Continue only after I confirm the changes"
-> - "When adding a new API endpoint, always update the OpenAPI spec first"
+> 示例：
+> - 「修 bug 之前，先帮我写一个能复现问题的测试用例」
+> - 「提交代码前始终先跑 `make check`」
+> - 「重构时一次只改一个文件，等我确认后再继续」
+> - 「新增 API 端点时，始终先更新 OpenAPI 规范」
 
-### 5. Agent Proactively Discovers Project Knowledge During Task Execution
+### 5. Agent 在任务执行过程中主动发现项目知识
 
-During task execution, if the Agent discovers project knowledge valuable for future **operations, building, troubleshooting, and collaboration**, it should proactively record it into rules.md. This type of knowledge does not require explicit user instruction; the Agent should judge and record it independently.
+在任务执行过程中，若 Agent 发现了对未来**运维、构建、排障与协作**有价值的项目知识，应主动将其记录到 rules.md。这类知识不需要用户明确指示，由 Agent 自行判断并记录。
 
-#### Trigger Timing
+#### 触发时机
 
-- **During Build Execution**: Learns about the project's build commands, build toolchain, build configuration, etc.
-- **During Test Execution**: Learns about the testing framework, test commands, testing conventions, etc.
-- **During Code Generation**: Discovers the project uses code generation tools (e.g., protobuf, OpenAPI codegen, ORM migration, etc.), records the timing and methods of generation.
-- **During Problem Debugging**: Discovers special dependencies, environment requirements, known pitfalls of the project, etc.
-- **During Deployment & Operations**: Learns about server information, deployment processes, health check methods, etc.
+- **执行构建时**：了解到项目的构建命令、构建工具链、构建配置等。
+- **执行测试时**：了解到测试框架、测试命令、测试约定等。
+- **生成代码时**：发现项目使用了代码生成工具（如 protobuf、OpenAPI codegen、ORM migration 等），记录生成的时机与方法。
+- **排查问题时**：发现项目的特殊依赖、环境要求、已知坑点等。
+- **部署与运维时**：了解到服务器信息、部署流程、健康检查方式等。
 
-#### Recording Format
+#### 记录格式
 
-Use the same entry format as user instructions, but mark the Context field as discovered by the Agent:
+使用《rules.md 文件骨架》小节中的「项目知识条目」格式，Context 字段标注为 Agent 发现。
 
-```
-[Project Knowledge Summary]
-- Date: [YYYY-MM-DD]
-- Context: Discovered by Agent while performing [specific task description]
-- Category: [Operations & Deployment|Build Methods|Testing Methods|Troubleshooting & Debugging|Workflow & Collaboration|Environment Configuration]
-- Instructions:
-  - [Specific knowledge points, described line by line]
-```
+#### 记录前检查清单
 
-#### Pre-Recording Checklist
+在记录 Agent 发现的项目知识之前，必须确认：
 
-Before recording project knowledge discovered by the Agent, you must confirm:
+1. 是否属于运维与部署 / 构建与编译 / 排障与调试 / 流程与协作 / 环境配置的范围？（不属于则不记录）
+2. 是否已被写入其他项目文档？（是则不重复记录）
+3. 是否能通过读代码直接获得？（是则不记录）
+4. 是否是某次开发任务的具体实现细节？（是则不记录，落入事实轨 `onememory/tasks/` 案卷）
+5. rules.md 中是否已存在相似条目？（是则合并或跳过）
 
-1. Does it belong to the scope of operations & deployment / build & compilation / troubleshooting & debugging / workflow & collaboration / environment configuration? (If not, do not record)
-2. Has it already been written into other project documentation? (If yes, do not duplicate)
-3. Can it be directly obtained by reading the code? (If yes, do not record)
-4. Is it specific implementation details of a particular development task? (If yes, do not record; 落入事实轨 `onememory/tasks/` 案卷)
-5. Do similar entries already exist in rules.md? (If yes, merge or skip)
+## rules.md 文件骨架
 
-## rules.md File Template
+创建 `onememory/rules.md` 时，文件正文由下面代码块的骨架，加上本次要记录的条目组成：
 
 ```markdown
 # Project Rules Memory
 
-This file records user behavioral instructions and project knowledge for reference in future interactions.
 （本文件记录行为规则与项目知识，上限 150 行，超限触发同类合并。）
 
-## Format
+## Entries
+```
 
-### User Instruction Entry
-User instruction entries should follow this format:
+### 条目格式
 
-[User Instruction Summary]
+以下两种格式用于书写 `## Entries` 下的条目：
+
+**用户指示条目**
+
+```
+[用户指示摘要]
 - Date: [YYYY-MM-DD]
-- Context: [Mentioned scenario or time]
+- Context: [提及的场景或时间]
 - Instructions:
-  - [Content of user teaching or instruction, described line by line]
+  - [用户教导或指示的内容，逐行描述]
+```
 
-### Project Knowledge Entry
-Entries discovered by the Agent during task execution should follow this format:
+**项目知识条目**（Agent 自行发现时使用，Context 标注为 Agent 发现）
 
-[Project Knowledge Summary]
+```
+[项目知识摘要]
 - Date: [YYYY-MM-DD]
-- Context: Discovered by Agent while performing [specific task description]
+- Context: Discovered by Agent while performing [具体任务描述]
 - Category: [Operations & Deployment|Build Methods|Testing Methods|Troubleshooting & Debugging|Workflow & Collaboration|Environment Configuration]
 - Instructions:
-  - [Specific knowledge points, described line by line]
-
-## Deduplication Strategy
-- Before adding a new entry, check for similar or identical instructions.
-- If a duplicate is found, skip the new entry or merge it with the existing one.
-- When merging, update the context or date information.
-- This helps avoid redundant entries and keeps the memory file tidy.
-
-## Entries
-
-[Memory entries recorded according to the above format]
+  - [具体知识点，逐行描述]
 ```

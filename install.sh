@@ -161,8 +161,8 @@ user_selected_indices=("${SELECTED_INDICES[@]}")
 op_options=(
     "软链接到当前项目 (./.agents/skills)"
     "卸载自当前项目 (./.agents/skills)"
-    "软链接到用户全局 (~/.agents/skills)"
-    "卸载自用户全局 (~/.agents/skills)"
+    "软链接到用户全局 (~/.agents/skills 等 3 处)"
+    "卸载自用户全局 (~/.agents/skills 等 3 处)"
     "安装记忆钩子到所有同级仓库 (pre-commit + post-commit)"
 )
 select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
@@ -187,7 +187,31 @@ install_memory_hooks() {
     echo "✅ 记忆钩子已安装到 $n 个仓库 (pre-commit 记忆门禁 + post-commit 索引同步)"
 }
 
-USER_GLOBAL_DIRS=("$HOME/.agents/skills")
+USER_GLOBAL_DIRS=(
+    "$HOME/.agents/skills"
+    "$HOME/.codebuddy/skills"
+    "$HOME/.trae-cn/skills"
+)
+# CodeBuddy 说明（2026-09-13 勘误，2026-09-15 补技能位）：
+#   CodeBuddy IDE 与 CodeBuddy Code CLI 同源，共享 ~/.codebuddy/ 配置与记忆
+#   ~/.codebuddy/CODEBUDDY.md 为用户级全局记忆文件（类似 ~/.claude/CLAUDE.md），会话自动全文注入
+#   （真权限在 ~/.codebuddy/settings.json 的 permissions 字段；CODEBUDDY.md 内曾残留的 YAML permissions 为无效死内容）
+#   ~/.codebuddy/rules/AGENTS.md 无效：无 rules 目录机制（记忆走 CODEBUDDY.md + @import 引用其他文件）
+#   用户级技能目录 = ~/.codebuddy/skills（2026-09-15 二进制实测，非文档推断）：
+#     dist/codebuddy-headless.js 内 expandPaths 定义常量 es="~/.codebuddy/skills" 并做展开，
+#     同文件路径白名单同时含 "~/.codebuddy/skills/" 与 "~/.agents/skills/"，二者并列有效。
+#     修正前本数组只链了记忆位（~/.codebuddy/CODEBUDDY.md），技能位漏配，故 CodeBuddy 侧技能不生效。
+# Trae 说明（TraeCode）：
+#   全局规则目录 ~/.trae-cn/user_rules（IDE 创建的文件名为 rule-<timestamp>.md，目录下 md 均会被读取）
+#   项目规则目录 .trae/rules/（支持 3 层嵌套、alwaysApply / globs / description 生效方式）
+#   项目根 AGENTS.md / CLAUDE.md 需在 Trae 设置 > 规则 > 导入设置中手动开启开关才生效（默认关闭）
+#   用户级技能目录 = ~/.trae-cn/skills（2026-09-15 二进制实测，非文档推断）：
+#     /usr/share/trae-cn/resources/app/out/vs/workbench/workbench.desktop.main.js 内路径判定并列出现
+#     "/.trae-cn/skills/"（home 级）与 "/.trae/skills/"（项目级）；~/.trae-cn/ 下另有 builtin_skills/ 与 skill-config.json。
+# Qoder CLI 说明（qodercli 1.1.51）：
+#   全局记忆 ~/.qoder-cn/AGENTS.md（scope=home, trigger=always 全文注入）；项目级读 <仓库>/AGENTS.md 与 AGENTS.local.md
+#   目录名由进程内环境变量决定（本机实测 QODER_CONFIG_DIR_NAME=.qoder-cn；二进制内另有 QODERCN_CONFIG_DIR_NAME 分支，未验证）
+#   Qoder 只扫 ~/.agents/skills，不读 ~/.agents/AGENTS.md —— 宪法必须另链一份到 .qoder-cn 才生效
 USER_GLOBAL_RULES=(
     "$HOME/.pi/agent/AGENTS.md"
     "$HOME/.gemini/config/AGENTS.md"
@@ -199,7 +223,7 @@ USER_GLOBAL_RULES=(
     "$HOME/.agents/AGENTS.md"
     "$HOME/.trae-cn/user_rules/AGENTS.md"
     "$HOME/.codebuddy/CODEBUDDY.md"
-    "$HOME/.codebuddy/rules/AGENTS.md"
+    "$HOME/.qoder-cn/AGENTS.md"
 )
 
 processed=0
@@ -228,16 +252,6 @@ for idx in "${special_indices[@]}"; do
 
     if [ "$src" == "$SCRIPT_DIR/one-agents.md" ]; then
         case "$dest_idx" in
-            0) # 软链接到当前项目
-                [ ! -f "./one-context.md" ] && echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
-                link "$src" "./AGENTS.md"
-                link "$src" "./CLAUDE.md"
-                echo "已软链接 AGENTS 规则 -> ./AGENTS.md, ./CLAUDE.md"
-                ;;
-            1) # 卸载自当前项目
-                rm -f "./AGENTS.md" "./CLAUDE.md"
-                echo "已从当前项目卸载 AGENTS 规则"
-                ;;
             2) # 软链接到用户全局
                 for t in "${USER_GLOBAL_RULES[@]}"; do
                     link "$src" "$t"
