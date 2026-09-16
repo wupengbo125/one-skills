@@ -1,6 +1,6 @@
 # 记忆沉淀指南 (Triple-Memory System)
 
-记忆分两仓三轨：项目随身记忆 `<项目根>/onememory/`（规则轨 + 事实轨）+ 全局海马体 `~/onespace/github/one-hippocampus/`（全局轨）。
+记忆分两处：项目随身记忆 `<项目根>/onememory/`（项目规则 + 改动事实），跨项目记忆 `~/onespace/github/one-hippocampus/`（个人偏好与画像）。
 
 ---
 
@@ -42,8 +42,8 @@
 
 ---
 
-## 二、全局画像与首读规则
+## 二、海马体两文件与项目首读
 
-- 获知稳定偏好 → 追加海马体 `personal/preferences.md`（按分类一条一条，不按天）
-- 获知身份、习惯 → 更新 `personal/profile.md`
-- **进入项目首次回复前，若存在 `<项目根>/onememory/rules.md` 必须先读**，作为项目级指令
+- `personal/preferences.md`：**行为偏好**，一条一条追加，不按天
+- `personal/profile.md`：**这个人是谁**——身份、职业、健康、设备、居住与生活习惯
+- 进入项目首次回复前，若存在 `<项目根>/onememory/rules.md` 必须先读，作为项目级指令
