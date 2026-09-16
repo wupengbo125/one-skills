@@ -1,6 +1,6 @@
 # 记忆沉淀指南 (Triple-Memory System)
 
-记忆分两处：项目随身记忆 `<项目根>/onememory/`（项目规则 + 改动事实），跨项目记忆 `~/onespace/github/one-hippocampus/`（个人偏好与画像）。
+记忆分两处：项目随身记忆 `<项目根>/onememory/`（项目规则 + 改动事实），跨项目记忆 `~/onespace/github/one-hippocampus/`（每日流水 + 个人偏好与画像）。
 
 ---
 
@@ -10,7 +10,8 @@
 |---|---|
 | 项目行为规则、运维/构建/排障知识（"以后怎么做"） | `<项目根>/onememory/rules.md`（≤150行） |
 | 本次改动的事实、排查过程、决策（"做了什么"） | `<项目根>/onememory/timeline.md` + `tasks/` |
-| 跨项目个人稳定偏好、身份习惯 | 海马体 `personal/preferences.md` / `personal/profile.md` |
+| 当天改了什么（跨项目全天流水，海马体主体） | 海马体 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` |
+| 个人稳定偏好、身份画像 | 海马体 `personal/preferences.md` / `personal/profile.md` |
 
 ---
 
