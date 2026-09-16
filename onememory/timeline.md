@@ -31,3 +31,4 @@
 - 2026-09-15 23:14 one-wiki 写入方式重构：由「本地写文件+本地git」改为直接操作远端 GitHub 仓库 wupengbo125/one-llmwiki，双通道——豆包内优先 github-remote MCP（平台托管凭据），其他 AI/电脑无 MCP 时用 `gh api` 兜底（gh 已登录即可，sha/base64 为内部步骤对用户透明）；改 SKILL/note/ingest/lint 四份，禁止本地文件与本地 git，写入即 commit 远端。同步把本仓 .git/hooks 从旧 commit-msg（校验海马体 hash，Sep9）更新为最新 pre-commit（onememory 同批门禁）+ post-commit，并删除旧 commit-msg。教训：新需求只叠加不替换、改技能必须改源头 one-skills 并推送而非只改 /runtime 副本、不许用 --no-verify 绕过门禁。无会话ID，不建 task 案卷。
 - 2026-09-16 23:13 one-memory 沉淀 SOP 瘦身：改严格时序三步，流水加单行 ≤80 字硬约束与 300 行归档规则，删口号式表述与冗余边界表
 - 2026-09-16 23:18 流水会话 ID 由前 8 位改前 16 位
+- 2026-09-16 23:26 流水会话 ID 恢复为前 8 位（16 位去连字符后无法前缀匹配 tasks 文件名）
