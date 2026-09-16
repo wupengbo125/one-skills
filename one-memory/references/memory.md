@@ -1,6 +1,6 @@
 # 记忆沉淀指南 (Triple-Memory System)
 
-记忆分两仓：项目随身记忆 `<项目根>/onememory/`（含规则轨与事实轨）+ 全局海马体 `~/onespace/github/one-hippocampus/`。
+记忆分两仓三轨：项目随身记忆 `<项目根>/onememory/`（规则轨 + 事实轨）+ 全局海马体 `~/onespace/github/one-hippocampus/`（全局轨）。
 
 ---
 
@@ -18,23 +18,25 @@
 
 改动代码/配置并自测通过后严格按序执行。**摘要只生成一次**，Step 1 与 Step 3 复用同一份。
 
-会话 ID：已知则取**前 8 位**；未知（未装插件或临时 Agent）则不带 ID、不建案卷，**严禁伪造假 ID**。
+会话 ID：已知则**流水与案卷文件名都用完整 ID，不截断**；未知（未装插件或临时 Agent）则流水不带 ID，**严禁伪造假 ID**。
 
 ### Step 1 项目随身记忆 `<项目根>/onememory/`
 1. **事实轨 - 流水**：向 `timeline.md` 末尾追加单行（全项目一个文件，不按天切分）
-   - 有会话 ID：`- YYYY-MM-DD HH:mm [ID前8位] 结论`
+   - 有会话 ID：`- YYYY-MM-DD HH:mm [会话ID] 结论`
    - 无会话 ID：`- YYYY-MM-DD HH:mm 结论`
    - **硬约束**：单行 ≤80 字，只写做了什么与结论；过程、教训、排障细节一律进案卷；禁止写元信息（如"无会话ID""不建案卷"）
-   - **体积管理**：超 300 行按月归档为 `timeline-YYYY-MM.md`
-2. **事实轨 - 案卷**（有会话 ID 且任务非平凡时）：增量维护 `tasks/<会话ID>.md`，记背景诉求、排查过程、关键决策、代码结论、涉及产物。
+   - **体积管理**：超 300 行时，将最早条目整体移入 `timeline-YYYY-MM.md`，主文件只留最近 300 行
+2. **事实轨 - 案卷**（命中任一即建）：排查超 3 步 / 排除过错误方向 / 有权衡决策 / 跨多模块。记背景诉求、排查过程、关键决策、代码结论、涉及产物。
+   - 有会话 ID：`tasks/<会话ID>.md`（与流水里的 ID 完全一致，可直接打开，无需前缀匹配）
+   - 无会话 ID：`tasks/<YYYY-MM-DD>-<短主题>.md`
 3. **规则轨**（触发时）：本轮识别到项目级行为规则或知识则更新 `rules.md`（≤150 行，超限同类合并）。规则、排除清单与文件骨架见 [rules-memory.md](rules-memory.md)。
 
 ### Step 2 提交
-代码与 `onememory/` 同批 `git add` + commit（pre-commit 已门禁，禁止 `--no-verify`）。
+代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已门禁，禁止 `--no-verify`）。
 
 ### Step 3 海马体独立落盘
 向 `~/onespace/github/one-hippocampus/memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加单行（日期已在文件名，行内不重复；项目路径以 `~` 开头），并在该仓独立提交：
-- 有会话 ID：`- HH:mm [~/项目完整路径] [ID前8位] 摘要`
+- 有会话 ID：`- HH:mm [~/项目完整路径] [会话ID] 摘要`
 - 无会话 ID：`- HH:mm [~/项目完整路径] 摘要`
 
 ---
