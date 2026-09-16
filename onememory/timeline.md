@@ -40,3 +40,4 @@
 - 2026-09-16 23:52 删除我自造的「两仓三轨」表述；海马体两文件分工写实（preferences=行为偏好，profile=身份事实）
 - 2026-09-16 23:56 边界总表补上海马体主体：每日流水 memory/<YYYY-MM>/<YYYY-MM-DD>.md（原表漏了最主要去向）
 - 2026-09-17 00:05 SKILL.md 规则轨英文提示词整段改中文；memory.md 删掉首读句（读侧已在 SKILL）
+- 2026-09-17 00:5x one-memory SKILL.md：写入通道改远端直写（MCP create_or_update_file / gh api，main 分支，查询仍本地）；description 恢复用户认可的简短版（此前被 AI 塞成长文）；规则轨结构保留
