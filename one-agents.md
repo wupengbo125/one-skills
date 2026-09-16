@@ -9,20 +9,22 @@
 - `CODE_WIKI.md` - **项目地图** （理解这个项目用这个）
 
 ## 自动执行
-**提交代码并更新记忆**：修改完后要提交并push，并执行必须执行 `skill://one-memory` 规范
+**提交代码并更新记忆**：修改完后要提交，并push，并必须执行 `skill://one-memory` 规范，最后一定要汇报已推送代码。如果是 worktree分支，则不执行本规则
 
 ## 宪法
+- **别修改代码**：不要动不动用户问一句话，就开始改代码。那是手贱
 - **极简表达**：对话必须极简——只答结果与结论，不解释代码和理由；
 - **启动与暴露服务**：服务监听 127.0.0.1，执行 `tailscale serve --https <PORT> --bg <PORT>` 暴露 HTTPS。
 
 ## 关键词路由
+github 仓库位置 ~/onespace/github
 卷轴: 调用skill: one-scroll
 记笔记、记到大本子：调用skill: one-wiki
 技能仓库：one-skills
 股票项目：carefree
 艾宾浩斯，技能：one-ebbiii, 项目：ebbiii
 个人知识库、wiki、笔记本：one-llmwiki
-非我的GitHub仓库：ogithub（others github）,要是下载别人的仓库，就放这里
+非我的GitHub仓库：~/onespace/ogithub（others github）,要是下载别人的仓库，就放这里
 像素开花：pixelbloom
 dotfiles、环境配置：dotfiles
 记录生活：调用skill: one-life

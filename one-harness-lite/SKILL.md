@@ -55,7 +55,3 @@ Sub-agent 无记忆、拿需求文档看，最准确。
 - 是 → 同步更新全局活蓝图（`BLUEPRINT.md` 或 `docs/BLUEPRINT.md`）
 - 否（变量名、格式、注释等微小改动）→ 跳过
 
-### 8. 提交
-
-`git commit` + `git push`，极简交付。
-
