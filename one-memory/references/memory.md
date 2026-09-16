@@ -1,6 +1,24 @@
 # 记忆沉淀指南 (Triple-Memory System)
 
-记忆分两处：项目随身记忆 `<项目根>/onememory/`（项目规则 + 改动事实），跨项目记忆 `~/onespace/github/one-hippocampus/`（每日流水 + 个人偏好与画像）。
+记忆分两处：项目随身记忆 `<项目根>/onememory/`（项目规则 + 改动事实），跨项目记忆 `wupengbo125/one-hippocampus`（每日流水 + 个人偏好与画像）。
+
+---
+
+## 〇、海马体写入通道（远端直写）
+
+**海马体写入一律直接操作远端 `wupengbo125/one-hippocampus`（默认分支 main），不做本地 git、不写本地文件**（写入即自动 commit+push 远端）。查询仍走本地 clone（`~/onespace/github/one-hippocampus/`）。
+
+**通道一（主，默认）：gh api** —— 其他 AI / 其他电脑（gh 已登录，自动认证，无需 token）：
+- 读文件/列目录：`gh api repos/wupengbo125/one-hippocampus/contents/<path>`
+- 写/改固定两步（sha/base64 为内部步骤，对用户透明）：
+  1. GET 取当前文件 `.sha`（新建文件无此步）；
+  2. base64 PUT：
+     `gh api --method PUT repos/wupengbo125/one-hippocampus/contents/<path> -f message="<说明>" -f content="<base64内容>" -f branch=main [-f sha=<上一步sha>]`
+- 删除：`--method DELETE` 并带当前 sha。
+- sha 冲突，重新 GET 取最新 sha 再提交，禁止覆盖。
+
+**通道二（仅豆包环境）：github-remote MCP** —— 只在豆包运行时存在 github-remote 工具时用，凭据平台托管：
+- 读/列目录：`get_file_contents`；写/改：`create_or_update_file`（更新已有文件必须带当前 sha，从 `get_file_contents` 取；`branch` 填 `main`）
 
 ---
 
@@ -25,9 +43,9 @@
 ### Step 3 提交
 代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已门禁，禁止 `--no-verify`）。
 
-### Step 4 海马体独立落盘
-用 Step 1 的摘要，向 `~/onespace/github/one-hippocampus/memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加单行（日期已在文件名，行内不重复；项目路径以 `~` 开头），并在该仓独立提交：
+### Step 4 海马体独立落盘（远端直写）
+用 Step 1 的摘要，按「〇、海马体写入通道」直接写远端 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（存在则取 sha 后 PUT 追加，不存在则新建；日期已在文件名，行内不重复；项目路径以 `~` 开头）：
 - 有会话 ID：`- HH:mm [~/项目完整路径] [会话ID] 摘要`
 - 无会话 ID：`- HH:mm [~/项目完整路径] 摘要`
 
----
+偏好与画像同理走远端：稳定偏好追加 `personal/preferences.md`（一条一条，不按天）；长期画像整合进 `personal/profile.md`。
