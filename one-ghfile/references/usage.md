@@ -47,11 +47,11 @@ Agent 框架的四个基础文件操作与 ghfile 一一对应：
 
 - **write 冲突保护**：PUT 前先 GET 取 sha 带上；若远端已被他人改过（sha 不匹配），GitHub 会拒绝，重试即可（重新 get sha 再 PUT）。
 - **edit 防错**：old 文本必须唯一。找不到或多处匹配都不改文件，避免 AI 改错位置。
-- **append**：先 cat 拿到全文，`rstrip` 去尾空行后拼接新行，再整块 write 回去。
+- **append**：先 read 拿到全文，`rstrip` 去尾空行后拼接新行，再整块 write 回去。
 - **大文件限制**：GitHub contents API 上限 100MB，笔记/skill/代码文件完全够用。
 
 ## 错误处理
 
 - gh 未登录：脚本直接报 gh 的错误，先 `gh auth login`。
-- 文件不存在：cat/edit/append 会报错；write 会新建。
+- 文件不存在：read/edit/append 会报错；write 会新建。
 - sha 冲突：GitHub 返回 409，重新执行一次即可（脚本每次都会重新取 sha）。

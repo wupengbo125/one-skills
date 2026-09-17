@@ -17,10 +17,10 @@ GitHub 远端仓库文件操作工具，Agent 标准原语。直接操作远端�
 
 | 命令 | 作用 |
 | :--- | :--- |
-| `list` | 列远端目录（同 `ls`） |
-| `read` | 读远端文件（同 `cat`） |
+| `list` | 列远端目录 |
+| `read` | 读远端文件 |
 | `write` | 写/覆盖远端文件 |
-| `delete` | 删远端文件（同 `rm`） |
+| `delete` | 删远端文件 |
 | `edit` | 局部替换/插入（old 唯一才成功） |
 | `append` | 末尾追加一行 |
 
@@ -39,7 +39,7 @@ python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py <cmd> <repo> <
 | edit | `ghfile.py edit <repo> <path> "<old文本>" "<new文本>"` |
 | append | `ghfile.py append <repo> <path> "<新内容>"` |
 
-兼容别名：`ls`=list，`cat`=read，`rm`=delete。默认分支 `main`，可用 `--branch b` 覆盖。
+默认分支 `main`，可用 `--branch b` 覆盖。
 
 ## 规则
 - 写/改自动带 sha，无冲突覆盖；sha 冲突重试即可。

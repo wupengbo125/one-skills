@@ -45,3 +45,4 @@
 - 2026-09-17 13:1x 新增 one-ghfile skill：远端文件操作 CLI（ls/cat/write/rm/edit/append），底层 gh api 主通道 + GITHUB_TOKEN 兜底
 - 2026-09-17 13:2x one-ghfile 通道修正：豆包环境用 github-remote MCP，其他环境用 ghfile.py（gh api）
 - 2026-09-17 13:3x one-ghfile 命令名改为 Agent 标准原语：list/read/write/delete/edit/append（ls/cat/rm 为兼容别名）
+- 2026-09-17 13:4x one-ghfile 删除 ls/cat/rm 别名，仅保留 Agent 标准原语 list/read/write/delete/edit/append
