@@ -8,7 +8,6 @@ fts.py - 个人仓库 FTS5 全文检索与索引同步（统一版）
   fts.py search <关键词>   # BM25 全文检索
   fts.py sync <路径>       # 增量同步单篇到索引
   fts.py rebuild           # 全量重建索引
-  fts.py recent [天数]     # 按日期倒序列出最近 N 天（日记/流水）
   fts.py <关键词>          # 等价 search
 """
 
@@ -292,38 +291,14 @@ def cmd_search(query_str):
         print(f"\n{idx}. 📄 {loc} (类别: {category})")
         print(f"   摘要: {snip}")
 
-def cmd_recent(days):
-    """按日期倒序列出最近 N 天日记/流水，直接给出当天内容。"""
-    repo_dir = get_repo_dir()
-    files = []
-    for root, _dirs, names in os.walk(repo_dir):
-        if os.path.basename(root).startswith("."):
-            continue
-        for n in names:
-            if n.endswith(".md") and re.match(r'^\d{4}-\d{2}-\d{2}', n):
-                files.append(os.path.join(root, n))
-    files.sort(reverse=True)
-    picked = files[:days]
-    if not picked:
-        print("📭 还没有任何日记/流水。")
-        return
-    print(f"🗓️ [最近 {len(picked)} 天]")
-    for f in picked:
-        rel = os.path.relpath(f, repo_dir)
-        with open(f, "r", encoding="utf-8") as fh:
-            body = fh.read().strip()
-        body = re.sub(r'^#.*\n', '', body).strip()
-        preview = re.sub(r'\s+', ' ', body)[:400]
-        print(f"\n- {rel}\n  {preview}")
-
 def main():
     if len(sys.argv) < 2:
-        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | recent [天数] | <关键词>]")
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
         sys.exit(0)
 
     cmd = sys.argv[1]
     if cmd in ["-h", "--help", "help"]:
-        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | recent [天数] | <关键词>]")
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
     elif cmd == "rebuild":
         cmd_rebuild()
     elif cmd == "sync":
@@ -336,9 +311,6 @@ def main():
             print(">>> 请输入检索关键词")
             sys.exit(1)
         cmd_search(" ".join(sys.argv[2:]))
-    elif cmd == "recent":
-        days = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 7
-        cmd_recent(days)
     else:
         cmd_search(" ".join(sys.argv[1:]))
 
