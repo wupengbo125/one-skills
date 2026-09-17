@@ -61,3 +61,4 @@
 - 2026-09-17 22:21 [01a0af6f-8886-7750-9458-6335a77bc184] write-memory 台词精简：移除会话ID说教分支，统一单行格式
 - 2026-09-17 22:15 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-harness-lite 与 one-memory 扩展台词统一改造为动态读取 SKILL.md description
 - 2026-09-17 22:37 [01a0af6f-8886-7750-9458-6335a77bc184] 海马体废弃旧tasks目录，read-memory收敛为3类专用直达通道
+- 2026-09-17 22:58 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-life 技能架构重构：完全对齐 one-wiki 的 note/ingest/query/lint 四操作分流与参考规范
