@@ -2,7 +2,12 @@
 
 ## 通道
 
-底层全部调用 `gh api`（gh 已登录自动认证，无需 token），不依赖 MCP。任何装了 gh 并登录的机器都能用。
+| 环境 | 通道 | 说明 |
+| :--- | :--- | :--- |
+| 豆包环境 | **github-remote MCP** | `get_file_contents`（读/列目录）、`create_or_update_file`（写/改，带 sha + branch=main）、`delete_file`（删）。凭据平台托管，无需 token |
+| 其他 AI / 其他电脑 | **ghfile.py 脚本（gh api）** | gh 已登录自动认证，无需 token |
+
+两通道效果完全等价：写入即自动 commit+push 远端 main 分支。
 
 ## 脚本路径
 

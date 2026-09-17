@@ -6,7 +6,12 @@ argument-hint: "ls | cat | write | rm | edit | append, 以及 repo/path/内容"
 
 # One Ghfile (远端文件操作)
 
-GitHub 远端仓库文件操作工具，4 个 Agent 基础原语 + edit。底层 `gh api`（gh 已登录，自动认证），直接操作远端，不写本地文件、不做本地 git。
+GitHub 远端仓库文件操作工具，4 个 Agent 基础原语 + edit。直接操作远端，不写本地文件、不做本地 git。
+
+## 通道
+
+- **豆包环境**：用 github-remote MCP（`get_file_contents` / `create_or_update_file` / `delete_file`），凭据平台托管，无需 token
+- **其他环境（其他 AI / 其他电脑）**：用 ghfile.py 脚本（gh api，gh 已登录自动认证）
 
 ## 工具
 
@@ -19,7 +24,7 @@ GitHub 远端仓库文件操作工具，4 个 Agent 基础原语 + edit。底层
 | `edit` | 局部替换/插入（old 唯一才成功） |
 | `append` | 末尾追加一行 |
 
-## 用法
+## 用法（ghfile.py）
 
 ```bash
 python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py <cmd> <repo> <path...>
