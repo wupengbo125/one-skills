@@ -15,11 +15,10 @@ one-skills/one-memory/
 ├── pi-extension/            # 【Pi & OMP 专属扩展层】
 │   ├── index.ts             # 扩展入口：常驻规则注入与命令注册
 │   └── memory-rules.md      # 动态台词：定义触发/抑制规则（改动实时生效）
-├── hooks/                   # 【通用 Git 钩子层】
-│   ├── commit-msg           # 提交信息强校验（必须带海马体 hash）
-│   ├── install.sh           # 单仓安装脚本
-│   ├── post-commit          # 海马体提交自动同步索引
-│   └── install-hooks.sh     # 批量分发脚本
+├── hooks/ 【通用 Git 钩子层】
+│   ├── pre-commit 代码改动与 onememory/ 随身记忆原子提交门禁
+│   ├── post-commit 海马体提交自动同步索引
+│   └── install-hook.sh 钩子分发脚本
 ├── scripts/                 # 【脚本目录】
 │   └── memory.py           # BM25 检索、增量/全量建库、流水与自清洁
 ├── references/              # 【按需执行指南】
@@ -34,14 +33,13 @@ one-skills/one-memory/
 提供两种独立且互不污染的接入方式，可按需组合：
 
 ### 1. 模式 A：通用 Git 钩子 (Universal Git Hooks)
-- **适用**：任何终端 Git、任何 AI Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
-- **机制**：提交代码时检测海马体更新，超时则输出强系统指令阻止交差。
+- **适用**：任何终端 Git、任何 Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
+- **机制**：提交代码时检测 `onememory/` 随身记忆；海马体提交后自动同步检索索引。
 - **安装**：
   ```bash
-  bash one-skills/one-memory/hooks/install-hooks.sh
+  bash one-skills/one-memory/hooks/install-hook.sh
   ```
-- **卸载**：删除对应仓库 `.git/hooks/post-commit`。
-
+- **卸载**：删除对应仓库 `.git/hooks/pre-commit` 或 `.git/hooks/post-commit`。
 ### 2. 模式 B：Pi & OMP 原生扩展 (Pi Extension Package)
 - **适用**：Pi Coding Agent 与 Oh My Pi。
 - **机制**：
