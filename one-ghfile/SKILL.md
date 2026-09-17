@@ -6,12 +6,12 @@ argument-hint: "list | read | write | delete | edit | append, 以及 repo/path/�
 
 # One Ghfile (远端文件操作)
 
-GitHub 远端仓库文件操作工具，Agent 标准原语。直接操作远端，不写本地文件、不做本地 git。
+GitHub 远端仓库文件操作，Agent 标准原语：`list` / `read` / `write` / `delete` / `edit` / `append`。直接操作远端，不写本地文件、不做本地 git。
 
 ## 通道
 
-- **豆包环境**：用 github-remote MCP（`get_file_contents` / `create_or_update_file` / `delete_file`），凭据平台托管，无需 token
-- **其他环境（其他 AI / 其他电脑）**：用 ghfile.py 脚本（gh api，gh 已登录自动认证）
+- **豆包环境**：不走本 skill 的命令。直接用 github-remote MCP：`get_file_contents`（读/列目录）、`create_or_update_file`（写/改，带 sha + branch=main）、`delete_file`（删）。凭据平台托管，与 ghfile.py 无关。
+- **其他环境（其他 AI / 其他电脑）**：用 ghfile.py 脚本（gh api，gh 已登录自动认证）。这是本 skill 命令的唯一使用场景。
 
 ## 工具
 
@@ -45,3 +45,5 @@ python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py <cmd> <repo> <
 - 写/改自动带 sha，无冲突覆盖；sha 冲突重试即可。
 - `edit` 的 old 必须唯一，多匹配会拒绝（防改错）。
 - 追加（append）→ 脚本内部先 read 再拼接到 write。
+- gh 未登录：先 `gh auth login`。
+- 文件不存在：`read` / `edit` / `append` 报错；`write` 自动新建。
