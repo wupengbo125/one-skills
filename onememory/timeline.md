@@ -59,3 +59,4 @@
 - 2026-09-17 22:05 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-implement 插件提醒台词改为动态从 SKILL.md 的 description 读取
 - 2026-09-17 22:12 [01a0af6f-8886-7750-9458-6335a77bc184] one-memory 分流重构：独立 read-memory、write-memory 与 rules-memory 引用
 - 2026-09-17 22:21 [01a0af6f-8886-7750-9458-6335a77bc184] write-memory 台词精简：移除会话ID说教分支，统一单行格式
+- 2026-09-17 22:15 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-harness-lite 与 one-memory 扩展台词统一改造为动态读取 SKILL.md description

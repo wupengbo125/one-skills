@@ -51,8 +51,15 @@ interface ExtensionAPI {
   exec: (command: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
 }
 
-const HARNESS_REMINDER =
-  "\n\n[Harness Lite 提醒] 文件已修改。请牢记轻量审查流程：改动完成后切勿直接 commit，必须派全新 Sub-agent 传入用户原始需求与`git diff HEAD`进行等号审查，通过后判断是否更新活蓝图再提交。";
+async function getDescription(): Promise<string> {
+  try {
+    const raw = await fs.readFile(RULES_PATH, "utf-8");
+    const match = raw.match(/^description:\s*["']?(.*?)["']?$/m);
+    return match?.[1]?.trim() || "轻量开发流程";
+  } catch {
+    return "轻量开发流程";
+  }
+}
 
 export default function harnessLiteExtension(pi: ExtensionAPI): void {
   // 1. 每轮对话前动态将 Harness Lite 准则注入 systemPrompt
@@ -82,13 +89,14 @@ export default function harnessLiteExtension(pi: ExtensionAPI): void {
   pi.on("tool_result", async (event: unknown) => {
     const e = event as ToolResultEvent;
     if ((e.toolName === "edit" || e.toolName === "write") && !e.isError) {
+      const desc = await getDescription();
       const originalContent = Array.isArray(e.content) ? e.content : [];
       return {
         content: [
           ...originalContent,
           {
             type: "text",
-            text: HARNESS_REMINDER,
+            text: `\n\n[Harness Lite 提醒] 文件已修改。${desc}`,
           },
         ],
       };
@@ -99,7 +107,8 @@ export default function harnessLiteExtension(pi: ExtensionAPI): void {
   pi.registerCommand("harness", {
     description: "Harness Lite 轻量审查状态与指引",
     handler: async (_args: string, ctx: CommandContext) => {
-      ctx?.ui?.notify?.("Harness Lite 插件处于激活状态：改动文件后将强制 Sub-agent 等号审查", "info");
+      const desc = await getDescription();
+      ctx?.ui?.notify?.(`Harness Lite 处于激活状态：${desc}`, "info");
     },
   });
 }

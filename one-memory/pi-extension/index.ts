@@ -5,6 +5,17 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RULES_PATH = path.join(__dirname, "memory-rules.md");
 const SCRIPT_PATH = path.join(__dirname, "../scripts/fts.py");
+const SKILL_PATH = path.resolve(__dirname, "../SKILL.md");
+
+async function getDescription(): Promise<string> {
+  try {
+    const raw = await fs.readFile(SKILL_PATH, "utf-8");
+    const match = raw.match(/^description:\s*["']?(.*?)["']?$/m);
+    return match?.[1]?.trim() || "海马体记忆系统";
+  } catch {
+    return "海马体记忆系统";
+  }
+}
 
 interface AgentStartEvent {
   systemPrompt?: string;
@@ -90,7 +101,8 @@ export default function hippocampusExtension(pi: ExtensionAPI): void {
         }
         return;
       }
-      ctx?.ui?.notify?.("Hippocampus memory extension active (rules: memory-rules.md)", "info");
+      const desc = await getDescription();
+      ctx?.ui?.notify?.(`Hippocampus memory 处于激活状态：${desc}`, "info");
     },
   });
 }

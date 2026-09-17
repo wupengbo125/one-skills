@@ -1,6 +1,6 @@
 ---
 name: one-harness-lite
-description: "轻量开发流程"
+description: "轻量审查流程：改动完成后切勿直接 commit，必须派全新 Sub-agent 拿用户需求与 git diff 做等号审查"
 argument-hint: "用户需求描述"
 disable-model-invocation: true
 ---
