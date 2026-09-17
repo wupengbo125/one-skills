@@ -22,16 +22,14 @@ python3 ~/onespace/github/one-skills/one-memory/scripts/fts.py search "<关键�
 
 ## 二、 专用直达通道 (特权场景免搜索)
 
-仅当用户诉求非常纯粹，属于以下 2 种专用场景时，才无需 BM25 检索，直达指定文档：
+仅当用户诉求非常纯粹，属于以下 3 种专用场景时，才无需 BM25 检索，直达指定文档：
 
 1. **查历史流水（“最近干了什么”、“查近期历史”、“流水日志”）**：
-   - 直接列当月文件：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读取对应当日文件。
+   直接列当月文件：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读取对应当日文件。
 2. **查稳定偏好（“我的偏好”、“习惯”、“喜不喜欢”）**：
-   - 直接读取：`~/onespace/github/one-hippocampus/personal/preferences.md`
-3. **查已完成任务（“之前做过什么改造”、“任务历史”）**：
-   - 直接列目录：ls ~/onespace/github/one-hippocampus/tasks/，按会话 ID 读取对应 tasks/<taskID>.md；旧任务档案见 task_history.md
-4. **查用户画像（“用户习惯”、“身份”、“信仰”、“健康”、“出行偏好”）**：
-   - 直接读取：`~/onespace/github/one-hippocampus/personal/profile.md`
+   直接读取：`~/onespace/github/one-hippocampus/personal/preferences.md`
+3. **查用户画像（“用户习惯”、“身份”、“信仰”、“健康”、“出行偏好”）**：
+   直接读取：`~/onespace/github/one-hippocampus/personal/profile.md`
 
 ---
 

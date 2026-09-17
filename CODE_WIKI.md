@@ -98,7 +98,7 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
   - `hooks/pre-commit`：暂存区有非 onememory/ 改动却无 onememory/ 文件 → 拒绝提交（`--no-verify` 可绕过）。
   - `hooks/post-commit`：仅 one-hippocampus 仓提交时，对本 diff 的 .md 逐个 `memory.py sync`（静默）。
 - Pi 扩展 `pi-extension/index.ts`：`before_agent_start` 每轮热注入 memory-rules.md + 会话 ID；命令 `/wrap`（收工沉淀）、`/memory sync`（rebuild）。
-- SOP：查资料第一步必跑 BM25，只精读命中 1~2 篇；查今日流水/偏好/画像/任务案卷走直达路径（见 references/read-memory.md）。
+- SOP：查资料第一步必跑 BM25，只精读命中 1~2 篇；查今日流水/偏好/画像走直达路径（见 references/read-memory.md）。
 
 ## 6. one-wiki 四操作要点
 
