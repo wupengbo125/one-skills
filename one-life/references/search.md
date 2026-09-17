@@ -3,7 +3,7 @@
 ## 点查（"我上次去 X"、"上次什么时候 X"、"那次…"）
 
 ```bash
-python3 ~/onespace/github/one-life/scripts/fts.py search "五台山"
+python3 ~/onespace/github/one-skills/one-life/scripts/fts.py search "五台山"
 ```
 
 - BM25 返回 Top-5，带日期路径与高亮摘要
@@ -13,8 +13,8 @@ python3 ~/onespace/github/one-life/scripts/fts.py search "五台山"
 ## 回顾（"最近干了啥"、"最近怎么样"、"这个月怎么样"）
 
 ```bash
-python3 ~/onespace/github/one-life/scripts/fts.py recent 7     # 最近 7 天
-python3 ~/onespace/github/one-life/scripts/fts.py recent 30    # 最近 30 天
+python3 ~/onespace/github/one-skills/one-life/scripts/fts.py recent 7     # 最近 7 天
+python3 ~/onespace/github/one-skills/one-life/scripts/fts.py recent 30    # 最近 30 天
 ```
 
 按日期倒序输出当天正文（每篇截 400 字）。要细节再打开对应日期文件。

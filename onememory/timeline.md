@@ -51,3 +51,4 @@
 - 2026-09-17 14:1x one-ghfile 豆包映射移入 references/doubao.md（特例）；SKILL.md 与 wiki/memory 通道均改为默认 ghfile.py 在前、豆包特例在后
 - 2026-09-17 15:3x 对齐用户改动（SKILL.md 通道措辞、gh未登录措辞）；wiki/memory references 明确写「调用 one-ghfile skill（先读 SKILL.md）」，不再只给名词
 - 2026-09-17 16:0x 三个数据仓检索脚本统一为 fts.py（one-memory/one-wiki 在 one-skills 仓、one-life 在 one-life 仓），同目录 fts.conf 单参数 REPO_DIR 区分数据仓；删除 memory.py/wiki.py/life.py，引用全量更新
+- 2026-09-17 16:2x 纠正：one-life 脚本移至技能目录 one-skills/one-life/scripts/fts.py（脚本必须随技能走）；数据仓 one-life 删除 scripts/，post-commit/readme 路径改技能路径

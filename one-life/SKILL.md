@@ -15,9 +15,9 @@ description: "生活日记：「记录生活」查生活日记。"
 - **记日记 / 记录生活 / 「今天…」「昨天…」「去了…」「吃了…」「买了…」「见了…」**：
   - 按 [references/write.md](references/write.md) 追加到当日文件并提交推送
 - **查生活日记「我上次去 X」「上次什么时候 X」**：
-  - `python3 ~/onespace/github/one-life/scripts/fts.py search "<关键词>"`
+  - `python3 ~/onespace/github/one-skills/one-life/scripts/fts.py search "<关键词>"`
 - **回顾「最近干了啥」「最近怎么样」**：
-  - `python3 ~/onespace/github/one-life/scripts/fts.py recent 7`
+  - `python3 ~/onespace/github/one-skills/one-life/scripts/fts.py recent 7`
 - **整理 / 月末回顾 / 蒸馏**：
   - 规则见 [references/distill.md](references/distill.md)
 
