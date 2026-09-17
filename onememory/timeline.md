@@ -56,3 +56,4 @@
 - 2026-09-17 21:07 [01a0af6f-8886-7750-9458-6335a77bc184] 重构 one-memory 钩子脚本为 install-hook.sh，删除 install.sh 及 commit-msg 历史残留
 - 2026-09-17 21:41 [01a0af6f-8886-7750-9458-6335a77bc184] 蓝图条目按目录层级聚合重构并补齐 one-ghfile
 - 2026-09-17 22:00 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 创建 one-implement 极简实现技能包，平铺计划并防多改，同步蓝图与代码地图
+- 2026-09-17 22:12 [01a0af6f-8886-7750-9458-6335a77bc184] one-memory 分流重构：独立 read-memory、write-memory 与 rules-memory 引用

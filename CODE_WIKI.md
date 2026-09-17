@@ -22,7 +22,7 @@ one-skills/
 ├── install.sh               # 交互式分发：软链技能/宪法、卸载、装记忆钩子
 ├── install-others.sh        # 第三方技能/工具批量安装
 ├── one-wiki/                # 个人知识库：SKILL.md + references/{note,ingest,query,lint}.md + scripts/wiki.py
-├── one-memory/              # 海马体记忆：SKILL.md + references/{memory,search-memory}.md + scripts/memory.py + hooks/ + pi-extension/
+├── one-memory/     海马体记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/ pi-extension/
 ├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
@@ -99,7 +99,7 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
   - `hooks/pre-commit`：暂存区有非 onememory/ 改动却无 onememory/ 文件 → 拒绝提交（`--no-verify` 可绕过）。
   - `hooks/post-commit`：仅 one-hippocampus 仓提交时，对本 diff 的 .md 逐个 `memory.py sync`（静默）。
 - Pi 扩展 `pi-extension/index.ts`：`before_agent_start` 每轮热注入 memory-rules.md + 会话 ID；命令 `/wrap`（收工沉淀）、`/memory sync`（rebuild）。
-- 检索 SOP：查资料第一步必跑 BM25，只精读命中 1~2 篇；查今日流水/偏好/画像/任务案卷走直达路径（见 references/search-memory.md）。
+- SOP：查资料第一步必跑 BM25，只精读命中 1~2 篇；查今日流水/偏好/画像/任务案卷走直达路径（见 references/read-memory.md）。
 
 ## 6. one-wiki 四操作要点
 

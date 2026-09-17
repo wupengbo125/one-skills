@@ -74,11 +74,11 @@ one-skills/one-memory/
 ## 四、 记忆沉淀机制（三轨）
 
 ### 1. 自动记忆（编码产生实质修改时自动落盘）
-- 遵循 `references/memory.md`；
+- 规则见 `references/write-memory.md`
 - 会话产生实质代码或配置修改时，向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水。
 
 ### 2. 收工记忆（用户主动输入“收工”）
-- 遵循 `references/memory.md`；
+- 规则见 `references/write-memory.md`
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **流水沉淀**：向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
 - **索引同步**：执行 `scripts/fts.py sync` 同步当日文件索引。
