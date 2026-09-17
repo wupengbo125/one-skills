@@ -51,8 +51,15 @@ interface ExtensionAPI {
   exec: (command: string, args: string[]) => Promise<{ code: number; stdout: string; stderr: string }>;
 }
 
-const IMPLEMENT_REMINDER =
-  "\n\n[One Implement 提醒] 文件已修改。请牢记极简实现流程：平铺计划，最小化实现，切勿多改。改动完成后切勿直接 commit，必须对照用户需求做等号审查，通过后判断是否更新活蓝图再提交。";
+async function getDescription(): Promise<string> {
+  try {
+    const raw = await fs.readFile(RULES_PATH, "utf-8");
+    const match = raw.match(/^description:\s*["']?(.*?)["']?$/m);
+    return match?.[1]?.trim() || "平铺计划，最小化实现，严防多改";
+  } catch {
+    return "平铺计划，最小化实现，严防多改";
+  }
+}
 
 export default function oneImplementExtension(pi: ExtensionAPI): void {
   // 1. 每轮对话前动态将 One Implement 准则注入 systemPrompt
@@ -82,13 +89,14 @@ export default function oneImplementExtension(pi: ExtensionAPI): void {
   pi.on("tool_result", async (event: unknown) => {
     const e = event as ToolResultEvent;
     if ((e.toolName === "edit" || e.toolName === "write") && !e.isError) {
+      const desc = await getDescription();
       const originalContent = Array.isArray(e.content) ? e.content : [];
       return {
         content: [
           ...originalContent,
           {
             type: "text",
-            text: IMPLEMENT_REMINDER,
+            text: `\n\n[One Implement 提醒] 文件已修改。${desc}`,
           },
         ],
       };
@@ -99,7 +107,8 @@ export default function oneImplementExtension(pi: ExtensionAPI): void {
   pi.registerCommand("implement", {
     description: "One Implement 极简实现状态与指引",
     handler: async (_args: string, ctx: CommandContext) => {
-      ctx?.ui?.notify?.("One Implement 插件处于激活状态：平铺计划，最小化实现，严防多改，改动后强制等号审查", "info");
+      const desc = await getDescription();
+      ctx?.ui?.notify?.(`One Implement 处于激活状态：${desc}`, "info");
     },
   });
 }

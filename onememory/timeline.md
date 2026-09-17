@@ -56,4 +56,6 @@
 - 2026-09-17 21:07 [01a0af6f-8886-7750-9458-6335a77bc184] 重构 one-memory 钩子脚本为 install-hook.sh，删除 install.sh 及 commit-msg 历史残留
 - 2026-09-17 21:41 [01a0af6f-8886-7750-9458-6335a77bc184] 蓝图条目按目录层级聚合重构并补齐 one-ghfile
 - 2026-09-17 22:00 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 创建 one-implement 极简实现技能包，平铺计划并防多改，同步蓝图与代码地图
+- 2026-09-17 22:05 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-implement 插件提醒台词改为动态从 SKILL.md 的 description 读取
 - 2026-09-17 22:12 [01a0af6f-8886-7750-9458-6335a77bc184] one-memory 分流重构：独立 read-memory、write-memory 与 rules-memory 引用
+- 2026-09-17 22:21 [01a0af6f-8886-7750-9458-6335a77bc184] write-memory 台词精简：移除会话ID说教分支，统一单行格式

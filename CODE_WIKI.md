@@ -94,7 +94,6 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 ## 5. one-memory 记忆机制
 
 - 双轨：项目随身记忆 `<项目>/onememory/timeline.md`（单文件流水）+ `onememory/tasks/<会话ID>.md`（案卷），与代码**同批原子提交**；全局中枢 one-hippocampus 只单向记账 `- HH:mm [~/项目路径] [会话ID] 摘要`。摘要"单次生成，双处落盘"。
-- 无会话 ID 时不伪造、不建案卷。
 - hooks：
   - `hooks/pre-commit`：暂存区有非 onememory/ 改动却无 onememory/ 文件 → 拒绝提交（`--no-verify` 可绕过）。
   - `hooks/post-commit`：仅 one-hippocampus 仓提交时，对本 diff 的 .md 逐个 `memory.py sync`（静默）。
