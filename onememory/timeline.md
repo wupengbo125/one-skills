@@ -52,3 +52,4 @@
 - 2026-09-17 15:3x 对齐用户改动（SKILL.md 通道措辞、gh未登录措辞）；wiki/memory references 明确写「调用 one-ghfile skill（先读 SKILL.md）」，不再只给名词
 - 2026-09-17 16:0x 三个数据仓检索脚本统一为 fts.py（one-memory/one-wiki 在 one-skills 仓、one-life 在 one-life 仓），同目录 fts.conf 单参数 REPO_DIR 区分数据仓；删除 memory.py/wiki.py/life.py，引用全量更新
 - 2026-09-17 16:2x 纠正：one-life 脚本移至技能目录 one-skills/one-life/scripts/fts.py（脚本必须随技能走）；数据仓 one-life 删除 scripts/，post-commit/readme 路径改技能路径
+- 2026-09-17 17:2x 钩子按技能拆分：post-commit 三份（one-memory→one-hippocampus、one-wiki→one-llmwiki、one-life→one-life），各配 install-hook.sh（只装钩子不装skill，先清旧钩子）；删除旧全局 one-memory/hooks/install-hooks.sh；外层 install.sh 只管装skill 不动钩子

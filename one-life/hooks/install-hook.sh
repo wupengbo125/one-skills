@@ -1,0 +1,12 @@
+#!/bin/bash
+# install-hook.sh: 安装 one-life 的 post-commit 钩子到 one-life
+# 只装钩子，不安装 skill 本体。
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+GIT_DIR="$HOME/onespace/github/one-life/.git"
+[ -d "$GIT_DIR" ] || { echo "❌ 找不到 one-life 仓库：$GIT_DIR"; exit 1; }
+
+rm -f "$GIT_DIR/hooks/post-commit"
+cp "$SCRIPT_DIR/post-commit" "$GIT_DIR/hooks/post-commit"
+chmod +x "$GIT_DIR/hooks/post-commit"
+echo "✅ one-life post-commit 已安装到 one-life/.git/hooks/（旧钩子已清理）"
