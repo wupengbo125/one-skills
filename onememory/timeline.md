@@ -70,3 +70,4 @@
 - 2026-09-18 00:1x fts.py recent 匹配改为日期开头（兼容 YYYY-MM-DD-slug.md 与纯日期名），三份同步
 - 2026-09-18 00:3x fts.py 删除 recent 功能（recent 是大模型直接 ls/read 文件的事，不该走脚本）；one-life query.md 近期回顾改为直接 ls raw/ 读最新文件
 - 2026-09-18 00:5x one-life note.md：日记落盘改为 raw/<YYYY-MM>/ 月份目录（带横杠如 2026-08），笔记放月份目录内
+- 2026-09-18 01:0x one-wiki note.md：笔记落盘同样改为 raw/<YYYY-MM>/ 月份目录，与 one-life 一致
