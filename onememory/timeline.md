@@ -71,3 +71,4 @@
 - 2026-09-18 00:3x fts.py 删除 recent 功能（recent 是大模型直接 ls/read 文件的事，不该走脚本）；one-life query.md 近期回顾改为直接 ls raw/ 读最新文件
 - 2026-09-18 00:5x one-life note.md：日记落盘改为 raw/<YYYY-MM>/ 月份目录（带横杠如 2026-08），笔记放月份目录内
 - 2026-09-18 01:0x one-wiki note.md：笔记落盘同样改为 raw/<YYYY-MM>/ 月份目录，与 one-life 一致
+- 2026-09-18 01:1x 纠正：one-wiki note.md 回滚（未要求改动）；one-life 初次写入仍在 raw 根目录，ingest 时才移动到 raw/<YYYY-MM>/ 月份目录（参考 one-wiki 的 raw 根目录摄入+ingest 归档模式）
