@@ -1,11 +1,10 @@
 ---
 name: one-harness-lite
-description: "轻量开发流程：改任何文件自动触发。若已调用重型one-harness则不触发。"
+description: "轻量开发流程"
 argument-hint: "用户需求描述"
+disable-model-invocation: true
 ---
 # 轻量开发流程 (Harness Lite)
-
-改任何文件时自动触发的轻量审查流程。若本会话已调用重型 `one-harness`，则本流程不触发。
 
 ---
 
