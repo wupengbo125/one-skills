@@ -1,6 +1,6 @@
-# One Free-Me (超级我)：个人专属数字化身与海马体中枢
+# One Free-Me (超级我)：个人专属数字化身与海马记忆仓中枢
 
-One Free-Me 是连接用户数字化身与海马体纯数据仓（`one-hippocampus`）的认知与技能中枢。
+One Free-Me 是连接用户数字化身与海马记忆仓纯数据仓（`one-hippocampus`）的认知与技能中枢。
 
 ---
 
@@ -17,7 +17,7 @@ one-skills/one-memory/
 │   └── memory-rules.md      # 动态台词：定义触发/抑制规则（改动实时生效）
 ├── hooks/ 【通用 Git 钩子层】
 │   ├── pre-commit 代码改动与 onememory/ 随身记忆原子提交门禁
-│   ├── post-commit 海马体提交自动同步索引
+│   ├── post-commit 海马记忆仓提交自动同步索引
 │   └── install-hook.sh 钩子分发脚本
 ├── scripts/                 # 【脚本目录】
 │   └── memory.py           # BM25 检索、增量/全量建库、流水与自清洁
@@ -34,7 +34,7 @@ one-skills/one-memory/
 
 ### 1. 模式 A：通用 Git 钩子 (Universal Git Hooks)
 - **适用**：任何终端 Git、任何 Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
-- **机制**：提交代码时检测 `onememory/` 随身记忆；海马体提交后自动同步检索索引。
+- **机制**：提交代码时检测 `onememory/` 随身记忆；海马记忆仓提交后自动同步检索索引。
 - **安装**：
   ```bash
   bash one-skills/one-memory/hooks/install-hook.sh
@@ -86,7 +86,7 @@ one-skills/one-memory/
 ### 3. 规则记忆（规则轨，写入项目 `onememory/rules.md`）
 - 遵循 `references/rules-memory.md`；
 - **触发**：用户教导行为模式 / 纠正助手行为 / 表达偏好实现方式，或 Agent 在构建/测试/调试/部署中发现项目知识时；
-- **边界**：只记"怎么做"（行为规则），不记"做了什么"（落入事实轨 tasks/ 案卷）；跨项目个人偏好走海马体 `personal/preferences.md`；
+- **边界**：只记"怎么做"（行为规则），不记"做了什么"（落入事实轨 tasks/ 案卷）；跨项目个人偏好走海马记忆仓 `personal/preferences.md`；
 - **治理**：单文件上限 150 行，超限同类合并；改动与代码同批提交，不参与门禁强校验；
 - **读取**：进入项目首次回复前，若存在 `onememory/rules.md` 必须先读，作为项目级指令。
 
@@ -110,6 +110,6 @@ python3 scripts/fts.py clean
 # 4. 增量同步单篇文档索引
 python3 scripts/fts.py sync "<相对路径>"
 
-# 5. 全量重建海马体 .fts.db 索引
+# 5. 全量重建海马记忆仓 .fts.db 索引
 python3 scripts/fts.py rebuild
 ```

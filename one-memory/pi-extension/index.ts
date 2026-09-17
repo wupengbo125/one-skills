@@ -11,9 +11,9 @@ async function getDescription(): Promise<string> {
   try {
     const raw = await fs.readFile(SKILL_PATH, "utf-8");
     const match = raw.match(/^description:\s*["']?(.*?)["']?$/m);
-    return match?.[1]?.trim() || "海马体记忆系统";
+    return match?.[1]?.trim() || "海马记忆仓记忆系统";
   } catch {
-    return "海马体记忆系统";
+    return "海马记忆仓记忆系统";
   }
 }
 
@@ -72,7 +72,7 @@ export default function hippocampusExtension(pi: ExtensionAPI): void {
     description: "Wrap up current session and record to hippocampus daily log",
     handler: async (args: string, ctx: CommandContext) => {
       const extra = typeof args === "string" && args.trim() ? `: ${args.trim()}` : "";
-      const msg = `收工${extra}。请总结当前会话关键成果与决策，按规范追加至今日海马体流水并同步索引。`;
+      const msg = `收工${extra}。请总结当前会话关键成果与决策，按规范追加至今日海马记忆仓流水并同步索引。`;
       if (ctx?.isIdle?.() === false) {
         pi.sendUserMessage(msg, { deliverAs: "followUp" });
       } else {

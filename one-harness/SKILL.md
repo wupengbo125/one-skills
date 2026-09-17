@@ -32,7 +32,7 @@ disable-model-invocation: true
    └── Sub-agent B（Spec 轴）：将对话直接当 Spec，查遗漏、蔓延、实现错误
    │
    ▼
-5. 交付闸门（主 Agent 验收：确认代码与蓝图同步更新无误，写海马体记忆，Commit 并交付）
+5. 交付闸门（主 Agent 验收：确认代码与蓝图同步更新无误，写海马记忆仓记忆，Commit 并交付）
 ```
 
 ---
@@ -105,6 +105,6 @@ Worker Sub-agent 完工后仅向主 Agent 返回简短执行总结（改动文�
 1. **被打回**：主 Agent 重新唤醒 Worker Sub-agent，命令其补正蓝图或剔除违规代码，修完重新 Review。
 2. **交付闸门**：
    - 两轴审查通过后，自检若涉及功能变更确认蓝图已保持一致。
-   - 主 Agent 记录今日海马体记忆并同步索引。
+   - 主 Agent 记录今日海马记忆仓记忆并同步索引。
    - 本地 `git commit` 并 `git push`。
    - 向用户极简交付结果。

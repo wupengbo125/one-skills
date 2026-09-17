@@ -22,7 +22,7 @@ one-skills/
 ├── install.sh               # 交互式分发：软链技能/宪法、卸载、装记忆钩子
 ├── install-others.sh        # 第三方技能/工具批量安装
 ├── one-wiki/                # 个人知识库：SKILL.md + references/{note,ingest,query,lint}.md + scripts/wiki.py
-├── one-memory/     海马体记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/ pi-extension/
+├── one-memory/     海马记忆仓记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/ pi-extension/
 ├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md

@@ -1,6 +1,6 @@
 # 查资料与记忆检索指南
 
-海马体数据仓路径：`~/onespace/github/one-hippocampus/`
+海马记忆仓数据仓路径：`~/onespace/github/one-hippocampus/`
 
 ---
 

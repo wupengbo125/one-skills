@@ -1,7 +1,7 @@
-- 2026-09-10 23:28 [01a08ba7] 重构双轨记忆系统：确立项目 onememory/ 案卷与海马体跨项目全景时间线规范，完成 pre-commit 本地门禁
+- 2026-09-10 23:28 [01a08ba7] 重构双轨记忆系统：确立项目 onememory/ 案卷与海马记忆仓跨项目全景时间线规范，完成 pre-commit 本地门禁
 - 2026-09-10 23:48 [01a08ba7] 确立单次生成双处落盘规则，项目路径强制 ~ 前缀
 - 2026-09-12 01:21 install.sh 新增「安装记忆钩子」操作：遍历 ~/onespace/github/* 各 git 仓库，装 one-memory 的 pre-commit 门禁与 post-commit 索引同步（替代 dotfiles 里已失效的 one-free-me 死链）
-- 2026-09-12 01:25 install_memory_hooks 增加跳过 one-hippocampus：海马体记忆目录为 memory/ 而非 onememory/，装门禁会拦死自身提交
+- 2026-09-12 01:25 install_memory_hooks 增加跳过 one-hippocampus：海马记忆仓记忆目录为 memory/ 而非 onememory/，装门禁会拦死自身提交
 - 2026-09-13 16:13 [5031379730946] install.sh 用户全局规则分发新增 TRAE(~/.trae/user_rules/AGENTS.md)、TRAE-CN(~/.trae-cn/user_rules/AGENTS.md)、CodeBuddy/WorkBuddy(~/.codebuddy/CODEBUDDY.md + ~/.codebuddy/rules/AGENTS.md) 四路软链接目标
 - 2026-09-13 [01a09a51] install.sh 移除未使用的 ~/.trae/user_rules/AGENTS.md，仅保留本机 TraeCN 规则路径
 - 2026-09-13 22:35 one-memory 升级三轨体系：融合外部规则记忆方案（源自 ebbiii/docs/user-teaching-memory.md），新增规则轨 references/rules-memory.md（上游提示词原文保留，路径本地化 .monkeycode/MEMORY.md → 项目根 onememory/rules.md，上限150行）；SKILL.md 意图分流、references/memory.md 边界表、README、pi-extension 动态台词（[RULES_MEMORY] 触发器）四处同步
@@ -12,15 +12,15 @@
 - 2026-09-13 23:05 勘误上条：~/.codebuddy/CODEBUDDY.md 实为 CodeBuddy CLI 用户级全局记忆文件（类似 ~/.claude/CLAUDE.md，会话自动全文注入），install.sh 原目标是为 CLI 设的、并无错误；其中 YAML permissions 为残留死内容（真权限在 ~/.codebuddy/settings.json 的 permissions.defaultMode=fullAccess）。已恢复 install.sh 该目标并附勘误注释；~/.codebuddy/rules/AGENTS.md 维持移除（CLI 无 rules 目录机制）。已建软链 ~/.codebuddy/CODEBUDDY.md → one-agents.md，CLI 全局规则接入完成
 - 2026-09-14 00:19 [a0f38151] Qoder CLI 全局规则接入：从 qodercli-1.1.51 二进制挖出记忆加载逻辑（StaticInfraHandler 读 globalDir/AGENTS.md + workDir/AGENTS.md + workDir/AGENTS.local.md，globalDir 由 QODER_CONFIG_DIR_NAME=.qoder-cn 决定），确认 Qoder 只扫 ~/.agents/skills 不读 ~/.agents/AGENTS.md（用户宪法因此长期失联）。install.sh 的 USER_GLOBAL_RULES 新增 "$HOME/.qoder-cn/AGENTS.md"；按用户指令删除 one-agents.md 的项目级分支（case 0 链 ./AGENTS.md+./CLAUDE.md 并凭空造 ./one-context.md、case 1 项目内 rm），宪法改为只走用户全局分发
 - 2026-09-14 15:52 [249999b0] 封存卷轴「关于Moshi左右切换失败的问题」：Moshi 滑动报"无法确认复用器状态"的真凶是 dotfiles bashrc 末尾的鼠标模式重置 printf —— 其输出紧贴 shell 首条命令输出、零分隔，污染 App 对 $SSH_CONNECTION 的会话捕获（抓到 `ESC[?1006l<client_ip>` 脏值），已删该行并改为按需函数 mouseoff。同批排除三个无效方向（Tailscale SSH 抢 22、端口、herdr 0.8.2 版本/多客户端争用，均实测无关）；查清手势层级映射（单指左右=tab、双指上下=workspace、herdr session 是独立服务）与"只有 1 个 tab 时状态确认成功但无目标可切"这第二种报错（日志指纹：连续 tab.focus 指向同一 tab）。过程附带双端口改造（22 保 Tailscale 原生鉴权 / 2222 系统 sshd 给 Moshi）与 dotfiles PATH 九重重复幂等化
-- 2026-09-14 23:03 one-memory 同步海马体 personal 重构：废弃 system/ 命名，system/profile.md→personal/profile.md、根 preference.md→personal/preferences.md 全量路径同步（SKILL/README/references/pi-extension/CODE_WIKI），memory.py valid_dirs system→personal 修复画像 BM25 索引静默失效，校正 INDEX/README/search-memory 把 profile 吹成含硬件拓扑/IP/端口/aliases 的失真描述；SKILL.md description 补 personal 分流（原 09-13 22:45 只指向项目 rules.md，致"记住X"默认进项目不回流海马体），定"关于本人→海马体 personal/、单项目规则→onememory/rules.md"。本次改动与 09-13 22:35/22:45 未提交的规则轨/三轨在制品在同批文件（尤 SKILL.md description）交织、无法干净拆分，经用户确认合并提交。无会话ID（环境未注入），不建 task 案卷。
+- 2026-09-14 23:03 one-memory 同步海马记忆仓 personal 重构：废弃 system/ 命名，system/profile.md→personal/profile.md、根 preference.md→personal/preferences.md 全量路径同步（SKILL/README/references/pi-extension/CODE_WIKI），memory.py valid_dirs system→personal 修复画像 BM25 索引静默失效，校正 INDEX/README/search-memory 把 profile 吹成含硬件拓扑/IP/端口/aliases 的失真描述；SKILL.md description 补 personal 分流（原 09-13 22:45 只指向项目 rules.md，致"记住X"默认进项目不回流海马记忆仓），定"关于本人→海马记忆仓 personal/、单项目规则→onememory/rules.md"。本次改动与 09-13 22:35/22:45 未提交的规则轨/三轨在制品在同批文件（尤 SKILL.md description）交织、无法干净拆分，经用户确认合并提交。无会话ID（环境未注入），不建 task 案卷。
 - 2026-09-14 23:25 [01a0a069] 重命名 one-harness-light 为 one-harness-lite：重命名包名、SKILL、README、pi-extension 插件与 CODE_WIKI，同步更新 ~/.pi/agent/settings.json 与全局软链接；经 Sub-agent 严格等号审查通过。
 - 2026-09-14 23:26 [01a0a074] 宪法网络规则改为 127.0.0.1 + Tailscale Serve 暴露：one-agents.md 更新「- **启动与暴露服务**：服务监听 127.0.0.1，执行 `tailscale serve --https <PORT> --bg <PORT>` 暴露 HTTPS。」，同步改造 dotfiles/bin/buddyw 监听 127.0.0.1 并由 Tailscale 托管。
 - 2026-09-15 11:22 [8625ac99] 逆向通读全仓代码，从用户视角与 PRD 规范输出全局业务功能蓝图 BLUEPRINT.md
 - 2026-09-15 11:28 [3b5c9981] 严格遵循 one-blueprint 规范重构 BLUEPRINT.md：提炼项目一句话定位与 20 项稳定短 ID 单层功能清单，移除冗余架构图与流程说明
 - 2026-09-15 11:44 one-blueprint 技能瘦身：删 BLUEPRINT-TEMPLATE.md（模板会诱导输出技术文档而非人话清单）；铁律砍到三条，只留「一句话定位+功能清单」，删掉「不做」「下一步」章节（诱导 AI 编造噪音条目）与 `F-` 短 ID（无下游消费方，纯装饰）；新增统一「怎么改」节覆盖增/改/删，不再分初始化与增量场景；内嵌从代码逆向生成的话术；BLUEPRINT.md 同步去掉 20 条 `F-` 前缀。无会话ID（环境未注入），不建 task 案卷。
-- 2026-09-15 12:09 one-agents.md 删除热记忆（hot-memory）引路行并补 dotfiles 关键词路由：热记忆 6 条指针已被「引路+关键词路由」全覆盖（海马体/one-llmwiki/one-skills/carefree/ebbiii 各有路由词），且标为纯人工维护、自 9/8 后从未更新也从未被读，判定冗余。同时海马体仓删除 hot-memory.md 与 INDEX.md 热记忆行。无会话ID（环境未注入），不建 task 案卷。
+- 2026-09-15 12:09 one-agents.md 删除热记忆（hot-memory）引路行并补 dotfiles 关键词路由：热记忆 6 条指针已被「引路+关键词路由」全覆盖（海马记忆仓/one-llmwiki/one-skills/carefree/ebbiii 各有路由词），且标为纯人工维护、自 9/8 后从未更新也从未被读，判定冗余。同时海马记忆仓仓删除 hot-memory.md 与 INDEX.md 热记忆行。无会话ID（环境未注入），不建 task 案卷。
 - 2026-09-15 12:20 install.sh 修正 CodeBuddy 全局规则装错位置：宪法由 ~/.codebuddy/CODEBUDDY.md 改链到 ~/.codebuddy/rules/AGENTS.md。依据：v2.151.0 官方 memory.md 明确 User Rules = `~/.codebuddy/rules/*.md`，与 ~/.codebuddy/CODEBUDDY.md 同批全量加载；二进制 configSubdirChangeType 也把 rules 列为受监控配置子目录（2026-09-13 那版"rules 无效"结论作废）。CODEBUDDY.md 是 `#` 快捷记忆与自动记忆的写入目标，留空避免自动记忆覆盖宪法软链。同步改 CODE_WIKI.md 分发清单并迁移本机软链。无会话ID（环境未注入），不建 task 案卷。
-- 2026-09-15 15:24 新增 one-life 技能（个人生活日记/情景记忆）：独立私有仓 ~/onespace/github/one-life（diary/<YYYY>/日.md、summary/月年摘要、entities/人物地点），脚本 life.py 由 memory.py 改造（ONE_LIFE_DIR、valid_dirs={diary,summary,entities}、category 取年份、新增 recent N），post-commit 自动同步索引、不装 pre-commit 记忆门禁。技能含 write/search/distill/boundary 四份 references，边界三问定仓（干活→海马体、知识→wiki、经历→one-life）。宪法加引路与关键词路由，BLUEPRINT/CODE_WIKI 同步，技能软链已分发到 ~/.agents|~/.codebuddy|~/.trae-cn skills。无会话ID（环境未注入），不建 task 案卷。
+- 2026-09-15 15:24 新增 one-life 技能（个人生活日记/情景记忆）：独立私有仓 ~/onespace/github/one-life（diary/<YYYY>/日.md、summary/月年摘要、entities/人物地点），脚本 life.py 由 memory.py 改造（ONE_LIFE_DIR、valid_dirs={diary,summary,entities}、category 取年份、新增 recent N），post-commit 自动同步索引、不装 pre-commit 记忆门禁。技能含 write/search/distill/boundary 四份 references，边界三问定仓（干活→海马记忆仓、知识→wiki、经历→one-life）。宪法加引路与关键词路由，BLUEPRINT/CODE_WIKI 同步，技能软链已分发到 ~/.agents|~/.codebuddy|~/.trae-cn skills。无会话ID（环境未注入），不建 task 案卷。
 - 2026-09-15 15:40 post-commit 索引钩子修首次提交漏同步：`git diff HEAD^ HEAD` 在仓库首次提交时取不到文件（无 HEAD^），改为先 `git rev-parse --verify HEAD^` 判定，失败则回退 `git show --pretty=format: --name-only HEAD`（实测可正确列出 a.md）。one-memory/hooks/post-commit 与 one-life/hooks/post-commit 同步修正，并重新分发到 8 个同级仓库 + one-life。install.sh install_memory_hooks 增加跳过 one-life（生活日记仓自带 life.py 索引钩子，不该被装代码记忆门禁 pre-commit）。无会话ID，不建 task 案卷。
 - 2026-09-15 17:20 新增卷轴 tech/CodeServer网页版VSCode远程改文件部署手册.md：记录手机/浏览器远程改 Linux 文件的自建方案——code-server 4.137.0 解压安装（release 资产名无 v 前缀，拼 v 会 404）、systemd user 服务 ExecStart 内 `. dotfiles/rc/bash/exports` 注入 `PASSWORD=$common_password`（user session 无 bashrc 变量，这是最大坑）、只监听 127.0.0.1:8765 由 `tailscale serve --https 8765 --bg 8765` 出 HTTPS、curl 302/200 验证密码、本机解析不了 ts.net 属正常。含选型对比（File Browser 2026-08-31 已归档，改码场景选 code-server，轻量场景选 copyparty）。无会话ID，不建 task 案卷。
 - 2026-09-15 17:35 卷轴 CodeServer 手册补第 10 节「手机场景正确解 one-files」：用户第一需求是手机，code-server 在手机上只是缩小的桌面 IDE（无手机版），属方案错配（已记入卷轴教训）。新建 ~/onespace/github/one-files（零依赖标准库 http.server + 单页手机优先前端）：文件列表/面包屑/全屏 textarea 编辑保存，路径越界用 resolve+is_relative_to 拦截，密码走 common_password（ExecStart 注入 ONE_FILES_PASSWORD），systemd user 服务监听 127.0.0.1:8766 + tailscale serve 出 HTTPS。无会话ID，不建 task 案卷。
@@ -28,7 +28,7 @@
 - 2026-09-15 17:52 卷轴 index.md 描述同步：one-files → fileweb（更名收尾，与 17:50 条目同因）。无会话ID，不建 task 案卷。
 - 2026-09-15 17:58 fileweb 默认根目录改为 ~/onespace/github（用户要求），仍可用环境变量 ONE_FILES_ROOT 覆盖（systemd unit ExecStart 中设 ONE_FILES_ROOT=%h/onespace/github）。重启实测列表即 github 目录内容，越界拦截正常。卷轴第 10 节同步。无会话ID，不建 task 案卷。
 - 2026-09-15 18:10 code-server 整体卸载（用户要求清理旧方案）：stop+disable+删 unit、tailscale serve 8765 off、删 ~/.local/{lib,bin}/code-server、~/.config/code-server、~/.local/share/code-server。实测 8765 无监听、serve 无 8765。卷轴标题加"已卸载"标注，避坑知识与 fileweb 部分保留。fileweb 为现役方案。无会话ID，不建 task 案卷。
-- 2026-09-15 23:14 one-wiki 写入方式重构：由「本地写文件+本地git」改为直接操作远端 GitHub 仓库 wupengbo125/one-llmwiki，双通道——豆包内优先 github-remote MCP（平台托管凭据），其他 AI/电脑无 MCP 时用 `gh api` 兜底（gh 已登录即可，sha/base64 为内部步骤对用户透明）；改 SKILL/note/ingest/lint 四份，禁止本地文件与本地 git，写入即 commit 远端。同步把本仓 .git/hooks 从旧 commit-msg（校验海马体 hash，Sep9）更新为最新 pre-commit（onememory 同批门禁）+ post-commit，并删除旧 commit-msg。教训：新需求只叠加不替换、改技能必须改源头 one-skills 并推送而非只改 /runtime 副本、不许用 --no-verify 绕过门禁。无会话ID，不建 task 案卷。
+- 2026-09-15 23:14 one-wiki 写入方式重构：由「本地写文件+本地git」改为直接操作远端 GitHub 仓库 wupengbo125/one-llmwiki，双通道——豆包内优先 github-remote MCP（平台托管凭据），其他 AI/电脑无 MCP 时用 `gh api` 兜底（gh 已登录即可，sha/base64 为内部步骤对用户透明）；改 SKILL/note/ingest/lint 四份，禁止本地文件与本地 git，写入即 commit 远端。同步把本仓 .git/hooks 从旧 commit-msg（校验海马记忆仓 hash，Sep9）更新为最新 pre-commit（onememory 同批门禁）+ post-commit，并删除旧 commit-msg。教训：新需求只叠加不替换、改技能必须改源头 one-skills 并推送而非只改 /runtime 副本、不许用 --no-verify 绕过门禁。无会话ID，不建 task 案卷。
 - 2026-09-16 23:13 one-memory 沉淀 SOP 瘦身：改严格时序三步，流水加单行 ≤80 字硬约束与 300 行归档规则，删口号式表述与冗余边界表
 - 2026-09-16 23:18 流水会话 ID 由前 8 位改前 16 位
 - 2026-09-16 23:26 流水会话 ID 恢复为前 8 位（16 位去连字符后无法前缀匹配 tasks 文件名）
@@ -37,11 +37,11 @@
 - 2026-09-16 23:38 删除编造的归档阈值规范（系我自造，非用户需求）
 - 2026-09-16 23:42 删除 SOP 开头的摘要复用预告（后置步骤自然引用，无需前置声明）
 - 2026-09-16 23:47 SOP 补回 Step1 生成摘要动作（原瘦身时误删，导致首步直接写流水）
-- 2026-09-16 23:52 删除我自造的「两仓三轨」表述；海马体两文件分工写实（preferences=行为偏好，profile=身份事实）
-- 2026-09-16 23:56 边界总表补上海马体主体：每日流水 memory/<YYYY-MM>/<YYYY-MM-DD>.md（原表漏了最主要去向）
+- 2026-09-16 23:52 删除我自造的「两仓三轨」表述；海马记忆仓两文件分工写实（preferences=行为偏好，profile=身份事实）
+- 2026-09-16 23:56 边界总表补上海马记忆仓主体：每日流水 memory/<YYYY-MM>/<YYYY-MM-DD>.md（原表漏了最主要去向）
 - 2026-09-17 00:05 SKILL.md 规则轨英文提示词整段改中文；memory.md 删掉首读句（读侧已在 SKILL）
 - 2026-09-17 00:5x one-memory SKILL.md：写入通道改远端直写（MCP create_or_update_file / gh api，main 分支，查询仍本地）；description 恢复用户认可的简短版（此前被 AI 塞成长文）；规则轨结构保留
-- 2026-09-17 01:1x one-memory 重构：SKILL.md 瘦身为纯分流表（长 description 恢复）；写入通道细节移入 references/memory.md（gh api 为主通道，MCP 仅豆包环境）；海马体写入远端直写 main
+- 2026-09-17 01:1x one-memory 重构：SKILL.md 瘦身为纯分流表（长 description 恢复）；写入通道细节移入 references/memory.md（gh api 为主通道，MCP 仅豆包环境）；海马记忆仓写入远端直写 main
 - 2026-09-17 13:1x 新增 one-ghfile skill：远端文件操作 CLI（ls/cat/write/rm/edit/append），底层 gh api 主通道 + GITHUB_TOKEN 兜底
 - 2026-09-17 13:2x one-ghfile 通道修正：豆包环境用 github-remote MCP，其他环境用 ghfile.py（gh api）
 - 2026-09-17 13:3x one-ghfile 命令名改为 Agent 标准原语：list/read/write/delete/edit/append（ls/cat/rm 为兼容别名）
@@ -60,8 +60,9 @@
 - 2026-09-17 22:12 [01a0af6f-8886-7750-9458-6335a77bc184] one-memory 分流重构：独立 read-memory、write-memory 与 rules-memory 引用
 - 2026-09-17 22:21 [01a0af6f-8886-7750-9458-6335a77bc184] write-memory 台词精简：移除会话ID说教分支，统一单行格式
 - 2026-09-17 22:15 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-harness-lite 与 one-memory 扩展台词统一改造为动态读取 SKILL.md description
-- 2026-09-17 22:37 [01a0af6f-8886-7750-9458-6335a77bc184] 海马体废弃旧tasks目录，read-memory收敛为3类专用直达通道
+- 2026-09-17 22:37 [01a0af6f-8886-7750-9458-6335a77bc184] 海马记忆仓废弃旧tasks目录，read-memory收敛为3类专用直达通道
 - 2026-09-17 22:58 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-life 技能架构重构：完全对齐 one-wiki 的 note/ingest/query/lint 四操作分流与参考规范
 - 2026-09-17 23:37 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 新增 one-install-doubao 豆包技能安装流程技能
 - 2026-09-17 23:39 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 技能更名 one-install-doubao-skill
 - 2026-09-17 23:43 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] install-doubao-skill 去 one- 前缀仅豆包环境，disable-model-invocation 手动触发
+- 2026-09-17 20:4x 全库中文称呼「海马体」统一改为「海马记忆仓」（英文 hippocampus/one-hippocampus 等不变）

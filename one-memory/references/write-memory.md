@@ -4,9 +4,9 @@
 
 ---
 
-## 〇、海马体写入通道（远端直写）
+## 〇、海马记忆仓写入通道（远端直写）
 
-**海马体写入一律直接操作远端 `wupengbo125/one-hippocampus`（默认分支 main），不做本地 git、不写本地文件**（写入即自动 commit+push 远端）。查询仍走本地 clone（`~/onespace/github/one-hippocampus/`）。
+**海马记忆仓写入一律直接操作远端 `wupengbo125/one-hippocampus`（默认分支 main），不做本地 git、不写本地文件**（写入即自动 commit+push 远端）。查询仍走本地 clone（`~/onespace/github/one-hippocampus/`）。
 
 写入：调用 **one-ghfile** skill（先读其 `SKILL.md` 按其方法执行），仓库 `wupengbo125/one-hippocampus`，分支 main：
 - 默认（其他 AI / 其他电脑）：按 one-ghfile 命令用 ghfile.py（gh api）
@@ -31,7 +31,7 @@
 ### Step 3 提交
 代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已门禁，禁止 `--no-verify`）。
 
-### Step 4 海马体独立落盘（远端直写）
-用 Step 1 的摘要，按「〇、海马体写入通道」直接写远端 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（存在则取 sha PUT 追加，不存在则新建；日期已在文件名，行内不重复；项目路径以 `~` 开头）：
+### Step 4 海马记忆仓独立落盘（远端直写）
+用 Step 1 的摘要，按「〇、海马记忆仓写入通道」直接写远端 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（存在则取 sha PUT 追加，不存在则新建；日期已在文件名，行内不重复；项目路径以 `~` 开头）：
 `- HH:mm [~/项目完整路径] [会话ID] Step 1 的摘要`
 偏好与画像同理走远端：稳定偏好追加 `personal/preferences.md`（一条一条，不按天）；长期画像整合进 `personal/profile.md`。
