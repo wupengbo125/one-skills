@@ -1,10 +1,11 @@
 ---
-name: one-install-doubao-skill
-description: "给豆包安装、更新、删除个人技能。当用户要求安装技能、更新技能、重新安装最新技能、替换旧技能，或技能与仓库版本不一致时使用。"
+name: install-doubao-skill
+description: "仅豆包环境使用，专属豆包技能安装/更新/删除。默认不自动触发，仅当用户手动指定本技能或明确要求执行豆包技能安装、更新、删除时才使用。"
 argument-hint: "用户需求描述"
+disable-model-invocation: true
 ---
 
-# 安装豆包技能 (One Install Doubao)
+# 安装豆包技能 (Install Doubao Skill)
 
 豆包 Agent 的个人技能统一从源仓库 `~/onespace/github/one-skills`（GitHub: wupengbo125/one-skills）物理复制到运行目录 `/runtime/user_skills/`。本技能定义唯一正确的安装流程。
 

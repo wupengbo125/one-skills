@@ -64,3 +64,4 @@
 - 2026-09-17 22:58 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-life 技能架构重构：完全对齐 one-wiki 的 note/ingest/query/lint 四操作分流与参考规范
 - 2026-09-17 23:37 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 新增 one-install-doubao 豆包技能安装流程技能
 - 2026-09-17 23:39 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 技能更名 one-install-doubao-skill
+- 2026-09-17 23:43 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] install-doubao-skill 去 one- 前缀仅豆包环境，disable-model-invocation 手动触发
