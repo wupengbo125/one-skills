@@ -1,6 +1,6 @@
 ---
 name: one-life
-description: "生活日记、记录生活、记日记、查生活日记、回顾生活，ingest，lint触发。"
+description: "生活日记、记录生活、记日记、查生活日记、回顾生活触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 ---
 
