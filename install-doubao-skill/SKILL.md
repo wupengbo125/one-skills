@@ -16,7 +16,7 @@ disable-model-invocation: true
 3. **Agent 本地必须同步删除旧技能**：若 Agent 本地保留旧技能，用户客户端手动删除后，本地旧技能会再次同步回客户端（旧技能回灌）。Agent 本地删干净，才能阻止回灌。
 4. **装完立即生效**：新技能无需重开会话即可加载。
 
-## 安装流程
+## 安装流程（暴力更新：先删所有，再全量装）
 
 ### 1. 拉取仓库最新状态
 
@@ -24,38 +24,27 @@ disable-model-invocation: true
 cd ~/onespace/github/one-skills && git pull --ff-only
 ```
 
-### 2. 确定技能清单
-
-- 仓库内所有 `one-*` 目录即最新技能集（每个含 SKILL.md）。
-- 仓库根目录的非目录文件（one-agents.md、one-context.md 等）和 `onememory/` 不是技能，不安装。
-
-### 3. 安装 / 更新技能（物理复制）
-
-对仓库每个 `one-*` 技能目录，覆盖安装到 `/runtime/user_skills/`：
+### 2. 删除并全量复制安装（物理复制）
 
 ```bash
-S=/home/user/onespace/github/one-skills
-R=/runtime/user_skills
-for n in <仓库内每个 one-* 技能名>; do
-  rm -rf "$R/$n"
-  cp -aL "$S/$n" "$R/$n"   # -L 解引用软链，保证是物理副本
-done
+rm -rf /runtime/user_skills/one-*
+cp -aL /home/user/onespace/github/one-skills/one-* /runtime/user_skills/
 ```
 
-### 4. 删除旧技能
+### 3. 安装本技能自身
 
-对比已安装目录与仓库清单：仓库中已删除或已改名的技能，Agent 本地对应目录必须移出/删除：
+本技能名不是 `one-*` 开头，通配符不会带上，需单独复制：
 
 ```bash
-for n in <本地存在但仓库已无的旧技能名>; do
-  mv "$R/$n" /tmp/ 或 rm -rf "$R/$n"
-done
+rm -rf /runtime/user_skills/install-doubao-skill
+cp -aL /home/user/onespace/github/one-skills/install-doubao-skill /runtime/user_skills/
 ```
 
-- 改名技能的旧目录（如 one-harness-light → one-harness-lite、one-light-skills → one-scrolls）同样删除，只留新名。
-- **保留用户自加的非仓库技能**：code-review、grilling、implement-spec、improve-codebase-architecture 不属于 one-skills 仓库，永不删除。
+> 旧技能、改名技能、仓库已删除的技能一并清空，无需逐个对比。
+> 非 one-* 的用户自加技能（code-review、grilling、implement-spec、improve-codebase-architecture）不受影响，保留。
+> 仓库根目录的非目录文件（one-agents.md、one-context.md 等）和 `onememory/` 不是技能，不安装。
 
-### 5. 验证
+### 4. 验证
 
 ```bash
 diff -rq <仓库技能目录> <安装目录>   # 应无差异

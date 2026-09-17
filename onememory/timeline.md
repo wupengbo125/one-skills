@@ -66,3 +66,4 @@
 - 2026-09-17 23:39 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 技能更名 one-install-doubao-skill
 - 2026-09-17 23:43 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] install-doubao-skill 去 one- 前缀仅豆包环境，disable-model-invocation 手动触发
 - 2026-09-17 20:4x 全库中文称呼「海马体」统一改为「海马记忆仓」（英文 hippocampus/one-hippocampus 等不变）
+- 2026-09-17 23:5x install-doubao-skill 简化：暴力更新（rm -rf one-* + cp 通配），新增安装自身步骤（从 one-skills 仓库）
