@@ -1,8 +1,7 @@
 ---
 name: one-implement
-description: "极简实现流程：平铺计划，最小化最简单实现，绝不多改"
+description: "修改任何东西的时候必须遵循本技能"
 argument-hint: "需求描述"
-disable-model-invocation: true
 ---
 # 极简实现流程 (One Implement)
 
