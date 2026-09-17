@@ -300,7 +300,7 @@ def cmd_recent(days):
         if os.path.basename(root).startswith("."):
             continue
         for n in names:
-            if n.endswith(".md") and re.match(r'^\d{4}-\d{2}-\d{2}\.md$', n):
+            if n.endswith(".md") and re.match(r'^\d{4}-\d{2}-\d{2}', n):
                 files.append(os.path.join(root, n))
     files.sort(reverse=True)
     picked = files[:days]
