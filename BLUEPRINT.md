@@ -25,6 +25,8 @@
   - 逆向分析项目代码库并生成结构化的高纯度代码地图供快速导航
 - [one-harness-lite/](one-harness-lite/)
   - 在编辑代码时自动唤起无记忆独立审查员进行等号级代码核验与交付防护
+- [one-implement/](one-implement/)
+  平铺开发计划并以最小化最简代码实现需求，杜绝发散与多余改动
 - [one-harness/](one-harness/)
   - 提供规范化的重型研发协作流程，涵盖架构设计、编码实现、多维审查与交付闸门
 - [one-refactor-implement-cp/](one-refactor-implement-cp/)

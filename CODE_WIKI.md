@@ -27,6 +27,7 @@ one-skills/
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
 ├── one-harness-lite/      轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 扩展）
+├── one-implement/ 极简实现流程：SKILL.md pi-extension/index.ts package.json（Pi 扩展）
 ├── one-blueprint/           # 业务蓝图：SKILL.md + BLUEPRINT-TEMPLATE.md
 ├── one-context/             # 项目上下文：SKILL.md + CONTEXT-TEMPLATE.md
 ├── one-refactor-implement-cp/  # 物理剪贴重构（禁自动触发）
@@ -56,6 +57,7 @@ one-skills/
 | one-context | 自动：init/update | 生成/更新根目录 `CONTEXT.md`，绝不覆盖人工背景 | 模板 CONTEXT-TEMPLATE.md |
 | one-harness | 仅显式调用 | 重型流程：主 Agent 只架构，Worker 写码+同步蓝图，双轴审查（Standards/Spec），交付闸门写记忆 | 引用 one-blueprint、one-memory、code-review |
 | one-harness-lite | 自动（改文件即触发；已用重型则跳过） | 主 Agent 自己改，改完不 commit，派无记忆 Sub-agent 拿原话+`git diff HEAD`等号审查 | Pi 扩展自动注入 |
+| one-implement | 自动（改文件即触发） | 平铺计划，最小化实现，严防多改，改完不 commit，对照需求做等号审查 | 扩展自动注入 |
 | one-refactor-implement-cp | 仅显式调用 | 重构禁凭记忆重打代码：`cp`/`sed` 物理复制，5 步法 | 前置遵循 one-harness |
 | one-handoff | 仅显式调用 | 生成覆盖式 `handoff.md`，脱敏 | 引用 BLUEPRINT/git diff |
 | one-ebbiii | 自动："艾宾浩斯" | 闪卡 CRUD：`Bearer $EBBIII_API_TOKEN`，答案 ≤200 字，先查重 | HTTP `${EBBIII_BASE_URL:-http://localhost:3000}/api/v1/cards` |
@@ -106,12 +108,12 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 - query：先 BM25，再沿双链精读，回答标注出处。
 - lint：查死链/孤儿页/矛盾/概念缺口，确认后修复并记 log。
 
-## 7. Pi 扩展接口（两个 TS 文件同构）
-
+## 7. 扩展接口（三个 index.ts 文件同构）
 仅用 `node:fs/promises`、`node:path`、`node:url`，TS 由 Pi 宿主直接加载，无构建步骤。API：`pi.on(event, handler)`、`pi.registerCommand(name, {description, handler})`、`pi.sendUserMessage(msg, {deliverAs})`、`pi.exec(cmd, args)`；事件：`before_agent_start`（改 systemPrompt）、`tool_call`、`tool_result`（可追加 content 文本）。
 
 - one-memory：注入 memory-rules.md；`/wrap`、`/memory sync`。
 - one-harness-lite：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加审查提醒（禁止直接 commit，强制 Sub-agent 等号审查）；`/harness` 状态命令。
+- one-implement：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加极简实现提醒（平铺计划、最小化实现、严防多改、强制等号审查）；`/implement` 状态命令。
 
 ## 8. 分发与安装
 
