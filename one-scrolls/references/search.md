@@ -6,7 +6,7 @@
 
 ## 检索第一准则：首选 BM25 全文检索
 
-遇到任何**查卷轴、展开卷轴、查冷门技能、查避坑手册、查环境/工具/流程实操方案**时，**第一步直接执行 BM25 全文检索**：
+遇到任何**查卷轴、查冷门技能、**时，**第一步直接执行 BM25 全文检索**：
 
 ```bash
 python3 ~/onespace/github/one-skills/one-scrolls/scripts/scrolls.py search "<关键词>"

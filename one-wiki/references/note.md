@@ -4,9 +4,7 @@
 
 ## 远端通道
 
-写入：调用 **one-ghfile** skill（先读其 `SKILL.md` 按其方法执行），仓库 `wupengbo125/one-llmwiki`，分支 main，写入即提交：
-- 默认：按 one-ghfile 命令用 ghfile.py（gh api）
-- 特例（仅豆包环境）：按 one-ghfile 豆包映射，用 github-remote MCP
+写入：调用 **one-ghfile** skill（先读其 `SKILL.md` 按其方法执行），仓库 `wupengbo125/one-llmwiki`，分支 main，
 
 ## 操作完成
 

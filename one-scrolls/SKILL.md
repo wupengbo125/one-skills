@@ -1,6 +1,6 @@
 ---
 name: one-scrolls
-description: "卷轴体系：查阅、展开与封存低频专用的实操手册/避坑指南/操作卷轴（scrolls）；用户说'查卷轴'、'展开卷轴'、'找避坑指南'、'怎么配置XX'或'封存卷轴'、'记一份卷轴'时触发。"
+description: "卷轴体系：查阅、展开与封存低频专用的实操手册/避坑指南/操作卷轴（scrolls）；用户说'卷轴'时触发。"
 ---
 
 # One Scrolls (卷轴)
@@ -11,12 +11,11 @@ description: "卷轴体系：查阅、展开与封存低频专用的实操手册
 
 ## 意图分流
 
-- **查卷轴 / 展开卷轴 / 搜操作手册 / 查避坑指南**：
-  - 用户询问如“怎么配置FRP”、“Tailscale代理怎么设”、“查卷轴”等实操问题；
+- **查卷轴 
   - 规则与检索脚本见 [references/search.md](references/search.md)
 - **看卷轴大纲 / 浏览卷轴目录**：
   - 直接读取大纲文件：`~/onespace/github/one-skills/one-scrolls/scrolls/index.md`
-- **封存卷轴（用户说“封存卷轴” / “记一份卷轴” / “创建卷轴”）**：
+- **创建卷轴（用户说“封存卷轴” / “记一份卷轴” / “创建卷轴”）**：
   - 规则与落盘步骤见 [references/create.md](references/create.md)
 
 ## 禁止
