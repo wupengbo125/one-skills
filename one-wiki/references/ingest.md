@@ -41,4 +41,4 @@
    cd ~/onespace/github/one-llmwiki && git add -A && git commit -m "ingest: <主题>" && git push
    ```
    操作完汇报已推送到远端。
-   如需更新本地检索索引，再执行`python3 scripts/wiki.py sync "<相对路径>"`
+   如需更新本地检索索引，再执行`python3 scripts/fts.py sync "<相对路径>"`

@@ -9,7 +9,7 @@
 遇到任何**查资料、搜记忆、查踩坑手册、查历史技术决策或方案**时，**第一步必须直接执行 BM25 全文检索**。严禁一上来就盲目遍历或通读大纲/目录：
 
 ```bash
-python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "<关键词>"
+python3 ~/onespace/github/one-skills/one-memory/scripts/fts.py search "<关键词>"
 ```
 
 ### 检索执行与结果处理 SOP：
@@ -40,5 +40,5 @@ python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py search "<关�
 - **全局总索引**：`~/onespace/github/one-hippocampus/INDEX.md`
 - **全量重建索引**：若发现新写入的文档检索不到，或索引库异常，运行重建：
   ```bash
-  python3 ~/onespace/github/one-skills/one-memory/scripts/memory.py rebuild
+  python3 ~/onespace/github/one-skills/one-memory/scripts/fts.py rebuild
   ```

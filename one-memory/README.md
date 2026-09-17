@@ -83,7 +83,7 @@ one-skills/one-memory/
 - 遵循 `references/memory.md`；
 - **价值判定**：会话无实质改动或新增事实时，极简确认后退出；
 - **流水沉淀**：向当日 `memory/<YYYY-MM>/<YYYY-MM-DD>.md` 追加豆包式流水；
-- **索引同步**：执行 `scripts/memory.py sync` 同步当日文件索引。
+- **索引同步**：执行 `scripts/fts.py sync` 同步当日文件索引。
 
 ### 3. 规则记忆（规则轨，写入项目 `onememory/rules.md`）
 - 遵循 `references/rules-memory.md`；
@@ -95,23 +95,23 @@ one-skills/one-memory/
 
 ---
 
-## 五、 辅助脚本命令 (`scripts/memory.py`)
+## 五、 辅助脚本命令 (`scripts/fts.py`)
 
-终端可通过 `python3 scripts/memory.py` 或全局命令 `one-memory` 执行：
+终端可通过 `python3 scripts/fts.py` 或全局命令 `one-memory` 执行：
 
 ```bash
 # 1. 关键词 BM25 极速检索 (毫秒响应，零 Token 消耗)
-python3 scripts/memory.py search "<关键词>"
+python3 scripts/fts.py search "<关键词>"
 
 # 2. 增量同步索引 (新写/改动文档后同步检索索引)
-python3 scripts/memory.py sync "<文档路径>"
+python3 scripts/fts.py sync "<文档路径>"
 
 # 3. 近期记忆治理 (手动执行 60 天 / 100 条双阈值淘汰)
-python3 scripts/memory.py clean
+python3 scripts/fts.py clean
 
 # 4. 增量同步单篇文档索引
-python3 scripts/memory.py sync "<相对路径>"
+python3 scripts/fts.py sync "<相对路径>"
 
 # 5. 全量重建海马体 .fts.db 索引
-python3 scripts/memory.py rebuild
+python3 scripts/fts.py rebuild
 ```

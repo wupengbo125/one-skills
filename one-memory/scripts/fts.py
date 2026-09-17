@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/memory.py - 海马体记忆检索与索引同步工具 (极简版 ~200行)
+fts.py - 个人仓库 FTS5 全文检索与索引同步（统一版）
+三个数据仓共用同一份脚本，靠同目录 fts.conf 的 REPO_DIR 区分。
+
+命令:
+  fts.py search <关键词>   # BM25 全文检索
+  fts.py sync <路径>       # 增量同步单篇到索引
+  fts.py rebuild           # 全量重建索引
+  fts.py recent [天数]     # 按日期倒序列出最近 N 天（日记/流水）
+  fts.py <关键词>          # 等价 search
 """
 
 import os
@@ -9,16 +17,27 @@ import sys
 import re
 import sqlite3
 
-DEFAULT_HIPPOCAMPUS_DIR = os.path.expanduser(
-    os.environ.get("ONE_HIPPOCAMPUS_DIR", "~/onespace/github/one-hippocampus")
-)
-
-def get_hippocampus_dir():
-    custom = os.environ.get("ONE_HIPPOCAMPUS_DIR")
-    if custom and os.path.isdir(os.path.expanduser(custom)):
-        return os.path.abspath(os.path.expanduser(custom))
-    d = os.path.abspath(DEFAULT_HIPPOCAMPUS_DIR)
-    return d
+def get_repo_dir():
+    """读同目录 fts.conf 的 REPO_DIR；无配置则向上找含仓库特征目录。"""
+    conf = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fts.conf")
+    if os.path.isfile(conf):
+        with open(conf, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    if k.strip() == "REPO_DIR":
+                        return os.path.abspath(os.path.expanduser(v.strip()))
+    # 无配置：向上找含 .git 的目录兜底
+    cur = os.path.abspath(".")
+    while True:
+        if os.path.isdir(os.path.join(cur, ".git")):
+            return cur
+        parent = os.path.dirname(cur)
+        if parent == cur:
+            break
+        cur = parent
+    return os.path.abspath(".")
 
 def get_db_path(repo_dir):
     return os.path.join(repo_dir, ".fts.db")
@@ -149,7 +168,7 @@ def make_clean_snippet(raw_text, words):
     return clean[:120] + ('...' if len(clean) > 120 else '')
 
 def cmd_sync(target_path):
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_repo_dir()
     rel_path = resolve_rel_path(target_path, repo_dir)
     full_path = os.path.join(repo_dir, rel_path)
     conn = get_db_connection(repo_dir)
@@ -179,7 +198,7 @@ def cmd_sync(target_path):
     print(f"✅ 已增量同步至索引: {rel_path} ({n} 条)")
 
 def cmd_rebuild():
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_repo_dir()
     db_path = get_db_path(repo_dir)
     for ext in ["", "-wal", "-shm"]:
         f = db_path + ext
@@ -191,9 +210,8 @@ def cmd_rebuild():
 
     conn = get_db_connection(repo_dir)
     count = 0
-    valid_dirs = {"memory", "personal"}
     for root, dirs, files in os.walk(repo_dir):
-        dirs[:] = [d for d in dirs if not d.startswith(".") and (root != repo_dir or d in valid_dirs)]
+        dirs[:] = [d for d in dirs if not d.startswith(".")]
         for file in files:
             if file.endswith(".md"):
                 full_path = os.path.join(root, file)
@@ -213,10 +231,10 @@ def cmd_rebuild():
 
     conn.commit()
     conn.close()
-    print(f"🎉 索引重建完成，已索引 {count} 篇海马体文档 -> {db_path}")
+    print(f"🎉 索引重建完成，已索引 {count} 篇文档 -> {db_path}")
 
 def cmd_search(query_str):
-    repo_dir = get_hippocampus_dir()
+    repo_dir = get_repo_dir()
     db_path = get_db_path(repo_dir)
     if not os.path.isfile(db_path):
         cmd_rebuild()
@@ -235,7 +253,7 @@ def cmd_search(query_str):
         else:
             w = seg.lower()
             clauses.append(f'"{w}"')
-    
+
     fts_query = " AND ".join(f"({c})" if " OR " in c else c for c in clauses) if clauses else ""
     if not fts_query:
         print(">>> 请输入有效的检索关键词")
@@ -274,19 +292,43 @@ def cmd_search(query_str):
         print(f"\n{idx}. 📄 {loc} (类别: {category})")
         print(f"   摘要: {snip}")
 
+def cmd_recent(days):
+    """按日期倒序列出最近 N 天日记/流水，直接给出当天内容。"""
+    repo_dir = get_repo_dir()
+    files = []
+    for root, _dirs, names in os.walk(repo_dir):
+        if os.path.basename(root).startswith("."):
+            continue
+        for n in names:
+            if n.endswith(".md") and re.match(r'^\d{4}-\d{2}-\d{2}\.md$', n):
+                files.append(os.path.join(root, n))
+    files.sort(reverse=True)
+    picked = files[:days]
+    if not picked:
+        print("📭 还没有任何日记/流水。")
+        return
+    print(f"🗓️ [最近 {len(picked)} 天]")
+    for f in picked:
+        rel = os.path.relpath(f, repo_dir)
+        with open(f, "r", encoding="utf-8") as fh:
+            body = fh.read().strip()
+        body = re.sub(r'^#.*\n', '', body).strip()
+        preview = re.sub(r'\s+', ' ', body)[:400]
+        print(f"\n- {rel}\n  {preview}")
+
 def main():
     if len(sys.argv) < 2:
-        print("用法: python3 scripts/memory.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | recent [天数] | <关键词>]")
         sys.exit(0)
 
     cmd = sys.argv[1]
     if cmd in ["-h", "--help", "help"]:
-        print("用法: python3 scripts/memory.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | recent [天数] | <关键词>]")
     elif cmd == "rebuild":
         cmd_rebuild()
     elif cmd == "sync":
         if len(sys.argv) < 3:
-            print(">>> 请指定待同步路径，如: python3 scripts/memory.py sync 'memory/2026-09/xxx.md'")
+            print(">>> 请指定待同步路径，如: python3 scripts/fts.py sync 'memory/2026-09/xxx.md'")
             sys.exit(1)
         cmd_sync(sys.argv[2])
     elif cmd == "search":
@@ -294,6 +336,9 @@ def main():
             print(">>> 请输入检索关键词")
             sys.exit(1)
         cmd_search(" ".join(sys.argv[2:]))
+    elif cmd == "recent":
+        days = int(sys.argv[2]) if len(sys.argv) > 2 and sys.argv[2].isdigit() else 7
+        cmd_recent(days)
     else:
         cmd_search(" ".join(sys.argv[1:]))
 

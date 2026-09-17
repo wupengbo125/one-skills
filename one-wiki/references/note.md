@@ -24,6 +24,6 @@
 
 ## 3. 更新已有文档
 
-1. **检索定位**：先调用`python3 scripts/wiki.py search "<关键词>"`定位目标文档。
+1. **检索定位**：先调用`python3 scripts/fts.py search "<关键词>"`定位目标文档。
 2. **确认修改**：说明拟改动内容，确认后精准更新。
-3. **提交**：写入远端即自动 commit+push，无需本地 git。如需更新本地检索索引，再执行`python3 scripts/wiki.py sync "<相对路径>"`
+3. **提交**：写入远端即自动 commit+push，无需本地 git。如需更新本地检索索引，再执行`python3 scripts/fts.py sync "<相对路径>"`

@@ -50,3 +50,4 @@
 - 2026-09-17 14:0x one-ghfile 加豆包 MCP 映射表；one-wiki/note.md、one-memory/memory.md 通道细节改为指向 one-ghfile
 - 2026-09-17 14:1x one-ghfile 豆包映射移入 references/doubao.md（特例）；SKILL.md 与 wiki/memory 通道均改为默认 ghfile.py 在前、豆包特例在后
 - 2026-09-17 15:3x 对齐用户改动（SKILL.md 通道措辞、gh未登录措辞）；wiki/memory references 明确写「调用 one-ghfile skill（先读 SKILL.md）」，不再只给名词
+- 2026-09-17 16:0x 三个数据仓检索脚本统一为 fts.py（one-memory/one-wiki 在 one-skills 仓、one-life 在 one-life 仓），同目录 fts.conf 单参数 REPO_DIR 区分数据仓；删除 memory.py/wiki.py/life.py，引用全量更新
