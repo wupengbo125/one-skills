@@ -8,17 +8,9 @@
 
 **海马体写入一律直接操作远端 `wupengbo125/one-hippocampus`（默认分支 main），不做本地 git、不写本地文件**（写入即自动 commit+push 远端）。查询仍走本地 clone（`~/onespace/github/one-hippocampus/`）。
 
-**通道一（主，默认）：gh api** —— 其他 AI / 其他电脑（gh 已登录，自动认证，无需 token）：
-- 读文件/列目录：`gh api repos/wupengbo125/one-hippocampus/contents/<path>`
-- 写/改固定两步（sha/base64 为内部步骤，对用户透明）：
-  1. GET 取当前文件 `.sha`（新建文件无此步）；
-  2. base64 PUT：
-     `gh api --method PUT repos/wupengbo125/one-hippocampus/contents/<path> -f message="<说明>" -f content="<base64内容>" -f branch=main [-f sha=<上一步sha>]`
-- 删除：`--method DELETE` 并带当前 sha。
-- sha 冲突，重新 GET 取最新 sha 再提交，禁止覆盖。
-
-**通道二（仅豆包环境）：github-remote MCP** —— 只在豆包运行时存在 github-remote 工具时用，凭据平台托管：
-- 读/列目录：`get_file_contents`；写/改：`create_or_update_file`（更新已有文件必须带当前 sha，从 `get_file_contents` 取；`branch` 填 `main`）
+写入走 **one-ghfile**（仓库 `wupengbo125/one-hippocampus`，分支 main）：
+- 豆包环境：按 one-ghfile 豆包映射，用 github-remote MCP
+- 其他环境（主，默认）：按 one-ghfile 命令用 ghfile.py（gh api）
 
 ---
 

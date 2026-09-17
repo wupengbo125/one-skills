@@ -10,8 +10,19 @@ GitHub 远端仓库文件操作，Agent 标准原语：`list` / `read` / `write`
 
 ## 通道
 
-- **豆包环境**：不走本 skill 的命令。直接用 github-remote MCP：`get_file_contents`（读/列目录）、`create_or_update_file`（写/改，带 sha + branch=main）、`delete_file`（删）。凭据平台托管，与 ghfile.py 无关。
+- **豆包环境**：不走本 skill 的命令。直接用 github-remote MCP，凭据平台托管，与 ghfile.py 无关。
 - **其他环境（其他 AI / 其他电脑）**：用 ghfile.py 脚本（gh api，gh 已登录自动认证）。这是本 skill 命令的唯一使用场景。
+
+### 豆包映射
+
+| 命令 | 豆包 MCP 工具 |
+| :--- | :--- |
+| `list` | `get_file_contents` |
+| `read` | `get_file_contents` |
+| `write` | `create_or_update_file`（带 sha + branch=main） |
+| `delete` | `delete_file` |
+| `edit` | `read` + `create_or_update_file` 组合 |
+| `append` | `read` + `create_or_update_file` 组合 |
 
 ## 工具
 

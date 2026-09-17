@@ -1,22 +1,12 @@
 # 笔记记录 (note)
 
-向远端`raw/`写入或更新源材料。
+向远端 `raw/` 写入或更新源材料。
 
 ## 远端通道
 
-直接写远端，写入即提交，按运行环境二选一：
-
-**通道一（优先）：github-remote MCP** —— 豆包环境运行时存在 github-remote 工具时优先用，凭据由平台托管，无需 token：
-- 读/列目录：`get_file_contents`；写/改：`create_or_update_file`；多文件一次提交：`push_files`；删：`delete_file`
-
-**通道二（兜底）：gh api** —— 其他 AI / 其他电脑（gh 已登录，自动认证，无需 token）
-- 读文件/列目录：`gh api repos/wupengbo125/one-llmwiki/contents/<path>`
-- 写/改固定两步（sha/base64 为内部步骤，对用户透明）：
-  1. GET 取当前文件`.sha`（新建文件无此步）；
-  2. base64 PUT：
-`gh api --method PUT repos/wupengbo125/one-llmwiki/contents/<path> -f message="<说明>" -f content="<base64内容>" -f branch=main [-f sha=<上一步sha>]`
-- 删除：`--method DELETE`并带当前 sha。
-- sha 冲突，重新 GET 取最新 sha 再提交，禁止覆盖。
+写入走 **one-ghfile**（仓库 `wupengbo125/one-llmwiki`，分支 main，写入即提交）：
+- 豆包环境：按 one-ghfile 豆包映射，用 github-remote MCP
+- 其他环境：按 one-ghfile 命令用 ghfile.py（gh api）
 
 ## 操作完成
 
