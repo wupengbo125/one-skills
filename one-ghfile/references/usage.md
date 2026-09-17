@@ -21,10 +21,10 @@ python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py
 
 | 命令 | 参数 | 说明 |
 | :--- | :--- | :--- |
-| `ls` | `<repo> [path] [--branch]` | 列目录，显示 📁/📄 |
-| `cat` | `<repo> <path> [--branch]` | 读文件全文 |
+| `list` | `<repo> [path] [--branch]` | 列目录，显示 📁/📄 |
+| `read` | `<repo> <path> [--branch]` | 读文件全文 |
 | `write` | `<repo> <path> <content> [msg] [--branch]` | 新建/覆盖；自动取 sha，不存在则新建 |
-| `rm` | `<repo> <path> [msg] [--branch]` | 删除，自动带 sha |
+| `delete` | `<repo> <path> [msg] [--branch]` | 删除，自动带 sha |
 | `edit` | `<repo> <path> <old> <new> [msg] [--branch]` | 精确文本替换；old 0 匹配或 >1 匹配均拒绝 |
 | `append` | `<repo> <path> <content> [msg] [--branch]` | 末尾追加一行 |
 
@@ -36,10 +36,10 @@ Agent 框架的四个基础文件操作与 ghfile 一一对应：
 
 | Agent 原语 | ghfile 命令 |
 | :--- | :--- |
-| List | `ls` |
-| Read | `cat` |
+| List | `list` |
+| Read | `read` |
 | Write | `write` |
-| Delete | `rm` |
+| Delete | `delete` |
 
 `edit` / `append` 是增强操作，底层仍是 read+write 组合（读全文 → 内存改 → 整块覆盖写回）。
 

@@ -44,3 +44,4 @@
 - 2026-09-17 01:1x one-memory 重构：SKILL.md 瘦身为纯分流表（长 description 恢复）；写入通道细节移入 references/memory.md（gh api 为主通道，MCP 仅豆包环境）；海马体写入远端直写 main
 - 2026-09-17 13:1x 新增 one-ghfile skill：远端文件操作 CLI（ls/cat/write/rm/edit/append），底层 gh api 主通道 + GITHUB_TOKEN 兜底
 - 2026-09-17 13:2x one-ghfile 通道修正：豆包环境用 github-remote MCP，其他环境用 ghfile.py（gh api）
+- 2026-09-17 13:3x one-ghfile 命令名改为 Agent 标准原语：list/read/write/delete/edit/append（ls/cat/rm 为兼容别名）

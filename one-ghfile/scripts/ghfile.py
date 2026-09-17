@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-ghfile - GitHub 远端仓库文件操作 CLI（4 个 Agent 基础原语 + edit）
+ghfile - GitHub 远端仓库文件操作 CLI（Agent 基础原语：list/read/write/delete + edit/append）
 底层全部走 gh api（gh 已登录，自动认证），不依赖 MCP、不写本地文件。
 
 用法:
-  ghfile ls <repo> [path] [--branch b]          # 列目录
-  ghfile cat <repo> <path> [--branch b]          # 读文件
+  ghfile list <repo> [path] [--branch b]          # 列目录（别名 ls）
+  ghfile read <repo> <path> [--branch b]          # 读文件（别名 cat）
   ghfile write <repo> <path> <content> [msg] [--branch b]   # 写/覆盖（自动带 sha）
-  ghfile rm <repo> <path> [msg] [--branch b]     # 删文件
+  ghfile delete <repo> <path> [msg] [--branch b]  # 删文件（别名 rm）
   ghfile edit <repo> <path> <old> <new> [msg] [--branch b]  # 局部替换/插入（old 唯一才成功）
   ghfile append <repo> <path> <content> [msg] [--branch b]  # 末尾追加
 """
@@ -152,10 +152,11 @@ def main():
             sp.add_argument("path")
         sp.add_argument("--branch", default="main")
 
-    sp = sub.add_parser("ls"); add_common(sp, False); sp.add_argument("path", nargs="?", default=""); sp.set_defaults(fn=cmd_ls)
-    sp = sub.add_parser("cat"); add_common(sp); sp.set_defaults(fn=cmd_cat)
+    # Agent 标准命名：list/read/write/delete/edit/append（ls/cat/rm 为兼容别名）
+    sp = sub.add_parser("list", aliases=["ls"]); add_common(sp, False); sp.add_argument("path", nargs="?", default=""); sp.set_defaults(fn=cmd_ls)
+    sp = sub.add_parser("read", aliases=["cat"]); add_common(sp); sp.set_defaults(fn=cmd_cat)
     sp = sub.add_parser("write"); add_common(sp); sp.add_argument("content"); sp.add_argument("msg", nargs="?", default="feat: update file"); sp.set_defaults(fn=cmd_write)
-    sp = sub.add_parser("rm"); add_common(sp); sp.add_argument("msg", nargs="?", default="chore: remove file"); sp.set_defaults(fn=cmd_rm)
+    sp = sub.add_parser("delete", aliases=["rm"]); add_common(sp); sp.add_argument("msg", nargs="?", default="chore: remove file"); sp.set_defaults(fn=cmd_rm)
     sp = sub.add_parser("edit"); add_common(sp); sp.add_argument("old"); sp.add_argument("new"); sp.add_argument("msg", nargs="?", default="feat: edit file"); sp.set_defaults(fn=cmd_edit)
     sp = sub.add_parser("append"); add_common(sp); sp.add_argument("content"); sp.add_argument("msg", nargs="?", default="feat: append file"); sp.set_defaults(fn=cmd_append)
 
