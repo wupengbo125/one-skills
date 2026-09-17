@@ -10,19 +10,8 @@ GitHub 远端仓库文件操作，Agent 标准原语：`list` / `read` / `write`
 
 ## 通道
 
-- **默认（其他 AI / 其他电脑）**：用 ghfile.py 脚本（gh api，gh 已登录自动认证）。
-- **特例（仅豆包环境）**：不走本 skill 命令，用 github-remote MCP，见 [references/doubao.md](references/doubao.md)。
-
-## 工具
-
-| 命令 | 作用 |
-| :--- | :--- |
-| `list` | 列远端目录 |
-| `read` | 读远端文件 |
-| `write` | 写/覆盖远端文件 |
-| `delete` | 删远端文件 |
-| `edit` | 局部替换/插入（old 唯一才成功） |
-| `append` | 末尾追加一行 |
+- **默认**：用本文档方法ghfile。
+- **特例（仅豆包环境）**：不走本 skill 命令，见 [references/doubao.md](references/doubao.md)。
 
 ## 用法（ghfile.py）
 
@@ -45,5 +34,5 @@ python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py <cmd> <repo> <
 - 写/改自动带 sha，无冲突覆盖；sha 冲突重试即可。
 - `edit` 的 old 必须唯一，多匹配会拒绝（防改错）。
 - 追加（append）→ 脚本内部先 read 再拼接到 write。
-- gh 未登录：先 `gh auth login`。
+- gh 未登录：先让用户登录
 - 文件不存在：`read` / `edit` / `append` 报错；`write` 自动新建。
