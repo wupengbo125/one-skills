@@ -48,3 +48,4 @@
 - 2026-09-17 13:4x one-ghfile 删除 ls/cat/rm 别名，仅保留 Agent 标准原语 list/read/write/delete/edit/append
 - 2026-09-17 13:5x one-ghfile 删除冗余 references/usage.md，SKILL.md 单文件覆盖全部（六命令+通道+规则），豆包环境明确走 MCP 不走脚本
 - 2026-09-17 14:0x one-ghfile 加豆包 MCP 映射表；one-wiki/note.md、one-memory/memory.md 通道细节改为指向 one-ghfile
+- 2026-09-17 14:1x one-ghfile 豆包映射移入 references/doubao.md（特例）；SKILL.md 与 wiki/memory 通道均改为默认 ghfile.py 在前、豆包特例在后
