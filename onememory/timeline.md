@@ -63,3 +63,4 @@
 - 2026-09-17 22:37 [01a0af6f-8886-7750-9458-6335a77bc184] 海马体废弃旧tasks目录，read-memory收敛为3类专用直达通道
 - 2026-09-17 22:58 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] one-life 技能架构重构：完全对齐 one-wiki 的 note/ingest/query/lint 四操作分流与参考规范
 - 2026-09-17 23:37 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 新增 one-install-doubao 豆包技能安装流程技能
+- 2026-09-17 23:39 [01a0afa4-ef7f-775c-b943-5232cbd3f4b4] 技能更名 one-install-doubao-skill

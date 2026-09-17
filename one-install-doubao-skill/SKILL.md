@@ -1,5 +1,5 @@
 ---
-name: one-install-doubao
+name: one-install-doubao-skill
 description: "给豆包安装、更新、删除个人技能。当用户要求安装技能、更新技能、重新安装最新技能、替换旧技能，或技能与仓库版本不一致时使用。"
 argument-hint: "用户需求描述"
 ---
