@@ -9,7 +9,7 @@
 **海马记忆仓写入一律直接操作远端 `wupengbo125/one-hippocampus`（默认分支 main），不做本地 git、不写本地文件**（写入即自动 commit+push 远端）。查询仍走本地 clone（`~/onespace/github/one-hippocampus/`）。
 
 写入：调用 **one-ghfile** skill（先读其 `SKILL.md` 按其方法执行），仓库 `wupengbo125/one-hippocampus`，分支 main：
-- 默认（其他 AI / 其他电脑）：按 one-ghfile 命令用 ghfile.py（gh api）
+- 默认：按 one-ghfile 命令用 ghfile.py（gh api）
 - 特例（仅豆包环境）：按 one-ghfile 豆包映射，用 github-remote MCP
 
 ---
