@@ -17,11 +17,13 @@ argument-hint: "-a <agent[:model]...> -i <issue> -p <prompt>"
 ## 常用命令
 
 ```bash
-python3 ~/onespace/github/one-skills/one-orca-race/scripts/race.py \
-  --agents codex:o3-mini claude:claude-3-7-sonnet omp codebuddy \
-  --issue 123 \
-  --prompt "实现并添加单元测试，写完自测通过"
+race \
+  -a codex:o3-mini claude:claude-3-7-sonnet omp codebuddy \
+  -i 123 \
+  -p "实现并添加单元测试，写完自测通过"
 ```
+
+（脚本位于 `scripts/race`，已通过 `dotfiles/bin/race` 暴露为全局命令 `race`）
 
 ### 参数说明
 - `--agents, -a`: 参赛 Agent 列表（空格分隔），支持 `agent` 或 `agent:model` 或 `agent:model:effort`。
