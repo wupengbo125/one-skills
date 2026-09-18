@@ -72,3 +72,4 @@
 - 2026-09-18 00:5x one-life note.md：日记落盘改为 raw/<YYYY-MM>/ 月份目录（带横杠如 2026-08），笔记放月份目录内
 - 2026-09-18 01:0x one-wiki note.md：笔记落盘同样改为 raw/<YYYY-MM>/ 月份目录，与 one-life 一致
 - 2026-09-18 01:1x 纠正：one-wiki note.md 回滚（未要求改动）；one-life 初次写入仍在 raw 根目录，ingest 时才移动到 raw/<YYYY-MM>/ 月份目录（参考 one-wiki 的 raw 根目录摄入+ingest 归档模式）
+- 2026-09-18 08:27 [01a0b1d1-4c3d-752a-803a-a688444f9263] 新增 one-orca-race 多 Agent 并行赛马调度技能与脚本，支持 GitHub Issue/Prompt 组装、多模型指定与独立 Worktree 并行运行
