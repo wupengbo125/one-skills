@@ -1,6 +1,11 @@
 #!/bin/bash
 # pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交
-# 用户手动提交可用：git commit --no-verify 跳过
+# 只对 AI Agent 会话生效；人工提交自动放行（等同 --no-verify）
+
+# Agent 会话带会话 ID 环境变量，人工终端没有
+if [ -z "$CODEBUDDY_SESSION_ID" ] && [ -z "$CLAUDE_SESSION_ID" ]; then
+  exit 0
+fi
 
 NON_MEMORY=$(git diff --cached --name-only | grep -vE '^onememory/' | head -1)
 MEMORY=$(git diff --cached --name-only | grep -E '^onememory/' | head -1)
