@@ -57,6 +57,16 @@ PROMPT=""
 REPO_ARG=""
 BASE="main"
 DRY_RUN=0
+DEFAULT_FILE="$HOME/.config/race/default-agent"
+
+# 子命令：记住默认 agent
+if [[ "${1:-}" == "set-default-agent" ]]; then
+  def="${2:?用法: race set-default-agent <agent>}"
+  mkdir -p "$(dirname "$DEFAULT_FILE")"
+  printf '%s\n' "$def" >"$DEFAULT_FILE"
+  echo "✅ 默认 agent 已设为: $def"
+  exit 0
+fi
 
 # 无任何参数时直接给帮助，不必记 -h
 [[ $# -eq 0 ]] && usage
@@ -77,12 +87,12 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-if [[ ${#AGENTS[@]} -eq 0 ]]; then
-  echo "❌ 必须提供 -a 参赛 Agent 列表" >&2
-  exit 1
+if [[ ${#AGENTS[@]} -eq 0 && -f "$DEFAULT_FILE" ]]; then
+  def_agent="$(tr -d '[:space:]' <"$DEFAULT_FILE")"
+  [[ -n "$def_agent" ]] && AGENTS=("$def_agent")
 fi
-if [[ -z "$ISSUE" && -z "$PROMPT" ]]; then
-  echo "❌ 必须提供 -i 或 -p 之一作为赛马任务输入" >&2
+if [[ ${#AGENTS[@]} -eq 0 ]]; then
+  echo "❌ 必须提供 -a 参赛 Agent 列表（或用 race set-default-agent 设默认值）" >&2
   exit 1
 fi
 
@@ -99,6 +109,14 @@ echo "📦 目标仓库: $REPO"
 
 # ---- 抓取 Issue ----
 ISSUE_NUM=""; ISSUE_TITLE=""; ISSUE_BODY=""
+if [[ -z "$ISSUE" ]]; then
+  echo "🔍 未指定 Issue，取最新一条 open issue ..."
+  if ! ISSUE="$(gh issue list --state open --limit 1 --json number --jq '.[0].number // empty')" \
+    || [[ -z "$ISSUE" ]]; then
+    echo "❌ 取最新 open issue 失败" >&2
+    exit 1
+  fi
+fi
 if [[ -n "$ISSUE" ]]; then
   echo "🔍 正在抓取 GitHub Issue: $ISSUE ..."
   if ! out="$(gh issue view "$ISSUE" --json number,title,body)"; then
@@ -136,13 +154,16 @@ done
 # ---- 单个 Worker：建 worktree + 起 agent 终端 ----
 launch_worker() {
   local idx="$1" raw="$2"
-  local agent branch title
+  local agent branch title horse
   parse_spec "$raw"
   agent="$AGENT_ID"
-  branch="🐎-${agent}-${ISSUE_TITLE}"
+  # 单人参赛不加马，多人赛马才加
+  horse="🐎-"
+  [[ ${#AGENTS[@]} -eq 1 ]] && horse=""
+  branch="${horse}${agent}-${ISSUE_TITLE}"
   # git ref 不允许空格与 /，Issue 标题里常见，统一换成 -
   branch="${branch//[[:space:]\/]/-}"
-  title="🐎-${agent}-${ISSUE_TITLE}"
+  title="${horse}${agent}-${ISSUE_TITLE}"
 
   printf '\n🚀 [Worker %s] 正在初始化: %s\n' "$idx" "$title"
   echo "   分支名: $branch"
