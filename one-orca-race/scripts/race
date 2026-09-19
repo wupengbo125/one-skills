@@ -38,6 +38,33 @@ normalize_agent() {
   esac
 }
 
+# 分支名清洗：git ref 不接受的字符（空格 : ? * [ \ ~ ^ 等）统一换成 -，并折叠/去首尾
+sanitize_ref() {
+  local s="$1"
+  s="${s//[^A-Za-z0-9一-龥._-]/-}"
+  s="$(tr -s '-' <<<"$s")"
+  s="${s#-}"
+  s="${s%-}"
+  s="${s%.}"
+  printf '%s' "$s"
+}
+
+# 剥掉标题开头的 [xxx] / 【xxx】 / (xxx) / （xxx） 标记，标记不占截断额度
+strip_title_tag() {
+  local s="$1" prev
+  while :; do
+    prev="$s"
+    s="${s#"${s%%[![:space:]]*}"}"
+    s="${s#\[*\]}"
+    s="${s#【*】}"
+    s="${s#(*)}"
+    s="${s#（*）}"
+    s="${s#"${s%%[![:space:]]*}"}"
+    [[ "$s" == "$prev" ]] && break
+  done
+  printf '%s' "$s"
+}
+
 # 解析 agent[:model[:effort]]，结果写入全局变量 AGENT_ID / A_MODEL / A_EFFORT
 # 注意：必须用 `parse_spec x` 直接调用，不能用 $(...) 包（子 shell 会丢全局变量）
 parse_spec() {
@@ -63,8 +90,6 @@ BASE="main"
 DRY_RUN=0
 DEFAULT_FILE="$HOME/.config/race/default-agent"
 DEFAULT_AGENT=""
-# 每轮赛马随机 3 位标识，插在马后面，避免同题多轮分支名撞车
-RACE_ID="$(printf '%03d' $((RANDOM % 1000)))"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -144,7 +169,7 @@ fi
 [[ -n "$FULL_PROMPT" ]] && FULL_PROMPT+=$'\n\n'
 FULL_PROMPT+=$'## Race Rules:\n- Solve the issue cleanly and completely.\n- Do not touch unrelated files.\n- Verify all changes before reporting.'
 
-echo "🏁 参赛 Agent 规模: ${#AGENTS[@]} 位   (本轮标识: ${RACE_ID})"
+echo "🏁 参赛 Agent 规模: ${#AGENTS[@]} 位"
 for i in "${!AGENTS[@]}"; do
   parse_spec "${AGENTS[$i]}"
   printf '   [%d] Agent: %s | Model: %s | Effort: %s\n' \
@@ -154,25 +179,29 @@ done
 # ---- 单个 Worker：建 worktree + 起 agent 终端 ----
 launch_worker() {
   local idx="$1" raw="$2"
-  local agent branch title horse model_slug short_title
+  local agent branch title horse model_slug core_title short_title
   parse_spec "$raw"
   agent="$AGENT_ID"
+  # 每位参赛马自己的随机 3 位标识（同轮已去重），保证 -a omp omp 这种同名马也不撞
+  RACE_ID="${RACE_IDS[$((idx - 1))]}"
   # 单人参赛不加马，多人赛马才加
   horse="🐎-"
   [[ ${#AGENTS[@]} -eq 1 ]] && horse=""
   # 用户指定了模型才把模型接到 agent 后面（同名 agent 不同模型靠它区分）
   model_slug=""
   if [[ -n "$A_MODEL" ]]; then
-    model_slug="-${A_MODEL//[[:space:]\/]/-}"
+    model_slug="-$(sanitize_ref "$A_MODEL")"
   fi
-  # 短标题：含汉字的标题取前 6 个字符（去空格/斜杠），纯英文标题取前 3 个词
-  if [[ "$ISSUE_TITLE" == *[一-龥]* ]]; then
-    short_title="${ISSUE_TITLE//[[:space:]\/]/}"
+  # 先剥掉标题开头的 [xxx] 标记，标记不占截断额度
+  core_title="$(strip_title_tag "$ISSUE_TITLE")"
+  # 短标题：含汉字取前 6 个字符，纯英文取前 3 个词
+  if [[ "$core_title" == *[一-龥]* ]]; then
+    short_title="${core_title//[[:space:]\/]/}"
     short_title="${short_title:0:6}"
   else
-    short_title="$(awk '{for (i = 1; i <= NF && i <= 3; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$ISSUE_TITLE")"
-    short_title="${short_title//[[:space:]\/]/-}"
+    short_title="$(awk '{for (i = 1; i <= NF && i <= 3; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$core_title")"
   fi
+  short_title="$(sanitize_ref "$short_title")"
 
   # 分支名：<马><随机3位>-<agent>[-<model>]-<短标题>
   branch="${horse}${RACE_ID}-${agent}${model_slug}-${short_title}"
@@ -280,6 +309,18 @@ launch_worker() {
   echo "   ✅ 终端启动成功: $cmd_str"
   RESULTS+=("ok|${idx}|${raw}|${branch}")
 }
+
+# 每位参赛马一个随机 3 位标识，同轮内去重（防 -a omp omp 同名马撞分支）
+RACE_IDS=()
+for _ in "${AGENTS[@]}"; do
+  while :; do
+    rid="$(printf '%03d' $((RANDOM % 1000)))"
+    [[ " ${RACE_IDS[*]-} " == *" $rid "* ]] && continue
+    RACE_IDS+=("$rid")
+    break
+  done
+done
+unset rid
 
 RESULTS=()
 idx=0
