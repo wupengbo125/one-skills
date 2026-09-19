@@ -38,30 +38,28 @@ normalize_agent() {
   esac
 }
 
-# 分支名清洗：git ref 不接受的字符（空格 : ? * [ \ ~ ^ 等）统一换成 -，并折叠/去首尾
+# 分支名清洗：只动 ASCII 字节（UTF-8 多字节字符都 >=0x80，天然不受影响），
+# 换掉 git ref 不接受的空间与 ~ ^ : ? * [ ] \ 控制符，再折叠/去首尾
 sanitize_ref() {
   local s="$1"
-  s="${s//[^A-Za-z0-9一-龥._-]/-}"
-  s="$(tr -s '-' <<<"$s")"
+  s="$(printf '%s' "$s" | LC_ALL=C tr -d '\001-\037\177')"
+  s="${s//[[:space:]]/-}"
+  s="${s//\~/-}"
+  s="${s//\^/-}"
+  s="${s//:/-}"
+  s="${s//\?/-}"
+  s="${s//\*/-}"
+  s="${s//\[/-}"
+  s="${s//\]/-}"
+  s="${s//\\/-}"
+  s="${s//../-}"
+  s="${s//\//-}"
+  s="$(printf '%s' "$s" | LC_ALL=C tr -s '-')"
   s="${s#-}"
   s="${s%-}"
+  s="${s#.}"
   s="${s%.}"
-  printf '%s' "$s"
-}
-
-# 剥掉标题开头的 [xxx] / 【xxx】 / (xxx) / （xxx） 标记，标记不占截断额度
-strip_title_tag() {
-  local s="$1" prev
-  while :; do
-    prev="$s"
-    s="${s#"${s%%[![:space:]]*}"}"
-    s="${s#\[*\]}"
-    s="${s#【*】}"
-    s="${s#(*)}"
-    s="${s#（*）}"
-    s="${s#"${s%%[![:space:]]*}"}"
-    [[ "$s" == "$prev" ]] && break
-  done
+  s="${s%.lock}"
   printf '%s' "$s"
 }
 
@@ -179,7 +177,7 @@ done
 # ---- 单个 Worker：建 worktree + 起 agent 终端 ----
 launch_worker() {
   local idx="$1" raw="$2"
-  local agent branch title horse model_slug core_title short_title
+  local agent branch title horse model_slug slug
   parse_spec "$raw"
   agent="$AGENT_ID"
   # 每位参赛马自己的随机 3 位标识（同轮已去重），保证 -a omp omp 这种同名马也不撞
@@ -192,20 +190,14 @@ launch_worker() {
   if [[ -n "$A_MODEL" ]]; then
     model_slug="-$(sanitize_ref "$A_MODEL")"
   fi
-  # 先剥掉标题开头的 [xxx] 标记，标记不占截断额度
-  core_title="$(strip_title_tag "$ISSUE_TITLE")"
-  # 短标题：含汉字取前 6 个字符，纯英文取前 3 个词
-  if [[ "$core_title" == *[一-龥]* ]]; then
-    short_title="${core_title//[[:space:]\/]/}"
-    short_title="${short_title:0:6}"
-  else
-    short_title="$(awk '{for (i = 1; i <= NF && i <= 3; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$core_title")"
-  fi
-  short_title="$(sanitize_ref "$short_title")"
+  # 不截断标题（用户自行把 Issue 标题写短），只做 git ref 合法化
+  slug="$(sanitize_ref "$ISSUE_TITLE")"
+  # 兜底：标题为空时用 issue 编号占位，绝不留出 🐎-123-omp- 这种空尾巴
+  [[ -n "$slug" ]] || slug="issue-${ISSUE_NUM:-task}"
 
-  # 分支名：<马><随机3位>-<agent>[-<model>]-<短标题>
-  branch="${horse}${RACE_ID}-${agent}${model_slug}-${short_title}"
-  title="${horse}${agent}${model_slug}-${short_title}"
+  # 分支名：<马><随机3位>-<agent>[-<model>]-<标题>
+  branch="${horse}${RACE_ID}-${agent}${model_slug}-${slug}"
+  title="${horse}${agent}${model_slug}-${ISSUE_TITLE}"
 
   printf '\n🚀 [Worker %s] 正在初始化: %s\n' "$idx" "$title"
   echo "   分支名: $branch"
