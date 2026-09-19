@@ -126,10 +126,6 @@ fi
 [[ -n "$FULL_PROMPT" ]] && FULL_PROMPT+=$'\n\n'
 FULL_PROMPT+=$'## Race Rules:\n- Solve the issue cleanly and completely.\n- Do not touch unrelated files.\n- Verify all changes before reporting.'
 
-# ---- 赛马批次 ID ----
-RACE_ID="$(date +%s)"
-RACE_ID="${RACE_ID: -4}"
-
 echo "🏁 参赛 Agent 规模: ${#AGENTS[@]} 位"
 for i in "${!AGENTS[@]}"; do
   parse_spec "${AGENTS[$i]}"
@@ -140,11 +136,12 @@ done
 # ---- 单个 Worker：建 worktree + 起 agent 终端 ----
 launch_worker() {
   local idx="$1" raw="$2"
-  local agent branch safe title
+  local agent branch title
   parse_spec "$raw"
   agent="$AGENT_ID"
-  safe="${raw//[^a-zA-Z0-9_-]/_}"
-  branch="race-${RACE_ID}-${idx}-${safe}"
+  branch="🐎-${agent}-${ISSUE_TITLE}"
+  # git ref 不允许空格与 /，Issue 标题里常见，统一换成 -
+  branch="${branch//[[:space:]\/]/-}"
   title="🐎-${agent}-${ISSUE_TITLE}"
 
   printf '\n🚀 [Worker %s] 正在初始化: %s\n' "$idx" "$title"
