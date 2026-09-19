@@ -45,3 +45,4 @@
   - 直接通过 GitHub API 对远端仓库文件进行读取、创建、编辑、删除与追加（免本地 clone 与 git）
 - [one-orca-race/](one-orca-race/)
   - 并发将 GitHub Issue 或提示词分派给多个指定模型的 Agent 在独立 Worktree 中赛马比对
+  - 不带任何参数直接执行 race 即输出用法帮助

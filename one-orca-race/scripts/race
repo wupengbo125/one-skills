@@ -58,6 +58,9 @@ REPO_ARG=""
 BASE="main"
 DRY_RUN=0
 
+# 无任何参数时直接给帮助，不必记 -h
+[[ $# -eq 0 ]] && usage
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -a | --agents)
