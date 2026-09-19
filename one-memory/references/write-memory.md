@@ -27,10 +27,14 @@
 2. **事实轨 案卷**（命中任一即建）：排查超 3 轮 / 排除过错误方向 / 有权衡决策 / 跨多模块。记背景诉求、排查过程、关键决策、代码结论、涉及产物。如果同一个会话，涉及多个完全不同的场景，则在文件中用分隔符"---"分开写不同的场景。
 文件名：`tasks/<会话ID>.md`
 
-### Step 3 提交
-代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已门禁，禁止 `--no-verify`）。
-
-### Step 4 海马记忆仓独立落盘（远端直写）
-用 Step 1 的摘要，按「〇、海马记忆仓写入通道」直接写远端 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（存在则取 sha PUT 追加，不存在则新建；日期已在文件名，行内不重复；项目路径以 `~` 开头）：
+### Step 3 海马记忆仓落盘（远端直写，必须在提交前完成）
+按「〇、海马记忆仓写入通道」写远端 `memory/<YYYY-MM>/<YYYY-MM-DD>.md`（存在则取 sha PUT 追加，不存在则新建；日期已在文件名，行内不重复；项目路径以 `~` 开头）：
 `- HH:mm [~/项目完整路径] [会话ID] Step 1 的摘要`
+
+**等号铁律**：时间戳与项目路径之后的内容，必须与 Step 2.1 的 timeline 行**逐字照抄**（同一会话改写摘要时两边同改）；
+pre-commit 会拉远端当日文件做整行等值比对，缺失或不一致均拒绝提交。
+
 偏好与画像同理走远端：稳定偏好追加 `personal/preferences.md`（一条一条，不按天）；长期画像整合进 `personal/profile.md`。
+
+### Step 4 提交
+代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已同时门禁 `onememory/` 与海马摘要等号，禁止 `--no-verify`）。

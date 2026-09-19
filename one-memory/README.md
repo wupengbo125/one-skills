@@ -16,7 +16,7 @@ one-skills/one-memory/
 │   ├── index.ts             # 扩展入口：常驻规则注入与命令注册
 │   └── memory-rules.md      # 动态台词：定义触发/抑制规则（改动实时生效）
 ├── hooks/ 【通用 Git 钩子层】
-│   ├── pre-commit 代码改动与 onememory/ 随身记忆原子提交门禁
+│   ├── pre-commit 代码改动与 onememory/ 原子提交门禁 + 海马摘要等号校验
 │   ├── post-commit 海马记忆仓提交自动同步索引
 │   └── install-hook.sh 钩子分发脚本
 ├── scripts/                 # 【脚本目录】
@@ -34,7 +34,7 @@ one-skills/one-memory/
 
 ### 1. 模式 A：通用 Git 钩子 (Universal Git Hooks)
 - **适用**：任何终端 Git、任何 Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
-- **机制**：提交代码时检测 `onememory/` 随身记忆；海马记忆仓提交后自动同步检索索引。
+- **机制**：提交代码时检测 `onememory/` 随身记忆，并校验海马记忆仓当日摘要与 `timeline.md` 末行一致；海马记忆仓提交后自动同步检索索引。
 - **安装**：
   ```bash
   bash one-skills/one-memory/hooks/install-hook.sh
