@@ -15,7 +15,7 @@ argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 
 | 操作 | 说明 | 读取文件 |
 | :--- | :--- | :--- |
-| `note` | 向 `raw/` 记日记、记录生活、存随笔、或更新记录、记到大本子 | `./references/note.md` |
+| `note` | 向 `raw/` 记日记、记录生活、存随笔、或更新记录 | `./references/note.md` |
 | `ingest` | 提炼 `raw/` 生活源材料编译入 `onelife/` | `./references/ingest.md` |
 | `query` | 从 `onelife/` 检索生活经历、回答生活问询并追溯出处规范页面 | `./references/query.md` |
 | `lint` | 检查 `onelife/` 死链、孤儿页面与冲突矛盾并修复 | `./references/lint.md` |
