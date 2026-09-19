@@ -145,7 +145,7 @@ launch_worker() {
   agent="$AGENT_ID"
   safe="${raw//[^a-zA-Z0-9_-]/_}"
   branch="race-${RACE_ID}-${idx}-${safe}"
-  title="🏁 Race #${idx}: ${raw}"
+  title="🐎-${agent}-${ISSUE_TITLE}"
 
   printf '\n🚀 [Worker %s] 正在初始化: %s\n' "$idx" "$title"
   echo "   分支名: $branch"
