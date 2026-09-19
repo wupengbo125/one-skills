@@ -18,9 +18,9 @@ usage() {
   -p, --prompt       追加/独立的自定义提示词
   -r, --repo         目标 Git 仓库路径（默认当前仓库）
   -b, --base-branch  基线分支（默认 main）
+  -sda --set-default-agent <agent>   记住默认 Agent，之后可省略 -a
       --dry-run      只打印计划，不实际创建
 
-  set-default-agent <agent>   记住默认 Agent，之后可省略 -a
 
 说明:
   不给 -i 时自动取最新一条 open issue
@@ -64,15 +64,7 @@ REPO_ARG=""
 BASE="main"
 DRY_RUN=0
 DEFAULT_FILE="$HOME/.config/race/default-agent"
-
-# 子命令：记住默认 agent
-if [[ "${1:-}" == "set-default-agent" ]]; then
-  def="${2:?用法: race set-default-agent <agent>}"
-  mkdir -p "$(dirname "$DEFAULT_FILE")"
-  printf '%s\n' "$def" >"$DEFAULT_FILE"
-  echo "✅ 默认 agent 已设为: $def"
-  exit 0
-fi
+DEFAULT_AGENT=""
 
 # 无任何参数时直接给帮助，不必记 -h
 [[ $# -eq 0 ]] && usage
@@ -87,18 +79,27 @@ while [[ $# -gt 0 ]]; do
     -p | --prompt) PROMPT="${2:?-p 缺少参数}"; shift 2 ;;
     -r | --repo) REPO_ARG="${2:?-r 缺少参数}"; shift 2 ;;
     -b | --base-branch) BASE="${2:?-b 缺少参数}"; shift 2 ;;
+    -sda | --set-default-agent) DEFAULT_AGENT="${2:?-sda 缺少参数}"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h | --help) usage ;;
     *) usage ;;
   esac
 done
 
+# 设默认 agent 后就收工，不跑赛马
+if [[ -n "$DEFAULT_AGENT" ]]; then
+  mkdir -p "$(dirname "$DEFAULT_FILE")"
+  printf '%s\n' "$DEFAULT_AGENT" >"$DEFAULT_FILE"
+  echo "✅ 默认 agent 已设为: $DEFAULT_AGENT"
+  exit 0
+fi
+
 if [[ ${#AGENTS[@]} -eq 0 && -f "$DEFAULT_FILE" ]]; then
   def_agent="$(tr -d '[:space:]' <"$DEFAULT_FILE")"
   [[ -n "$def_agent" ]] && AGENTS=("$def_agent")
 fi
 if [[ ${#AGENTS[@]} -eq 0 ]]; then
-  echo "❌ 必须提供 -a 参赛 Agent 列表（或用 race set-default-agent 设默认值）" >&2
+  echo "❌ 必须提供 -a 参赛 Agent 列表（或用 -sda 设默认值）" >&2
   exit 1
 fi
 
