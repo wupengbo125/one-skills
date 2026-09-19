@@ -27,6 +27,15 @@
   - 配置文件、隧道名、端口、路径等已由用户提供时，先读用户的文件原样沿用，再谈方案；不要先凭印象写一套"看起来合理"的
   - 输出方案前先确认事实来源（读文件/命令输出），禁止自信地把猜测值写给用户当可执行步骤
 
+Orca worktree 落点统一到 /home/ctyun/onespace/worktree
+- Date: 2026-09-19
+- Context: 用户要求把 Orca 建的 worktree 从默认 ~/orca/workspaces 挪到 ~/onespace/worktree
+- Category: Environment Configuration
+- Instructions:
+  - 落点按 project setup 逐仓库配置：`orca project setup-update --setup <setup-id> --worktree-base-path /home/ctyun/onespace/worktree`（setup id 查 `orca project setups --json`）；之后该仓库新 worktree 落在 `<base>/<repo>/<name>`
+  - `orca worktree create` 本身没有指定路径的参数，只能靠 setup 上的 worktreeBasePath
+  - 本机 11 个仓库已全部设置；改完偶发一次 "runtime closed the connection"，重试即可
+
 Orca CLI 集成坑点（worktree / terminal / agent id）
 - Date: 2026-09-19
 - Context: Discovered by Agent while 排查 one-orca-race 里 codebuddy 建不出终端的问题
