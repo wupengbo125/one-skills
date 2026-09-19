@@ -19,6 +19,12 @@ usage() {
   -r, --repo         目标 Git 仓库路径（默认当前仓库）
   -b, --base-branch  基线分支（默认 main）
       --dry-run      只打印计划，不实际创建
+
+  set-default-agent <agent>   记住默认 Agent，之后可省略 -a
+
+说明:
+  不给 -i 时自动取最新一条 open issue
+  不给 -a 时用默认 Agent（需先 set-default-agent）
 EOF
   exit 1
 }

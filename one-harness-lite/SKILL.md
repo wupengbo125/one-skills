@@ -31,7 +31,7 @@ disable-model-invocation: true
 
 派一个全新的 Sub-agent，给它：
 
-- **平铺plan**：把
+- **平铺plan**：把和用户核对的平铺plan一字不差的给Sub agent
 - `**git diff HEAD**`（最后一次提交到当前的全部改动）
 
 Sub-agent 只查一件事：**需求和改动是否画等号**
