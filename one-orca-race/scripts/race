@@ -63,6 +63,8 @@ BASE="main"
 DRY_RUN=0
 DEFAULT_FILE="$HOME/.config/race/default-agent"
 DEFAULT_AGENT=""
+# 每轮赛马随机 3 位标识，插在马后面，避免同题多轮分支名撞车
+RACE_ID="$(printf '%03d' $((RANDOM % 1000)))"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -142,7 +144,7 @@ fi
 [[ -n "$FULL_PROMPT" ]] && FULL_PROMPT+=$'\n\n'
 FULL_PROMPT+=$'## Race Rules:\n- Solve the issue cleanly and completely.\n- Do not touch unrelated files.\n- Verify all changes before reporting.'
 
-echo "🏁 参赛 Agent 规模: ${#AGENTS[@]} 位"
+echo "🏁 参赛 Agent 规模: ${#AGENTS[@]} 位   (本轮标识: ${RACE_ID})"
 for i in "${!AGENTS[@]}"; do
   parse_spec "${AGENTS[$i]}"
   printf '   [%d] Agent: %s | Model: %s | Effort: %s\n' \
@@ -152,16 +154,25 @@ done
 # ---- 单个 Worker：建 worktree + 起 agent 终端 ----
 launch_worker() {
   local idx="$1" raw="$2"
-  local agent branch title horse
+  local agent branch title horse model_slug short_title
   parse_spec "$raw"
   agent="$AGENT_ID"
   # 单人参赛不加马，多人赛马才加
   horse="🐎-"
   [[ ${#AGENTS[@]} -eq 1 ]] && horse=""
-  branch="${horse}${agent}-${ISSUE_TITLE}"
-  # git ref 不允许空格与 /，Issue 标题里常见，统一换成 -
-  branch="${branch//[[:space:]\/]/-}"
-  title="${horse}${agent}-${ISSUE_TITLE}"
+  # 用户指定了模型才把模型接到 agent 后面（同名 agent 不同模型靠它区分）
+  model_slug=""
+  if [[ -n "$A_MODEL" ]]; then
+    model_slug="-${A_MODEL//[[:space:]\/]/-}"
+  fi
+  # 标题压缩：最多取前 6 个词，再限长 40 字符
+  short_title="$(awk '{for (i = 1; i <= NF && i <= 6; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$ISSUE_TITLE")"
+  short_title="${short_title//[[:space:]\/]/-}"
+  short_title="${short_title:0:40}"
+
+  # 分支名：<马><随机3位>-<agent>[-<model>]-<短标题>
+  branch="${horse}${RACE_ID}-${agent}${model_slug}-${short_title}"
+  title="${horse}${agent}${model_slug}-${short_title}"
 
   printf '\n🚀 [Worker %s] 正在初始化: %s\n' "$idx" "$title"
   echo "   分支名: $branch"
