@@ -37,4 +37,5 @@
   - 自签证书免装 CA：derper 启动日志会打印 `CertName: sha256-raw:<指纹>`，把该值写进 derpMap 的 `CertName` 即为证书 pinning，iOS/Android 也无需安装根证书
   - 该 FRP 是面板型：隧道必须先在其网页面板创建且名字与类型匹配，frpc.toml 里的 remotePort 无效，写错会报 `proxy_not_found`
   - 「STUNPort: -1 关 STUN」会让该 region 从 `tailscale netcheck` 候选列表消失、回落官方 DERP，别关；代价是自报公网 endpoint 变成 127.0.0.1（经 FRP 后源地址丢失），对称 NAT 场景无害
+  - 链路多绕一层免费 FRP 时，derper 默认 `-tcp-user-timeout=15s`（官方刻意设短）会在隧道拥塞时主动掐连接，症状是 ping 有回包但 SSH 连不上/中途断；这类中继要显式放宽 `-tcp-user-timeout=60s -tcp-write-timeout=60s`
   - tailnet ACL 无法用 CLI 修改（`tailscale policy` 子命令不存在），只能改网页或用 API key（用户的在 `~/onespace/github/dotfiles/rc/bash/exports` 的 `$tailscale_api_key`）PATCH `/api/v2/tailnet/-/acl`，返回体是 HuJSON，需带 `If-Match: etag`
