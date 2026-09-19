@@ -10,6 +10,8 @@ Scroll Index
   - **核心解决**：`/usr/local/frp/frpc.toml` 多端口穿透（SSH:2222, AI网关:20128, WebOS:6689）与自启服务运维。
 - [Tailscale局域网流量代理出口配置](./tech/Tailscale局域网流量代理出口配置.md)
   - **核心解决**：TUN 模式下允许 LAN、白名单保留及避免 Tailscale 节点断连避坑。
+- [自建Tailscale自定义DERP中继经公共FRP暴露](./tech/自建Tailscale自定义DERP中继经公共FRP暴露.md)
+  - **核心解决**：对称 NAT 机器上自建 DERP（derper 自编译 + 自签 IP 证书 + `CertName` pinning 免装 CA），借公共 FRP 的 TCP/UDP 隧道暴露，ACL `derpMap` region 900 经 API 增量下发；含面板型 FRP 必须先在网页建隧道、`-c` 必填、别关 STUN、`tcp-user-timeout` 15s 会掐 SSH 等 10 条坑，官方 DERP 175ms 降到 55ms。
 - [显卡供电开关与硬件管理](./tech/显卡供电开关与硬件管理.md)
   - **核心解决**：显卡硬件供电策略切换、电源状态监控、风扇转速与发热避坑处理。
 - [本地AI网关接入与模型配置](./tech/本地AI网关接入与模型配置.md)
