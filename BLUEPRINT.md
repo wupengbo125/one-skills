@@ -48,3 +48,4 @@
   - 不指定 Issue 时自动取最新一条 open issue 作为任务源
   - 只派一个 Agent 时标题与分支不带 🐎 前缀，多人赛马才带
   - 支持 -sda/--set-default-agent 记住默认 Agent，之后不带 -a 直接用它
+  - CodeBuddy 走终端模式：等终端起来后以 codebuddy --model <模型> "<Issue链接> <提示词>" 启动
