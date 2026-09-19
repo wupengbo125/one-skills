@@ -4,19 +4,18 @@
 #
 # 用法:
 #   race.sh -a codex:gpt-5.2 omp claude:claude-3-7-sonnet:high codebuddy \
-#           [-i <issue>] [-p "补充指令"] [-r <repo路径>] [-b main] [--dry-run]
+#           [-i <issue>] [-p "补充指令"] [-b main] [--dry-run]
 set -euo pipefail
 
 NATIVE_AGENTS="claude claude-agent-teams openclaude codex autohand ante trae opencode mimo-code pi omp prime-agent gemini antigravity aider goose amp kilo kiro crush aug cline codebuff command-code continue cursor droid kimi mistral-vibe qwen-code rovo hermes openclaw copilot grok devin"
 
 usage() {
   cat >&2 <<'EOF'
-用法: race.sh -a <agent[:model[:effort]]...> [-i <issue>] [-p <prompt>] [-r <repo>] [-b <base>] [--dry-run]
+用法: race.sh -a <agent[:model[:effort]]...> [-i <issue>] [-p <prompt>] [-b <base>] [--dry-run]
 
   -a, --agents       参赛 Agent 列表（空格分隔），如: -a codex:gpt-5.2 omp claude:claude-3-7-sonnet codebuddy
   -i, --issue        GitHub Issue 编号或 URL（gh issue view 抓取）
   -p, --prompt       追加/独立的自定义提示词
-  -r, --repo         目标 Git 仓库路径（默认当前仓库）
   -b, --base-branch  基线分支（默认 main）
   -sda --set-default-agent <agent>   记住默认 Agent，之后可省略 -a
       --dry-run      只打印计划，不实际创建
@@ -60,7 +59,6 @@ parse_spec() {
 AGENTS=()
 ISSUE=""
 PROMPT=""
-REPO_ARG=""
 BASE="main"
 DRY_RUN=0
 DEFAULT_FILE="$HOME/.config/race/default-agent"
@@ -74,7 +72,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     -i | --issue) ISSUE="${2:?-i 缺少参数}"; shift 2 ;;
     -p | --prompt) PROMPT="${2:?-p 缺少参数}"; shift 2 ;;
-    -r | --repo) REPO_ARG="${2:?-r 缺少参数}"; shift 2 ;;
     -b | --base-branch) BASE="${2:?-b 缺少参数}"; shift 2 ;;
     -sda | --set-default-agent) DEFAULT_AGENT="${2:?-sda 缺少参数}"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
@@ -100,15 +97,11 @@ if [[ ${#AGENTS[@]} -eq 0 ]]; then
   exit 1
 fi
 
-# ---- 仓库路径 ----
-if [[ -n "$REPO_ARG" && -d "$REPO_ARG" ]]; then
-  REPO="$(cd "$REPO_ARG" && pwd)"
-else
-  REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || {
-    echo "❌ 当前目录不在 git 仓库中" >&2
-    exit 1
-  }
-fi
+# ---- 仓库路径（只认当前仓库）----
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+  echo "❌ 当前目录不在 git 仓库中" >&2
+  exit 1
+}
 echo "📦 目标仓库: $REPO"
 
 # ---- 抓取 Issue ----
