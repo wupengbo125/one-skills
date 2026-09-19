@@ -75,3 +75,4 @@
 - 2026-09-18 08:27 [01a0b1d1-4c3d-752a-803a-a688444f9263] 新增 one-orca-race 多 Agent 并行赛马调度技能与脚本，支持 GitHub Issue/Prompt 组装、多模型指定与独立 Worktree 并行运行
 - 2026-09-18 12:35 [fw-20260918-b2] pre-commit 门禁改为只对 Agent 会话生效（检测 CODEBUDDY_SESSION_ID/CLAUDE_SESSION_ID），人工提交自动放行，并重装到 ~/onespace/github/* 全部仓库
 - 2026-09-18 23:5x [orca-20260918-a1] one-orca-race：race.py 移植为 shell 实现 scripts/race（多 agent、agent:model:effort、Issue 抓内容组 prompt、原生 agent 直起/非原生 terminal create+send、--dry-run），旧 race.py 已删除；SKILL.md 同步改用 race 命令
+- 2026-09-19 16:0x [life-20260919-a1] one-life raw 归档目录由 raw/<YYYY-MM>/ 改为季节 raw/<YYYY>-<season>/（3-5 spring、6-8 summer、9-11 autumn、12+次年1-2 归起始年 winter）；query.md 近期回顾改 ls raw/*/
