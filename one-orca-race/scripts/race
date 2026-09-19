@@ -165,10 +165,14 @@ launch_worker() {
   if [[ -n "$A_MODEL" ]]; then
     model_slug="-${A_MODEL//[[:space:]\/]/-}"
   fi
-  # 标题压缩：最多取前 6 个词，再限长 40 字符
-  short_title="$(awk '{for (i = 1; i <= NF && i <= 6; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$ISSUE_TITLE")"
-  short_title="${short_title//[[:space:]\/]/-}"
-  short_title="${short_title:0:40}"
+  # 短标题：含汉字的标题取前 6 个字符（去空格/斜杠），纯英文标题取前 3 个词
+  if [[ "$ISSUE_TITLE" == *[一-龥]* ]]; then
+    short_title="${ISSUE_TITLE//[[:space:]\/]/}"
+    short_title="${short_title:0:6}"
+  else
+    short_title="$(awk '{for (i = 1; i <= NF && i <= 3; i++) printf "%s%s", (i > 1 ? "-" : ""), $i}' <<<"$ISSUE_TITLE")"
+    short_title="${short_title//[[:space:]\/]/-}"
+  fi
 
   # 分支名：<马><随机3位>-<agent>[-<model>]-<短标题>
   branch="${horse}${RACE_ID}-${agent}${model_slug}-${short_title}"

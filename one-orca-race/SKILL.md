@@ -12,7 +12,7 @@ argument-hint: "-a <agent[:model]...> -i <issue> -p <prompt>"
 1. **多模型/多Agent齐跑**：支持 `codex`、`claude`、`omp`、`codebuddy`（腾讯 CodeBuddy）、`pi`、`antigravity` 等混编参赛。
 2. **支持指定模型**：语法 `agent:model:effort`（如 `codex:o3-mini:high`、`claude:claude-3-7-sonnet`、`omp`、`codebuddy`）。
 3. **独立分支隔离**：每个 Agent 自动分配独立 Git Worktree，避免代码互相踩踏与写冲突。
-4. **分支名防撞**：分支名格式为 `<🐎-><随机3位>-<agent>[-<model>]-<短标题>`，随机 3 位数字每轮启动时生成一次，同名 agent 不同模型也会区分开；标题只取前 6 个词且限长 40 字符。
+4. **分支名防撞**：分支名格式为 `<🐎-><随机3位>-<agent>[-<model>]-<短标题>`，随机 3 位数字每轮启动时生成一次，同名 agent 不同模型也会区分开；标题截断规则：含汉字的取前 6 个汉字，纯英文的取前 3 个词。
 5. **Issue + Prompt 自动组装**：直接读取 GitHub Issue 内容并拼装自定义指令注入各 Agent 终端。
 
 ## 常用命令
