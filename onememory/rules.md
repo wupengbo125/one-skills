@@ -32,7 +32,8 @@ Orca CLI 集成坑点（worktree / terminal / agent id）
 - Context: Discovered by Agent while 排查 one-orca-race 里 codebuddy 建不出终端的问题
 - Category: Troubleshooting & Debugging
 - Instructions:
-  - Orca 不认识 `codebuddy` 这个 agent id（`--agent codebuddy` → `Unknown TUI agent`）；它在 Orca 里的 id 是 `prime-agent`，但本机没装 `prime-agent` 命令，用了会 `command not found`。CodeBuddy 只能走「建 worktree + 终端里跑 `codebuddy`」这条路
+  - Orca 完全不支持 CodeBuddy：`--agent codebuddy` → `Unknown TUI agent`，Orca 包里搜 `codebuddy` 零命中。CodeBuddy 只能走「建 worktree + 终端里跑 `codebuddy` 命令 + `terminal send` 发 prompt」这条路
+  - `prime-agent` 是 2026-08 出的**另一个独立 Agent 产品**，与 CodeBuddy Code 无关（Orca 的 agent 列表里有它、本机 CodeBuddy 装在 `prime-agent-node/` 目录下，都是巧合，不能据此推断等价）。**禁止**把 `prime-agent` 软链或归一化指向 `codebuddy`，那等于让 Orca 拉起错误的产品
   - Orca 建的分支带命名空间前缀（`refs/heads/<user>/<name>`），所以 `branch:<name>` 选择器匹配不到，必须用 `worktree create --json` 返回的 `result.worktree.id` 走 `id:` 选择器（`name:` 也可）
   - `orca terminal wait --for tui-idle` 会在 TUI 还在启动时就返回，不能在它后面接按键；要判断 codebuddy/claude 的 "Do you trust the files in this folder?" 弹窗只能轮询 `orca terminal read` 的文本
   - 脚本里开了 `set -euo pipefail` 时，`cmd | grep -q` 会因 grep 提前关管道让 pipefail 判为非 0，永远匹配不上；改用 `out="$(cmd || true)"` + `[[ "$out" == *x* ]]`
