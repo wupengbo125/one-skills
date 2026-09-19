@@ -27,6 +27,17 @@
   - 配置文件、隧道名、端口、路径等已由用户提供时，先读用户的文件原样沿用，再谈方案；不要先凭印象写一套"看起来合理"的
   - 输出方案前先确认事实来源（读文件/命令输出），禁止自信地把猜测值写给用户当可执行步骤
 
+Orca CLI 集成坑点（worktree / terminal / agent id）
+- Date: 2026-09-19
+- Context: Discovered by Agent while 排查 one-orca-race 里 codebuddy 建不出终端的问题
+- Category: Troubleshooting & Debugging
+- Instructions:
+  - Orca 不认识 `codebuddy` 这个 agent id（`--agent codebuddy` → `Unknown TUI agent`）；它在 Orca 里的 id 是 `prime-agent`，但本机没装 `prime-agent` 命令，用了会 `command not found`。CodeBuddy 只能走「建 worktree + 终端里跑 `codebuddy`」这条路
+  - Orca 建的分支带命名空间前缀（`refs/heads/<user>/<name>`），所以 `branch:<name>` 选择器匹配不到，必须用 `worktree create --json` 返回的 `result.worktree.id` 走 `id:` 选择器（`name:` 也可）
+  - `orca terminal wait --for tui-idle` 会在 TUI 还在启动时就返回，不能在它后面接按键；要判断 codebuddy/claude 的 "Do you trust the files in this folder?" 弹窗只能轮询 `orca terminal read` 的文本
+  - 脚本里开了 `set -euo pipefail` 时，`cmd | grep -q` 会因 grep 提前关管道让 pipefail 判为非 0，永远匹配不上；改用 `out="$(cmd || true)"` + `[[ "$out" == *x* ]]`
+  - 查 Orca 支持什么：`orca agent-context --json`（234 条命令 schema）；`orca terminal read --screen` 才看得到 TUI 实际渲染，默认 read 是时序流
+
 本机 Tailscale 自定义 DERP（经公共 FRP 中继）运维要点
 - Date: 2026-09-19
 - Context: Discovered by Agent while setting up a self-hosted DERP relay on host `one` behind the public FRP service at 192.140.188.104

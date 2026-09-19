@@ -172,11 +172,19 @@ launch_worker() {
     wt_cmd=("${wt_cmd[@]:0:${#wt_cmd[@]}-4}")
   fi
 
-  if ! "${wt_cmd[@]}" >/dev/null; then
+  local wt_out
+  if ! wt_out="$("${wt_cmd[@]}")"; then
     echo "   ❌ 创建 worktree 失败: $branch" >&2
     RESULTS+=("fail|${idx}|${raw}|${branch}")
     return 0
   fi
+
+  # Orca 会给分支加命名空间前缀（如 user/race-x），branch: 选择器匹配不到，
+  # 因此一律用 create 返回的 worktree id 定位。
+  local wt_sel wt_id
+  wt_id="$(jq -r '.result.worktree.id // .result.id // empty' <<<"$wt_out")"
+  wt_sel="name:$branch"
+  [[ -n "$wt_id" ]] && wt_sel="id:$wt_id"
 
   # 构造终端启动命令
   local cmd_str="$agent"
@@ -187,17 +195,29 @@ launch_worker() {
   fi
 
   local term_out
-  if ! term_out="$(orca terminal create --worktree "branch:$branch" --title "$title" --command "$cmd_str" --json)"; then
+  if ! term_out="$(orca terminal create --worktree "$wt_sel" --title "$title" --command "$cmd_str" --json)"; then
     echo "   ❌ 创建终端失败: $agent" >&2
     RESULTS+=("fail|${idx}|${raw}|${branch}")
     return 0
   fi
 
   local handle
-  handle="$(jq -r '.result.agentTerminalHandle // .result.startupTerminal.handle // .result.handle // empty' <<<"$term_out")"
+  handle="$(jq -r '.result.terminal.handle // .result.agentTerminalHandle // .result.startupTerminal.handle // .result.handle // empty' <<<"$term_out")"
   if [[ -n "$handle" ]]; then
     (
-      sleep 2
+      # codebuddy/claude 首次在新目录启动会弹 "Do you trust the files in this folder?",
+      # 弹窗会把随后发进去的 prompt 吞掉。tui-idle 会在弹窗绘制前就返回，因此轮询文本。
+      local tui_out
+      for ((i = 0; i < 60; i++)); do
+        sleep 1
+        tui_out="$(orca terminal read --terminal "$handle" 2>/dev/null || true)"
+        if [[ "$tui_out" == *"Do you trust"* ]]; then
+          orca terminal send --terminal "$handle" --text "" --enter
+          sleep 5
+          break
+        fi
+      done
+      sleep 5
       orca terminal send --terminal "$handle" --text "$FULL_PROMPT" --enter
     ) >/dev/null 2>&1 &
   fi
