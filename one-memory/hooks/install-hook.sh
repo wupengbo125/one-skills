@@ -7,12 +7,23 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PRE_COMMIT="$SCRIPT_DIR/pre-commit"
 POST_COMMIT="$SCRIPT_DIR/post-commit"
 
+# 记录型仓库：自身即记忆载体，不为「记录」再写一条记忆，跳过并清理已装门禁
+SKIP_REPOS="one-hippocampus one-life one-llmwiki"
+
 # 1. 批量安装 pre-commit 门禁到所有 GitHub 仓库
 for repo in "$HOME/onespace/github"/*; do
   if [ -d "$repo/.git/hooks" ]; then
+    name=$(basename "$repo")
+    case " $SKIP_REPOS " in
+      *" $name "*)
+        rm -f "$repo/.git/hooks/pre-commit"
+        echo "已跳过记录型仓库: $name"
+        continue
+        ;;
+    esac
     cp "$PRE_COMMIT" "$repo/.git/hooks/pre-commit" || exit 1
     chmod +x "$repo/.git/hooks/pre-commit" || exit 1
-    echo "已安装 pre-commit: $(basename "$repo")"
+    echo "已安装 pre-commit: $name"
   fi
 done
 

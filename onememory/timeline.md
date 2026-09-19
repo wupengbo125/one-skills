@@ -76,4 +76,4 @@
 - 2026-09-18 12:35 [fw-20260918-b2] pre-commit 门禁改为只对 Agent 会话生效（检测 CODEBUDDY_SESSION_ID/CLAUDE_SESSION_ID），人工提交自动放行，并重装到 ~/onespace/github/* 全部仓库
 - 2026-09-18 23:5x [orca-20260918-a1] one-orca-race：race.py 移植为 shell 实现 scripts/race（多 agent、agent:model:effort、Issue 抓内容组 prompt、原生 agent 直起/非原生 terminal create+send、--dry-run），旧 race.py 已删除；SKILL.md 同步改用 race 命令
 - 2026-09-19 15:58 [life-20260919-a1] one-life raw 归档由月份改季节（raw/<YYYY>-<season>/：3-5 spring、6-8 summer、9-11 autumn、12+次年1-2 归起始年 winter），并移除大本子：记录统一落 raw/<YYYY-MM-DD>-<slug>.md，ingest 不再扫 raw/misc/
-- 2026-09-19 16:44 [mem-20260919-a1] one-memory 沉淀顺序改为先远端落海马再提交，pre-commit 新增海马摘要等号校验（拉远端当日文件按项目路径定位，与 timeline 末行整行等值比对，缺失或不一致拒绝提交）
+- 2026-09-19 17:05 [mem-20260919-a1] one-memory 沉淀顺序改为先远端落海马再提交，pre-commit 新增海马摘要等号校验（拉远端当日文件按项目路径定位，与 timeline 末行整行等值比对，缺失或不一致拒绝提交），install-hook.sh 跳过记录型仓库（海马仓/one-life/one-llmwiki）并清理其已装门禁
