@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-scripts/scrolls.py - 卷轴专用 BM25 FTS5 全文检索与索引同步工具
+scrolls.py - 卷轴库 FTS5 全文检索与索引同步（与 one-wiki/one-memory/one-life 的 fts.py 同一份实现）
 
-数据仓：~/onespace/github/one-skills/one-scrolls/scrolls
+数据仓：one-scrolls/scrolls/（可用 ONE_SCROLLS_DIR 覆盖）
+
+命令:
+  scrolls.py search <关键词>   # BM25 全文检索
+  scrolls.py sync <路径>       # 增量同步单篇到索引
+  scrolls.py rebuild           # 全量重建索引
+  scrolls.py <关键词>          # 等价 search
 """
 
 import os
@@ -15,15 +21,27 @@ DEFAULT_SCROLLS_DIR = os.path.abspath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "scrolls")
 )
 
-def get_scrolls_dir():
+def get_repo_dir():
+    """ONE_SCROLLS_DIR 优先，否则用脚本同级 ../scrolls。"""
     custom = os.environ.get("ONE_SCROLLS_DIR")
     if custom and os.path.isdir(os.path.expanduser(custom)):
         return os.path.abspath(os.path.expanduser(custom))
-    d = os.path.abspath(DEFAULT_SCROLLS_DIR)
-    return d
+    return DEFAULT_SCROLLS_DIR
 
 def get_db_path(repo_dir):
     return os.path.join(repo_dir, ".fts.db")
+
+FTS_TOKENIZE = "porter unicode61"
+
+def index_stale(repo_dir):
+    """索引缺失，或分词器为旧版（旧库跑新分词会静默漏召回）。"""
+    p = get_db_path(repo_dir)
+    if not os.path.isfile(p):
+        return True
+    conn = sqlite3.connect(p)
+    row = conn.execute("SELECT sql FROM sqlite_master WHERE name='docs_fts'").fetchone()
+    conn.close()
+    return not row or "porter" not in row[0]
 
 def resolve_rel_path(p, repo_dir):
     p = os.path.expanduser(p.strip())
@@ -37,31 +55,19 @@ def resolve_rel_path(p, repo_dir):
         return os.path.relpath(abs_p, repo_dir)
     return os.path.normpath(p).lstrip(os.sep)
 
+def _space_cjk(match):
+    """中文逐字空格化：unicode61 不切中文，逐字入索引后才能做 phrase 精确匹配。"""
+    return f" {' '.join(match.group(0))} "
+
 def tokenize(text):
     if not text:
         return ""
-    text = re.sub(r'[\r\n\t]+', ' ', text)
-    tokens, i, n = [], 0, len(text)
-    while i < n:
-        char = text[i]
-        if '\u4e00' <= char <= '\u9fff':
-            tokens.append(char)
-            if i + 1 < n and '\u4e00' <= text[i+1] <= '\u9fff':
-                tokens.append(char + text[i+1])
-            i += 1
-        elif char.isalnum() or char in ['_', '-']:
-            start = i
-            while i < n and (text[i].isalnum() or text[i] in ['_', '-']):
-                i += 1
-            tokens.append(text[start:i].lower())
-        else:
-            i += 1
-    return " ".join(tokens)
+    return re.sub(r'[\u4e00-\u9fff]+', _space_cjk, text)
 
 def get_db_connection(repo_dir):
     conn = sqlite3.connect(get_db_path(repo_dir))
     conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("""
+    conn.execute(f"""
         CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(
             path UNINDEXED,
             raw_title UNINDEXED,
@@ -70,7 +76,7 @@ def get_db_connection(repo_dir):
             category,
             content,
             anchor,
-            tokenize='unicode61'
+            tokenize='{FTS_TOKENIZE}'
         );
     """)
     conn.commit()
@@ -84,7 +90,12 @@ def extract_title(content, default_name):
     return default_name
 
 def parse_entries(raw_content):
-    """把 markdown 拆成条目列表 [(anchor, title, content), ...]"""
+    """把 markdown 拆成条目列表 [(anchor, title, content), ...]。
+
+    规则：`##`/`###` 开头为小节锚点；`- `/`* ` 列表项为一条记录
+    （`- **名称**：内容` 用名称做 title）；其余段落按整体一条。
+    每日流水等无结构的文件退化为整篇一条。
+    """
     entries = []
     anchor = ""
     buf_title = None
@@ -152,7 +163,7 @@ def make_clean_snippet(raw_text, words):
     return clean[:120] + ('...' if len(clean) > 120 else '')
 
 def cmd_sync(target_path):
-    repo_dir = get_scrolls_dir()
+    repo_dir = get_repo_dir()
     rel_path = resolve_rel_path(target_path, repo_dir)
     full_path = os.path.join(repo_dir, rel_path)
     conn = get_db_connection(repo_dir)
@@ -161,7 +172,7 @@ def cmd_sync(target_path):
         conn.execute("DELETE FROM docs_fts WHERE path = ?", (rel_path,))
         conn.commit()
         conn.close()
-        print(f"🗑️ 已从索引移除已删除卷轴: {rel_path}")
+        print(f"🗑️ 已从索引移除已删除文档: {rel_path}")
         return
 
     try:
@@ -182,7 +193,7 @@ def cmd_sync(target_path):
     print(f"✅ 已增量同步至索引: {rel_path} ({n} 条)")
 
 def cmd_rebuild():
-    repo_dir = get_scrolls_dir()
+    repo_dir = get_repo_dir()
     db_path = get_db_path(repo_dir)
     for ext in ["", "-wal", "-shm"]:
         f = db_path + ext
@@ -215,12 +226,11 @@ def cmd_rebuild():
 
     conn.commit()
     conn.close()
-    print(f"🎉 索引重建完成，已索引 {count} 条卷轴 -> {db_path}")
+    print(f"🎉 索引重建完成，已索引 {count} 篇文档 -> {db_path}")
 
 def cmd_search(query_str):
-    repo_dir = get_scrolls_dir()
-    db_path = get_db_path(repo_dir)
-    if not os.path.isfile(db_path):
+    repo_dir = get_repo_dir()
+    if index_stale(repo_dir):
         cmd_rebuild()
 
     segments = re.findall(r'[\u4e00-\u9fff]+|[a-zA-Z0-9_\-]+', query_str)
@@ -228,23 +238,19 @@ def cmd_search(query_str):
     for seg in segments:
         words.append(seg)
         if '\u4e00' <= seg[0] <= '\u9fff':
-            if len(seg) == 1:
-                clauses.append(f'"{seg}"')
-            else:
-                bigrams = [seg[i:i+2] for i in range(len(seg)-1)]
-                words.extend(bigrams)
-                clauses.append(" OR ".join(f'"{bg}"' for bg in bigrams))
+            clauses.append('"' + " ".join(seg) + '"')
         else:
-            clauses.append(f'"{seg.lower()}"*')
+            clauses.append(f'"{seg.lower()}"')
 
-    if not clauses:
-        print("⚠️ 请提供有效的检索词。")
+    fts_query = " AND ".join(clauses)
+    if not fts_query:
+        print(">>> 请输入有效的检索关键词")
         return
 
-    fts_query = " OR ".join(clauses)
     conn = get_db_connection(repo_dir)
     sql = """
-        SELECT path, raw_title, raw_content, category, anchor, bm25(docs_fts, 5.0, 1.0, 2.0, 1.0) as rank
+        SELECT path, raw_title, category, raw_content, anchor,
+               bm25(docs_fts, 0.0, 0.0, 0.0, 5.0, 1.0, 2.0, 3.0) as rank
         FROM docs_fts
         WHERE docs_fts MATCH ?
         ORDER BY rank
@@ -259,42 +265,43 @@ def cmd_search(query_str):
         return
 
     conn.close()
-
     if not rows:
-        print(f"🔍 未检索到与 \"{query_str}\" 相关的卷轴。")
+        print(f"🔍 未检索到关于 \"{query_str}\" 的内容。")
         return
 
-    print(f"🔍 检索关键词: \"{query_str}\" (匹配到 {len(rows)} 卷)")
-    print("-" * 50)
-    for path, title, raw_content, cat, anchor, rank in rows:
-        snip = make_clean_snippet(raw_content, words)
-        anchor_tag = f" > #{anchor}" if anchor else ""
-        print(f"📜 [{cat}] {title}{anchor_tag}")
-        print(f"   路径: {os.path.join(repo_dir, path)}")
+    valid_words = sorted(list(dict.fromkeys(words)), key=len, reverse=True)
+    pattern = re.compile('|'.join(re.escape(k) for k in valid_words if k), re.IGNORECASE) if valid_words else None
+
+    print(f"⚡ [BM25 检索命中 {len(rows)} 条] 关键词: {query_str}")
+    for idx, row in enumerate(rows, 1):
+        rel_path, raw_title, category, raw_content, anchor, score = row
+        snip = make_clean_snippet(raw_content, valid_words)
+        loc = f"{rel_path} › {anchor}" if anchor else rel_path
+        print(f"\n{idx}. 📄 {loc} (类别: {category})")
         print(f"   摘要: {snip}")
-        print("-" * 50)
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: scrolls.py [search <关键词> | sync <文件相对路径> | rebuild]")
-        sys.exit(1)
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
+        sys.exit(0)
 
-    cmd = sys.argv[1].lower()
-    if cmd == "search":
-        if len(sys.argv) < 3:
-            print("⚠️ 请提供搜索关键词。")
-            sys.exit(1)
-        cmd_search(" ".join(sys.argv[2:]))
-    elif cmd == "sync":
-        if len(sys.argv) < 3:
-            print("⚠️ 请提供待同步的文件路径。")
-            sys.exit(1)
-        cmd_sync(sys.argv[2])
+    cmd = sys.argv[1]
+    if cmd in ["-h", "--help", "help"]:
+        print("用法: python3 scripts/fts.py [search <关键词> | sync <路径> | rebuild | <关键词>]")
     elif cmd == "rebuild":
         cmd_rebuild()
+    elif cmd == "sync":
+        if len(sys.argv) < 3:
+            print(">>> 请指定待同步路径，如: python3 scripts/fts.py sync 'memory/2026-09/xxx.md'")
+            sys.exit(1)
+        cmd_sync(sys.argv[2])
+    elif cmd == "search":
+        if len(sys.argv) < 3:
+            print(">>> 请输入检索关键词")
+            sys.exit(1)
+        cmd_search(" ".join(sys.argv[2:]))
     else:
-        print(f"未知命令: {cmd}")
-        sys.exit(1)
+        cmd_search(" ".join(sys.argv[1:]))
 
 if __name__ == "__main__":
     main()

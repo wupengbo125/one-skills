@@ -75,8 +75,8 @@ one-skills/
 | 数据仓 | `ONE_LLMWIKI_DIR` 或向上查 `onewiki/` | `ONE_HIPPOCAMPUS_DIR` 或 `~/onespace/github/one-hippocampus` | `ONE_SCROLLS_DIR` 或脚本旁 `../scrolls` |
 | 表结构 | `docs_fts(path UNINDEXED, title, category, content)` + `file_meta(path, mtime)` | 7 列：`path/raw_title/raw_content UNINDEXED, title, category, content, anchor`；无 file_meta | 同 memory.py |
 | 索引粒度 | 一文件一行 | 一锚点/列表项一行（`##`/`###` 为 anchor，`- **名称**：内容` 提名称） | 同 memory.py |
-| 分词 | 索引期 CJK 逐字空格化（"量化投资"→`量 化 投 资`），西文走 porter unicode61 词干 | 同左 | 手写字符扫描版，英文串切分小写 |
-| 查询构造 | token 全 OR | 中文整段转 phrase `"牛 肉 拉 面"`、段间 AND（精确连续） | 全 OR；英文加 `*` 前缀（高召回） |
+| 分词 | 索引期 CJK 逐字空格化（"量化投资"→`量 化 投 资`），西文走 porter unicode61 词干 | 同左 | 同左（scrolls.py 是 fts.py 的副本，仅取数据仓方式不同） |
+| 查询构造 | token 全 OR | 中文整段转 phrase `"牛 肉 拉 面"`、段间 AND（精确连续） | 同 memory.py（段间由 OR 改 AND，英文取消前缀通配 `*`） |
 | 特有机制 | `ensure_synced()`：每次 search 前按 mtime JIT 增量自愈（新增/变更重索引，删除自动清理），无需 sync | rebuild 只收顶层 `memory/`、`system/` | rebuild 收全部 .md 含 index.md |
 | Top-N | 10 | 5 | 5 |
 
