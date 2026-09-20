@@ -53,13 +53,7 @@ find /runtime/user_skills -type l    # 应无输出（无软链）
 
 ### 5. 同步全局偏好
 
-安装完成后，把当前已装技能清单写入豆包全局偏好（`manage_preference`），让每个新会话自动知道有哪些技能可用：
-
-```bash
-ls -d /runtime/user_skills/*/ | xargs -n1 basename | sort
-```
-
-把输出拼成一句话（如"已装技能：one-memory、one-wiki、one-write-skill……"），调 `manage_preference` action=add 写入。已有同主题偏好则 action=update 替换。
+装完后 `ls -d /runtime/user_skills/*/ | xargs -n1 basename | sort`，把清单用 `manage_preference` 写进全局（已有则 update 替换）。
 
 ## 交付说明
 
