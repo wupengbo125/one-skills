@@ -1,6 +1,6 @@
 ---
 name: one-scrolls
-description: "卷轴体系：查阅、展开与封存低频专用的实操手册/避坑指南/操作卷轴（scrolls）；用户说'卷轴'时触发。"
+description: "用户说'卷轴'时触发。"
 ---
 
 # One Scrolls (卷轴)
