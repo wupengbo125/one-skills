@@ -11,7 +11,7 @@ description: "卷轴体系：查阅、展开与封存低频专用的实操手册
 
 ## 意图分流
 
-- **查卷轴 
+- **查卷轴** 
   - 规则与检索脚本见 [references/search.md](references/search.md)
 - **看卷轴大纲 / 浏览卷轴目录**：
   - 直接读取大纲文件：`~/onespace/github/one-skills/one-scrolls/scrolls/index.md`
