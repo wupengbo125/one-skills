@@ -9,8 +9,6 @@ argument-hint: "read-memory | write-memory | write-rules, 以及可选内容"
 数据仓为 GitHub 远端仓库 `wupengbo125/one-hippocampus`（默认分支 main）。
 本地克隆路径：`~/onespace/github/one-hippocampus`。
 
-**硬约束**：不按 write-memory 规范写记忆（缺时间/缺会话ID/同ID多行/漏落海马仓），提交会被仓库 pre-commit 钩子拦截，必须修正后重提。
-
 ## 意图分流
 
 从用户意图或显式参数选择一个操作，**仅读取对应的一个参考文件**后直接执行：
