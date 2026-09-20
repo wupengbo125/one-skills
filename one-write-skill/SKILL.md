@@ -4,6 +4,15 @@ description: 写或改 skill 的规矩。
 disable-model-invocation: true
 ---
 
+## 怎么用
+
+1. 新 skill 先答 [references/authoring.md](references/authoring.md) 开头 4 个问题
+2. 写正文，照下面原则
+3. 格式（YAML 头、触发方式、目录）查 [references/mechanics.md](references/mechanics.md)
+4. 写完跑 2-3 个真实 prompt 验证（authoring.md 末尾）
+
+---
+
 写任何 Agent 会读的文档时都适用：skill、AGENTS.md/CLAUDE.md、被指针引用的文档。打包方式不同，写法一样——Agent 每次跑同一个**流程**，不是产出同一个结果。
 
 如果写的是 skill，格式细节（YAML 头、触发方式、路由技能）见 [references/mechanics.md](references/mechanics.md)。
