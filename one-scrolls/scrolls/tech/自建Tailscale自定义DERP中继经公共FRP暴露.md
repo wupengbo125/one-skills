@@ -22,7 +22,7 @@
 | 证书目录 | `/etc/derper/`（`ca.crt` `192.140.188.104.crt/.key`） |
 | derper 私钥 | `/var/lib/derper/derper.key`（DynamicUser 自动创建） |
 | derper 监听 | `127.0.0.1:8443` TLS、`127.0.0.1:3478` STUN |
-| frpc 配置 | `/home/ctyun/frp/frpc.toml`（隧道 `tailscale_derp` TCP 8443、`tailscale_stun` UDP 3478） |
+| frpc 配置 | `~/onespace/github/dotfiles/rc/frp/ctyun-frpc.toml`（`~/frp/frpc.toml` 为软链；隧道 `tailscale_derp` TCP 8443、`tailscale_stun` UDP 3478） |
 | FRP 服务端 | `192.140.188.104:7000`，公网入口 `192.140.188.104:8443 / :3478` |
 | tailnet | `tail06668e.ts.net`，ACL 里 `derpMap.Regions["900"]` |
 | IPv4/IPv6 转发 | `/etc/sysctl.d/99-tailscale.conf` |
@@ -167,12 +167,22 @@ timeout 15 curl -sik --http1.1 -H "Upgrade: derp" -H "Connection: Upgrade" \
 2. **derper 非 root 运行必须给 `-c <path>`**，否则直接 `log.Fatalf: -c <config path> not specified`。配 `StateDirectory=derper` 让它自动建目录。
 3. **不要加 `-verify-clients`**：流量经 FRP 后源地址全变成 `127.0.0.1`，客户端验证必失败。
 4. **不要关 STUN**：试过 `STUNPort: -1`，结果该 region 从 `tailscale netcheck` 候选里消失、回落官方 `sfo`。保留 3478。
-5. **经 FRP 的 STUN 会误报本机公网 endpoint 为 `127.0.0.1`**：无害（对称 NAT 本来打不了洞），别去修它。
+5. **经 FRP 的 STUN 会误报本机公网 endpoint 为 `127.0.0.1`**：对 tailscale 打洞无害（对称 NAT 本来打不了洞），别去修它。但**本机若同时跑代理 TUN，会引出独立的严重问题**，见坑 11。
 6. **`tcp-user-timeout` 默认 15s 会掐连接**：链路多绕一层免费 FRP，拥塞时 derper 主动断连，症状是「ping 有回包但 SSH 连不上/中途断」。已放宽到 60s。
 7. **frpc.toml 的 `[[proxies]]` 头别漏**：漏了会把下一个 `name` 塞进上一张表，TOML 解析失败，frpc 起不来。改完必跑 `./frpc verify -c ./frpc.toml`。
 8. **别用 `pkill -f "frpc -c ..."` 重启**：模式串会匹配到自己的 bash 命令行，把自己 SIGTERM 掉。用 `kill $(pgrep -x frpc)`，本机有 systemd user 守护会自动拉起。
 9. **免费 FRP 可能限速**：大流量前先测速；带宽不够就换有独立公网 IP 的 VPS 装 derper（那时可加 `--verify-clients`）。
 10. **API key 别写进文档**：从 dotfiles 的 `$tailscale_api_key` 取。
+11. **本机跑 mihomo TUN（`auto-route: true`）时，frpc 的出站流量会被 TUN 吞掉**——这条最阴，2026-09-20 踩过。`ip rule` 里的 `iif lo lookup 2022` + `table 2022 default via 198.18.0.2 dev Meta` 会把 frpc→frps 的连接一并吸进用户态 TUN；即使 mihomo 规则判 `GeoIP,CN,DIRECT`，包仍要绕 TUN 一圈。代价是吞吐塌陷：`ss -tni` 里该连接 `delivery_rate` 掉到 **~1.6Mbps**、`cwnd` 掉到 1、DSACK/乱序/重传暴增，症状是**经 FRP 的 SSH「卡到动不了」**，而 `ping frps` 只有 20~35ms，极具迷惑性（会误判成 FRP 服务商限速）。
+    - 判定：`ss -tnp | grep <frps_ip>`，本地地址是 `198.18.0.x`（TUN 网段）就中招了。
+    - 修法：mihomo 配置加排除
+      ```yaml
+      tun:
+        route-exclude-address:
+          - <frps_ip>/32
+      ```
+    - **重启 mihomo 后必须再重启 frpc**：旧连接仍挂在旧 TUN 的 `198.18.0.x` 上（Send-Q 积压、cwnd=1）不会自愈；只重启 mihomo 会让旧连接彻底黑洞。重启后 `ss -tni` 的 `mss` 应从 `8948` 回到 `1398`。
+    - 同理，任何走固定远端 IP 的自建隧道（frpc、xxl-job 等）都应加进 `route-exclude-address`。
 
 ## 5. 排障速查
 
@@ -181,6 +191,7 @@ timeout 15 curl -sik --http1.1 -H "Upgrade: derp" -H "Connection: Upgrade" \
 | netcheck 里没有 `frp` | 查 `STUNPort` 是否被设成 -1；查 ACL 是否真的下发（`Regions.900`）；`journalctl -u derper` |
 | 有 `frp` 但设备仍走旧 relay | 客户端需重连（手机关开一次 Tailscale） |
 | ping 通但 SSH/应用连不上 | 查 derper 超时参数（坑 6）；测各包大小 `tailscale ping --size 1300 <peer>` 排除 MTU |
+| 经 FRP 的 SSH/应用极慢但 ping frps 正常 | frpc 流量被本机代理 TUN 吞了，见坑 11：`ss -tnp \| grep <frps_ip>` 看本地地址是否 `198.18.0.x`，加 `route-exclude-address` + 重启 mihomo + 重启 frpc |
 | derper 起不来 | `journalctl -u derper`：缺 `-c`？证书文件名与 `-hostname` 不一致？8443 被占？ |
 | 隧道 `proxy_not_found` | 面板里建对应名字+类型的隧道 |
 | DERP 兜底时吞吐低 | 免费 FRP 限速，考虑换 VPS |
