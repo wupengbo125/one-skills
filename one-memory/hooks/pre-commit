@@ -22,11 +22,12 @@ if [ -n "$NON_MEMORY" ]; then
     exit 1
   fi
   LOCAL=$(echo "$LOCAL" | sed -E 's/^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} //')
-  # 摘要长度门禁：一句话为准（≤150 字）。只卡我们这一条——海马仓那条靠等号校验天然同源，不必另查
+  # 摘要长度门禁：≤60 字，只写关键字（查历史时靠关键字定位，再进案卷看细节）
+  # 只卡我们这一条——海马仓那条靠等号校验天然同源，不必另查
   SUMMARY=$(echo "$LOCAL" | sed -E 's/^\[.+\] //')
   LEN=$(printf '%s' "$SUMMARY" | LC_ALL=C.UTF-8 wc -m)
-  if [ "$LEN" -gt 150 ]; then
-    echo "❌ 拒绝提交：摘要 $LEN 字，超 150 字上限。一句话写完，过程与证据写进 onememory/tasks/<会话ID>.md"
+  if [ "$LEN" -gt 60 ]; then
+    echo "❌ 拒绝提交：摘要 $LEN 字，超 60 字上限。只写关键字，细节写进 onememory/tasks/<会话ID>.md"
     exit 1
   fi
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
