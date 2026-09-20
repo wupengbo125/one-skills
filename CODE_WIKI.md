@@ -7,7 +7,7 @@
 - 个人 Agent 技能库 + 全局 Agent 规则源仓库。12 个自研技能，每个技能 = 一个 `one-*` 目录 + 标准 `SKILL.md`（agentskills.io 规范）。
 - 本仓库是唯一源。严禁修改安装目标目录（`./.agents/skills/`、`~/.agents/skills/`、各宿主配置文件）；改技能只改本仓库源目录。
 - [one-agents.md](file:///home/ctyun/onespace/github/one-skills/one-agents.md) 是全局宪法唯一源，由 install.sh 分发软链到各宿主；改规则只改它。
-- 检索栈：Python 标准库 + SQLite FTS5（WAL + `unicode61` + BM25），索引文件统一为 `<数据仓>/.fts.db`（git 忽略）。
+- 检索栈：Python 标准库 + SQLite FTS5（WAL + `porter unicode61` + BM25，中文逐字入索引、查询期转 phrase），索引文件统一为 `<数据仓>/.fts.db`（git 忽略）。
 - 硬约束：禁止外部分词库（jieba 等）、禁止常驻守护进程、禁止引入旧名兼容（`light-skills` / `one-light-skills` / `light_skills.py` / `ONE_LIGHT_SKILLS_DIR` 均不存在）。
 - 无测试、无第三方依赖（Python 零 pip、TS 扩展零 npm）。
 
@@ -68,15 +68,15 @@ one-skills/
 
 ## 4. 检索 CLI（三脚本同构，函数式无类）
 
-共同行为：无子命令/未识别命令处理、缺 `.fts.db` 时首次 search 自动全量建库、输出 Top-N 带 `【】` 高亮摘要与 BM25 评分。
+共同行为：无子命令/未识别命令处理、索引缺失或分词器过期时 search 自动全量重建、输出 Top-N 带 `【】` 高亮摘要与 BM25 评分。
 
 | | [wiki.py](file:///home/ctyun/onespace/github/one-skills/one-wiki/scripts/wiki.py) | [memory.py](file:///home/ctyun/onespace/github/one-skills/one-memory/scripts/memory.py) | [scrolls.py](file:///home/ctyun/onespace/github/one-skills/one-scrolls/scripts/scrolls.py) |
 | :-- | :-- | :-- | :-- |
 | 数据仓 | `ONE_LLMWIKI_DIR` 或向上查 `onewiki/` | `ONE_HIPPOCAMPUS_DIR` 或 `~/onespace/github/one-hippocampus` | `ONE_SCROLLS_DIR` 或脚本旁 `../scrolls` |
 | 表结构 | `docs_fts(path UNINDEXED, title, category, content)` + `file_meta(path, mtime)` | 7 列：`path/raw_title/raw_content UNINDEXED, title, category, content, anchor`；无 file_meta | 同 memory.py |
 | 索引粒度 | 一文件一行 | 一锚点/列表项一行（`##`/`###` 为 anchor，`- **名称**：内容` 提名称） | 同 memory.py |
-| 分词 | 索引期正则展开 CJK 1/2-gram（"量化投资"→`量 量化 化 化投 投 投资 资`），西文放行 unicode61 | 同左 | 手写字符扫描版，英文串切分小写 |
-| 查询构造 | token 全 OR | 中文段内 OR、段间 AND（高精度） | 全 OR；英文加 `*` 前缀（高召回） |
+| 分词 | 索引期 CJK 逐字空格化（"量化投资"→`量 化 投 资`），西文走 porter unicode61 词干 | 同左 | 手写字符扫描版，英文串切分小写 |
+| 查询构造 | token 全 OR | 中文整段转 phrase `"牛 肉 拉 面"`、段间 AND（精确连续） | 全 OR；英文加 `*` 前缀（高召回） |
 | 特有机制 | `ensure_synced()`：每次 search 前按 mtime JIT 增量自愈（新增/变更重索引，删除自动清理），无需 sync | rebuild 只收顶层 `memory/`、`system/` | rebuild 收全部 .md 含 index.md |
 | Top-N | 10 | 5 | 5 |
 

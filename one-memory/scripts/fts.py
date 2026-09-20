@@ -41,6 +41,18 @@ def get_repo_dir():
 def get_db_path(repo_dir):
     return os.path.join(repo_dir, ".fts.db")
 
+FTS_TOKENIZE = "porter unicode61"
+
+def index_stale(repo_dir):
+    """索引缺失，或分词器为旧版（旧库跑新分词会静默漏召回）。"""
+    p = get_db_path(repo_dir)
+    if not os.path.isfile(p):
+        return True
+    conn = sqlite3.connect(p)
+    row = conn.execute("SELECT sql FROM sqlite_master WHERE name='docs_fts'").fetchone()
+    conn.close()
+    return not row or "porter" not in row[0]
+
 def resolve_rel_path(p, repo_dir):
     p = os.path.expanduser(p.strip())
     if os.path.isabs(p):
@@ -53,25 +65,19 @@ def resolve_rel_path(p, repo_dir):
         return os.path.relpath(abs_p, repo_dir)
     return os.path.normpath(p).lstrip(os.sep)
 
-def _expand_cjk(match):
-    s = match.group(0)
-    n = len(s)
-    tokens = []
-    for i in range(n):
-        tokens.append(s[i])
-        if i + 1 < n:
-            tokens.append(s[i:i+2])
-    return f" {' '.join(tokens)} "
+def _space_cjk(match):
+    """中文逐字空格化：unicode61 不切中文，逐字入索引后才能做 phrase 精确匹配。"""
+    return f" {' '.join(match.group(0))} "
 
 def tokenize(text):
     if not text:
         return ""
-    return re.sub(r'[\u4e00-\u9fff]+', _expand_cjk, text)
+    return re.sub(r'[\u4e00-\u9fff]+', _space_cjk, text)
 
 def get_db_connection(repo_dir):
     conn = sqlite3.connect(get_db_path(repo_dir))
     conn.execute("PRAGMA journal_mode=WAL;")
-    conn.execute("""
+    conn.execute(f"""
         CREATE VIRTUAL TABLE IF NOT EXISTS docs_fts USING fts5(
             path UNINDEXED,
             raw_title UNINDEXED,
@@ -80,7 +86,7 @@ def get_db_connection(repo_dir):
             category,
             content,
             anchor,
-            tokenize='unicode61'
+            tokenize='{FTS_TOKENIZE}'
         );
     """)
     conn.commit()
@@ -234,8 +240,7 @@ def cmd_rebuild():
 
 def cmd_search(query_str):
     repo_dir = get_repo_dir()
-    db_path = get_db_path(repo_dir)
-    if not os.path.isfile(db_path):
+    if index_stale(repo_dir):
         cmd_rebuild()
 
     segments = re.findall(r'[\u4e00-\u9fff]+|[a-zA-Z0-9_\-]+', query_str)
@@ -243,17 +248,11 @@ def cmd_search(query_str):
     for seg in segments:
         words.append(seg)
         if '\u4e00' <= seg[0] <= '\u9fff':
-            if len(seg) == 1:
-                clauses.append(f'"{seg}"')
-            else:
-                bigrams = [seg[i:i+2] for i in range(len(seg)-1)]
-                words.extend(bigrams)
-                clauses.append(" OR ".join(f'"{bg}"' for bg in bigrams))
+            clauses.append('"' + " ".join(seg) + '"')
         else:
-            w = seg.lower()
-            clauses.append(f'"{w}"')
+            clauses.append(f'"{seg.lower()}"')
 
-    fts_query = " AND ".join(f"({c})" if " OR " in c else c for c in clauses) if clauses else ""
+    fts_query = " AND ".join(clauses)
     if not fts_query:
         print(">>> 请输入有效的检索关键词")
         return
