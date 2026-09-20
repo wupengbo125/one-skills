@@ -10,7 +10,7 @@
 
 ## 自动执行
 *#优雅实现**：修改任何东西前，使用 skikl：one-implement
-**提交代码并更新记忆**：做完先问是否提交；同意则用 skill: one-memory 写记忆 → commit → push → 汇报。worktree 下不问不提交；用户说"ddd"才合并、关 Issue、删 worktree，然后在主干仓写记忆 → 提交 push → 汇报。
+**提交代码并更新记忆**：做完先问是否提交；同意则用 skill: one-memory 写记忆 → commit → push → 汇报。worktree 下不问不提交；用户说"ddd"才合并、关 Issue，然后在主干仓写记忆 → 提交 push → 汇报。
 
 ## 宪法
 - **别修改代码**：不要动不动用户问一句话，就开始改代码。那是手贱
