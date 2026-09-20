@@ -83,3 +83,4 @@
 - 2026-09-20 01:05 [01a0ba83-ad85-7e10-ae3a-c71cec63072f] one-orca-race：分支名字段定为 <🐎-><随机3位>-<agent>[-<model>]-<Issue标题>；随机 3 位从"整轮共享一个"改为每位参赛马各生成一个并在同轮去重（用户实测 -a omp omp 两匹马曾撞同名分支 🐎-154-omp-…）；期间踩坑：LANG=C 下 bash ${var:0:N} 按字节切中文、切出半个汉字，分支尾在终端显示为空（用户看到 🐎-013-omp-），且剥 [xxx] 标记会把纯标记标题剥成空——最终按用户要求**彻底放弃标题截断**（用户自己把 Issue 标题写短），只保留 sanitize_ref（逐字符参数展开清 git ref 非法字符 空格 ~ ^ : ? * [ ] \ /，只动 ASCII 字节不依赖 locale）+ 空标题 issue-<编号> 兜底；因此之前为此加的强制 UTF-8 locale 块与 strip_title_tag 一并删除；SKILL.md 同步
 - 2026-09-20 09:2x 技能瘦身：one-implement第3步改「认真设计」消除与最小化的矛盾；one-ebbiii API细节挪references/api.md、修Ebbiiii拼写；one-harness Worker守则与双轴审查挪references/；豆包环境补装tdd(Matt Pocock)、ponytail(DietrichGebert)
 - 2026-09-20 01:41 [01a0ba83-ad85-7e10-ae3a-c71cec63072f] pre-commit 海马校验由 gh api 远端改为 grep 本地 one-hippocampus 当日文件（豆包环境 gh 未登录会误报；本地 pull 最新即可）；install-hook.sh 重装生效
+- 2026-09-20 [01a0ba83-ad85-7e10-ae3a-c71cec63072f] pre-commit 海马校验放宽：timeline 末行在海马仓本项目最近5条内命中即可，兼容多端并发写记忆

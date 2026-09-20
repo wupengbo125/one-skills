@@ -11,21 +11,16 @@ if [ -n "$NON_MEMORY" ] && [ -z "$MEMORY" ]; then
   exit 1
 fi
 
-# 海马记忆仓等号校验：本地 one-hippocampus 当日文件须含本项目同一句话的摘要
+# 海马记忆仓校验：本地 one-hippocampus 当日文件须含本项目同一句话的摘要
 # （查本地 clone 而非 gh api：豆包环境 gh 未登录会误报；本地 pull 最新即可）
+# 多端并发：timeline 末行只要在海马仓本项目最近 5 条内即可，不强制必须是最后一条
 if [ -n "$NON_MEMORY" ]; then
-  LOCAL=$(git show :onememory/timeline.md 2>/dev/null | tail -1 | sed 's/^- [0-9-]* [0-9:]* //')
+  # 剥掉 timeline 行前缀：支持 "- YYYY-MM-DD [id]" 与 "- YYYY-MM-DD HH:MM [id]" 两种格式
+  LOCAL=$(git show :onememory/timeline.md 2>/dev/null | tail -1 | sed -E 's/^- ([0-9-]+ )?([0-9:]+ )?//')
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
   HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
-  REMOTE=$(grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -1 | sed 's/^- [0-9:]* \[[^]]*\] //')
-  if [ -z "$REMOTE" ]; then
-    echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 记录！先按 one-memory Step 3 落盘并 git pull 最新。"
-    exit 1
-  fi
-  if [ "$REMOTE" != "$LOCAL" ]; then
-    echo "❌ 拒绝提交：海马记忆仓摘要与 timeline.md 末行不一致！"
-    echo "   本仓库：$LOCAL"
-    echo "   海马仓：$REMOTE"
+  if ! grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -5 | grep -qF "$LOCAL"; then
+    echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 匹配记录（timeline 末行须在海马仓最近 5 条内）。先按 one-memory Step 3 落盘并 git pull 最新。"
     exit 1
   fi
 fi
