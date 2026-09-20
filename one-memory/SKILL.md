@@ -18,5 +18,8 @@ argument-hint: "read-memory | write-memory | write-rules, 以及可选内容"
 | `read-memory` / `查记忆` | 查历史流水 / 用户画像 / 查偏好 / 查历史任务 | `./references/read-memory.md` |
 | `write-memory` / `沉淀` | 修改文件/配置后流水沉淀；记用户稳定偏好 | `./references/write-memory.md` |
 | `write-rules` / `规则` | 用户行为指示或项目运维/排障知识沉淀 | `./references/rules-memory.md` |
+
+**硬约束**：不按 write-memory 规范写记忆（缺时间/缺会话ID/同ID多行/漏落海马仓），提交会被仓库 pre-commit 钩子拦截，必须修正后重提。
+
 ## 禁止
 - 用户说"记笔记"绝对禁止使用这个技能——记笔记走 one-wiki 个人知识库；
