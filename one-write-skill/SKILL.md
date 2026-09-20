@@ -1,6 +1,7 @@
 ---
 name: one-write-skill
-description: 写或改 skill 时用。决定 SKILL.md 写什么、references 怎么分、description 怎么写才触发得准。
+description: 写或改 skill 的规矩。
+disable-model-invocation: true
 ---
 
 写任何 Agent 会读的文档时都适用：skill、AGENTS.md/CLAUDE.md、被指针引用的文档。打包方式不同，写法一样——Agent 每次跑同一个**流程**，不是产出同一个结果。
