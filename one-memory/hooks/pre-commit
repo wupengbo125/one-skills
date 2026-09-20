@@ -1,5 +1,5 @@
 #!/bin/bash
-# pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交 + 海马摘要等号校验
+# pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交 + 海马摘要等号校验 + 摘要长度门禁（≤150 字）
 # 对所有提交生效（含人工终端）；人工自行 --no-verify 绕过
 
 NON_MEMORY=$(git diff --cached --name-only | grep -vE '^onememory/' | head -1)
@@ -22,6 +22,13 @@ if [ -n "$NON_MEMORY" ]; then
     exit 1
   fi
   LOCAL=$(echo "$LOCAL" | sed -E 's/^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} //')
+  # 摘要长度门禁：一句话为准（≤150 字）。只卡我们这一条——海马仓那条靠等号校验天然同源，不必另查
+  SUMMARY=$(echo "$LOCAL" | sed -E 's/^\[.+\] //')
+  LEN=$(printf '%s' "$SUMMARY" | LC_ALL=C.UTF-8 wc -m)
+  if [ "$LEN" -gt 150 ]; then
+    echo "❌ 拒绝提交：摘要 $LEN 字，超 150 字上限。一句话写完，过程与证据写进 onememory/tasks/<会话ID>.md"
+    exit 1
+  fi
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
   HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
   # 重复 ID 检查：timeline 全文同 id 超过 1 行即报错
