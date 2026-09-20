@@ -11,13 +11,15 @@ if [ -n "$NON_MEMORY" ] && [ -z "$MEMORY" ]; then
   exit 1
 fi
 
-# 海马记忆仓等号校验：远端当日文件须含本项目同一句话的摘要
+# 海马记忆仓等号校验：本地 one-hippocampus 当日文件须含本项目同一句话的摘要
+# （查本地 clone 而非 gh api：豆包环境 gh 未登录会误报；本地 pull 最新即可）
 if [ -n "$NON_MEMORY" ]; then
   LOCAL=$(git show :onememory/timeline.md 2>/dev/null | tail -1 | sed 's/^- [0-9-]* [0-9:]* //')
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
-  REMOTE=$(gh api "repos/wupengbo125/one-hippocampus/contents/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md" --jq .content 2>/dev/null | base64 -d 2>/dev/null | grep -F "[$PROJ]" | tail -1 | sed 's/^- [0-9:]* \[[^]]*\] //')
+  HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
+  REMOTE=$(grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -1 | sed 's/^- [0-9:]* \[[^]]*\] //')
   if [ -z "$REMOTE" ]; then
-    echo "❌ 拒绝提交：海马记忆仓今日无 [$PROJ] 记录！先按 one-memory Step 3 远端落盘。"
+    echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 记录！先按 one-memory Step 3 落盘并 git pull 最新。"
     exit 1
   fi
   if [ "$REMOTE" != "$LOCAL" ]; then
