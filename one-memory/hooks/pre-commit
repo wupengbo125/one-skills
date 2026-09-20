@@ -15,10 +15,27 @@ fi
 # （查本地 clone 而非 gh api：豆包环境 gh 未登录会误报；本地 pull 最新即可）
 # 多端并发：timeline 末行只要在海马仓本项目最近 5 条内即可，不强制必须是最后一条
 if [ -n "$NON_MEMORY" ]; then
-  # 剥掉 timeline 行前缀：支持 "- YYYY-MM-DD [id]" 与 "- YYYY-MM-DD HH:MM [id]" 两种格式
-  LOCAL=$(git show :onememory/timeline.md 2>/dev/null | tail -1 | sed -E 's/^- ([0-9-]+ )?([0-9:]+ )?//')
+  # 强制 timeline 格式："- YYYY-MM-DD HH:MM [id] 摘要"。无时间即报错。
+  LOCAL=$(git show :onememory/timeline.md 2>/dev/null | tail -1)
+  if ! echo "$LOCAL" | grep -qE '^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} \[.+\] '; then
+    echo "❌ 拒绝提交：timeline.md 末行格式错误，须为「- 日期 时间 [会话ID] 摘要」。当前：$LOCAL"
+    exit 1
+  fi
+  LOCAL=$(echo "$LOCAL" | sed -E 's/^- [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2} //')
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
   HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
+  # 重复 ID 检查：timeline 全文同 id 超过 1 行即报错
+  TL_ID=$(git show :onememory/timeline.md 2>/dev/null | grep -oE '\[[0-9a-f]{8}-[0-9a-f-]{27}\]|\[[a-z0-9-]+\]' | sort | uniq -d)
+  if [ -n "$TL_ID" ]; then
+    echo "❌ 拒绝提交：timeline.md 存在重复会话 ID：$TL_ID（同一 ID 只应有一行摘要，请合并）"
+    exit 1
+  fi
+  # 重复 ID 检查：海马仓本项目最近 5 条内同 id 出现多次即报错
+  HP_ID=$(grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -5 | grep -oE '\[[0-9a-f]{8}-[0-9a-f-]{27}\]|\[[a-z0-9-]+\]' | sort | uniq -d)
+  if [ -n "$HP_ID" ]; then
+    echo "❌ 拒绝提交：one-hippocampus 最近 5 条内重复会话 ID：$HP_ID（同一 ID 只应有一条摘要，请合并）"
+    exit 1
+  fi
   if ! grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -5 | grep -qF "$LOCAL"; then
     echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 匹配记录（timeline 末行须在海马仓最近 5 条内）。先按 one-memory Step 3 落盘并 git pull 最新。"
     exit 1
