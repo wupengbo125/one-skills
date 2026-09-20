@@ -51,6 +51,16 @@ diff -rq <仓库技能目录> <安装目录>   # 应无差异
 find /runtime/user_skills -type l    # 应无输出（无软链）
 ```
 
+### 5. 同步全局偏好
+
+安装完成后，把当前已装技能清单写入豆包全局偏好（`manage_preference`），让每个新会话自动知道有哪些技能可用：
+
+```bash
+ls -d /runtime/user_skills/*/ | xargs -n1 basename | sort
+```
+
+把输出拼成一句话（如"已装技能：one-memory、one-wiki、one-write-skill……"），调 `manage_preference` action=add 写入。已有同主题偏好则 action=update 替换。
+
 ## 交付说明
 
 - 向用户说明：客户端若仍显示旧技能，需用户在豆包 App 技能管理手动删除（云端索引只增不删）；Agent 本地已删，不会回灌。
