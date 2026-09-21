@@ -1,6 +1,6 @@
 #!/bin/bash
-# pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交 + 海马摘要等号校验 + 摘要长度门禁（≤150 字）
-# 对所有提交生效（含人工终端）；人工自行 --no-verify 绕过
+# pre-commit: 强制代码改动与项目 onememory/ 随身记忆原子提交 + 海马摘要等号校验 + 摘要长度门禁（≤60 字）+ rules.md 规范门禁（≤100 字）
+# 对所有分支/所有提交生效（含人工终端）；人工自行 --no-verify 绕过
 
 NON_MEMORY=$(git diff --cached --name-only | grep -vE '^onememory/' | head -1)
 MEMORY=$(git diff --cached --name-only | grep -E '^onememory/' | head -1)
@@ -46,6 +46,22 @@ if [ -n "$NON_MEMORY" ]; then
   fi
   if ! grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -5 | grep -qF "$LOCAL"; then
     echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 匹配记录（timeline 末行须在海马仓最近 5 条内）。先按 one-memory Step 3 落盘并 git pull 最新。"
+    exit 1
+  fi
+fi
+
+# rules.md 规范门禁：仅查本次「新增/修改」的规则正文行，≤100 字（建议 ~60 字）；纯命令属知识不入规范
+# 不查历史遗留行，避免对存量大规则误伤；新规则/改动行须合规
+RULES=$(git diff --cached --name-only | grep -xE 'onememory/rules\.md')
+if [ -n "$RULES" ]; then
+  OVER=$(git diff --cached -- onememory/rules.md | grep -E '^\+[^+]' | sed 's/^\+//' | awk '
+    /^[[:space:]]*$/ { next }
+    /^[[:space:]]*- (Date|Instructions|Category):/ { next }
+    { n=gsub(/./,"&"); if(n>100) printf "  L%d (%d字): %s\n", NR, n, $0 }
+  ')
+  if [ -n "$OVER" ]; then
+    echo "❌ 拒绝提交：onememory/rules.md 新增/修改的规则正文超 100 字（须 ≤100 字、建议 ~60 字；纯命令属知识，不入规范）。"
+    echo "$OVER"
     exit 1
   fi
 fi
