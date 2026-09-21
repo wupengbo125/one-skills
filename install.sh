@@ -10,15 +10,11 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# 操作表：一行一个操作，格式 "菜单名|scope|direction"
-#   scope:     project 当前项目 / user 用户全局 / repos 同级仓库
-#   direction: link 软链接 / unlink 卸载 / run 执行（仅记忆钩子）
+# 操作表：一行一个操作，格式 "菜单名|direction"
+#   direction: link 安装 / unlink 卸载
 OPS=(
-    "软链接到当前项目 (./.agents/skills)|project|link"
-    "卸载自当前项目 (./.agents/skills)|project|unlink"
-    "软链接到用户全局 (~/.agents/skills 等 3 处)|user|link"
-    "卸载自用户全局 (~/.agents/skills 等 3 处)|user|unlink"
-    "安装记忆钩子到所有同级仓库 (pre-commit + post-commit)|repos|run"
+    "安装|link"
+    "卸载|unlink"
 )
 
 link() {
@@ -110,7 +106,7 @@ select_menu() {
 }
 
 # 候选表：一行一个候选，格式 "kind|key|菜单名|路径"
-#   kind: rule 宪法规则文件 / gitignore 忽略规则配置 / skill 技能目录
+#   kind: rule 宪法规则文件 / gitignore 忽略规则配置 / hooks 记忆钩子 / skill 技能目录
 ITEMS=()
 
 if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
@@ -118,6 +114,7 @@ if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
 fi
 
 ITEMS+=("gitignore|gitignore|[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)|-")
+ITEMS+=("hooks|hooks|[记忆钩子] 安装到所有同级仓库 (pre-commit + post-commit)|-")
 
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
@@ -135,8 +132,38 @@ OPS_LABELS=()
 for it in "${ITEMS[@]}"; do IFS='|' read -r _ _ label _ <<< "$it"; ITEM_LABELS+=("$label"); done
 for op in "${OPS[@]}"; do OPS_LABELS+=("${op%%|*}"); done
 
-# 第一步：选择要安装/操作的技能 (Skills)
-select_menu "第一步：选择要安装/操作的技能 (Skills)" "multi" "${ITEM_LABELS[@]}"
+# 安装记忆钩子：pre-commit 门禁装给所有项目仓（跳过记录型），post-commit 索引同步专属 one-hippocampus
+install_memory_hooks() {
+    local hooks_dir="$SCRIPT_DIR/one-memory/hooks"
+    [ -d "$hooks_dir" ] || { echo "错误: 未找到 $hooks_dir"; return 1; }
+    local n=0 name
+    for repo in "$HOME"/onespace/github/*; do
+        [ -d "$repo/.git" ] || continue
+        name="$(basename "$repo")"
+        # 记录型仓库自身即记忆载体，不装门禁
+        case "$name" in
+            one-hippocampus|one-life|one-llmwiki)
+                echo "  跳过: $name"
+                continue
+                ;;
+        esac
+        mkdir -p "$repo/.git/hooks"
+        cp -f "$hooks_dir/pre-commit" "$repo/.git/hooks/pre-commit" && chmod +x "$repo/.git/hooks/pre-commit"
+        echo "  已安装 pre-commit 门禁: $name"
+        n=$((n + 1))
+    done
+    # 记忆中枢专属：post-commit 同步 FTS 检索索引
+    local hippo="$HOME/onespace/github/one-hippocampus"
+    if [ -d "$hippo/.git/hooks" ]; then
+        cp -f "$hooks_dir/post-commit" "$hippo/.git/hooks/post-commit" && chmod +x "$hippo/.git/hooks/post-commit"
+        cp -f "$SCRIPT_DIR/one-memory/scripts/fts.py" "$hippo/.git/hooks/fts.py"
+        echo "  已安装 post-commit 索引同步: one-hippocampus"
+    fi
+    echo "✅ 记忆钩子安装完成：$n 个项目仓装 pre-commit，one-hippocampus 装 post-commit"
+}
+
+# 第一步：选择要安装/卸载的技能 (Skills)
+select_menu "第一步：选择要安装/卸载的技能 (Skills)" "multi" "${ITEM_LABELS[@]}"
 # select_menu 复用同一个全局变量，第二步会覆盖它，先存下来
 SELECTED_ITEMS=("${SELECTED_INDICES[@]}")
 
@@ -145,32 +172,10 @@ if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
     exit 0
 fi
 
-# 第二步：选择操作与目标位置
-select_menu "第二步：选择操作与目标位置" "single" "${OPS_LABELS[@]}"
+# 第二步：选择操作（安装 / 卸载）
+select_menu "第二步：选择操作（安装 / 卸载）" "single" "${OPS_LABELS[@]}"
 OP_IDX="${SELECTED_INDICES[0]}"
-
-IFS='|' read -r OP_NAME OP_SCOPE OP_DIR <<< "${OPS[OP_IDX]}"
-
-# 安装记忆钩子：遍历 ~/onespace/github/* 的 git 仓库，装 one-memory 的 pre-commit 与 post-commit
-# 跳过 one-hippocampus：它本身就是记忆中枢，记忆目录是 memory/ 而非 onememory/，装上反会被自己的门禁拦住
-install_memory_hooks() {
-    local hooks_dir="$SCRIPT_DIR/one-memory/hooks"
-    [ -d "$hooks_dir" ] || { echo "错误: 未找到 $hooks_dir"; return 1; }
-    local n=0
-    for repo in "$HOME"/onespace/github/*; do
-        [ -d "$repo/.git" ] || continue
-        [ "$(basename "$repo")" == "one-hippocampus" ] && { echo "  跳过: one-hippocampus (记忆中枢)"; continue; }
-        # one-life 自带 post-commit（调 life.py 同步生活日记索引），不该被代码记忆门禁拦
-        [ "$(basename "$repo")" == "one-life" ] && { echo "  跳过: one-life (生活日记仓自带索引钩子)"; continue; }
-        [ -d "$repo/.git/hooks" ] || mkdir -p "$repo/.git/hooks"
-        cp -f "$hooks_dir/pre-commit"  "$repo/.git/hooks/pre-commit"  && chmod +x "$repo/.git/hooks/pre-commit"
-        cp -f "$hooks_dir/post-commit" "$repo/.git/hooks/post-commit" && chmod +x "$repo/.git/hooks/post-commit"
-        [ -f "$repo/.git/hooks/commit-msg" ] && rm -f "$repo/.git/hooks/commit-msg"
-        echo "  已安装: $(basename "$repo")"
-        n=$((n + 1))
-    done
-    echo "✅ 记忆钩子已安装到 $n 个仓库 (pre-commit 记忆门禁 + post-commit 索引同步)"
-}
+IFS='|' read -r _ OP_DIR <<< "${OPS[OP_IDX]}"
 
 # 全局分发目标表：一行一个 target，格式 "agent|kind|path"
 #   kind: skills-dir = 技能目录 / rules-file = 宪法规则文件
@@ -241,59 +246,50 @@ gitignore_del() {
     done
 }
 
-# 唯一执行入口：scope × direction 决定每个候选落到哪里
-#   rule      → 只在 user 生效（链到 USER_GLOBAL_RULES）
-#   gitignore → 只在 project 生效（改 ./.gitignore）
-#   skill     → project 落到 ./.agents/skills，user 落到每个 USER_GLOBAL_DIRS
+# 唯一执行入口：direction 决定安装还是卸载，落点各自固定
+#   rule      → 用户全局配置位（USER_GLOBAL_RULES）
+#   gitignore → 当前项目 ./.gitignore
+#   skill     → 每个 USER_GLOBAL_DIRS
 apply_selection() {
-    local scope="$1" direction="$2"
+    local direction="$1"
     local n_skill=0
-
-    if [ "$scope" == "project" ] && [ "$direction" == "link" ]; then
-        mkdir -p "./.agents/skills"
-    fi
 
     for idx in "${SELECTED_ITEMS[@]}"; do
         IFS='|' read -r kind key label path <<< "${ITEMS[idx]}"
         case "$kind" in
             rule)
-                if [ "$scope" == "user" ]; then
-                    for t in "${USER_GLOBAL_RULES[@]}"; do
-                        if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -f "$t"; fi
-                    done
-                    if [ "$direction" == "link" ]; then
-                        echo "已软链接 AGENTS 规则到用户全局配置文件"
-                    else
-                        echo "已从用户全局卸载 AGENTS 规则"
-                    fi
+                # 宪法规则始终分发到用户全局
+                for t in "${USER_GLOBAL_RULES[@]}"; do
+                    if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -f "$t"; fi
+                done
+                if [ "$direction" == "link" ]; then
+                    echo "已安装 AGENTS 规则到用户全局配置文件"
+                else
+                    echo "已从用户全局卸载 AGENTS 规则"
                 fi
                 processed=$((processed + 1))
                 ;;
             gitignore)
-                if [ "$scope" == "project" ]; then
-                    if [ "$direction" == "link" ]; then
-                        gitignore_add
-                        echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
-                    else
-                        gitignore_del
-                        [ -f "./.gitignore" ] && echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
-                    fi
+                # 忽略配置只作用于当前项目
+                if [ "$direction" == "link" ]; then
+                    gitignore_add
+                    echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
                 else
-                    echo "全局操作跳过项目级 .gitignore"
+                    gitignore_del
+                    [ -f "./.gitignore" ] && echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
                 fi
                 processed=$((processed + 1))
                 ;;
+            hooks)
+                # 记忆钩子：勾选后在主流程外单独执行
+                HOOKS_WANTED=1
+                ;;
             skill)
-                if [ "$scope" == "project" ]; then
-                    local t="./.agents/skills/$key"
+                for g in "${USER_GLOBAL_DIRS[@]}"; do
+                    [ "$direction" == "link" ] && mkdir -p "$g"
+                    local t="$g/$key"
                     if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -rf "$t"; fi
-                elif [ "$scope" == "user" ]; then
-                    for g in "${USER_GLOBAL_DIRS[@]}"; do
-                        [ "$direction" == "link" ] && mkdir -p "$g"
-                        local t="$g/$key"
-                        if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -rf "$t"; fi
-                    done
-                fi
+                done
                 n_skill=$((n_skill + 1))
                 ;;
         esac
@@ -301,9 +297,9 @@ apply_selection() {
 
     if [ "$n_skill" -gt 0 ]; then
         if [ "$direction" == "link" ]; then
-            echo "已软链接到${OP_SCOPE_LABEL}: $n_skill 个 skills"
+            echo "已安装到用户全局: $n_skill 个 skills"
         else
-            echo "已从${OP_SCOPE_LABEL}卸载: $n_skill 个 skills"
+            echo "已从用户全局卸载: $n_skill 个 skills"
         fi
     fi
     processed=$((processed + n_skill))
@@ -311,23 +307,9 @@ apply_selection() {
 
 processed=0
 
-# 操作 5：安装记忆钩子（与具体 skill 无关，直接执行后退出）
-if [ "$OP_SCOPE" == "repos" ]; then
-    install_memory_hooks
-    exit 0
-fi
+apply_selection "$OP_DIR"
 
-case "$OP_SCOPE" in
-    project) OP_SCOPE_LABEL="当前项目" ;;
-    user)    OP_SCOPE_LABEL="用户全局" ;;
-esac
+# 勾选了记忆钩子：单独执行安装
+[ "${HOOKS_WANTED:-0}" == "1" ] && { install_memory_hooks; processed=$((processed + 1)); }
 
-apply_selection "$OP_SCOPE" "$OP_DIR"
-
-if [ "$OP_SCOPE" == "project" ] && [ "$OP_DIR" == "link" ] && [ "$processed" -gt 0 ]; then
-    if [ ! -f "./one-context.md" ]; then
-        echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
-        echo "已自动初始化 ./one-context.md"
-    fi
-fi
 echo -e "\n完成！共处理了 $processed 项。"
