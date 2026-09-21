@@ -30,8 +30,15 @@ if [ -n "$NON_MEMORY" ]; then
     echo "❌ 拒绝提交：摘要 $LEN 字，超 60 字上限。只写关键字，细节写进 onememory/tasks/<会话ID>.md"
     exit 1
   fi
-  # 自动拉海马仓最新，避免本地 clone 落后误判
-  git -C "$HOME/onespace/github/one-hippocampus" pull --ff-only --quiet 2>/dev/null
+  # 自动拉海马仓最新，避免本地 clone 落后误判；15s 超时防网络卡死
+  timeout 15 git -C "$HOME/onespace/github/one-hippocampus" pull --ff-only --quiet 2>/dev/null
+  PULL_RC=$?
+  if [ "$PULL_RC" -eq 124 ]; then
+    echo "❌ 拒绝提交：海马仓 git pull 超时（15s）。请检查网络后重试。"
+    exit 1
+  elif [ "$PULL_RC" -ne 0 ]; then
+    echo "⚠️ 海马仓 git pull 失败（rc=$PULL_RC），改用本地 clone 校验"
+  fi
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
   HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
   # 重复 ID 检查：timeline 全文同 id 超过 1 行即报错
