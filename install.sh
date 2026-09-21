@@ -10,37 +10,23 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# 跨平台建链接：Windows 的 ln -sfn 会静默退化成复制文件，改用硬链接
-case "$OSTYPE" in
-    msys*|cygwin*|mingw*) IS_WINDOWS=1 ;;
-    *)                    IS_WINDOWS=0 ;;
-esac
-
-# /c/Users/x -> C:\Users\x（纯 bash 参数替换，不依赖 cygpath/tr/sed）
-win_path() {
-    local p="${1//\//\\}"
-    case "$p" in
-        \\[a-zA-Z]\\*)
-            local drive="${p:1:1}"
-            printf '%s:%s' "${drive^^}" "${p:2}"
-            ;;
-        *) printf '%s' "$p" ;;
-    esac
-}
+# 操作表：一行一个操作，格式 "菜单名|scope|direction"
+#   scope:     project 当前项目 / user 用户全局 / repos 同级仓库
+#   direction: link 软链接 / unlink 卸载 / run 执行（仅记忆钩子）
+OPS=(
+    "软链接到当前项目 (./.agents/skills)|project|link"
+    "卸载自当前项目 (./.agents/skills)|project|unlink"
+    "软链接到用户全局 (~/.agents/skills 等 3 处)|user|link"
+    "卸载自用户全局 (~/.agents/skills 等 3 处)|user|unlink"
+    "安装记忆钩子到所有同级仓库 (pre-commit + post-commit)|repos|run"
+)
 
 link() {
-    local src="$1" dst="$2" win_src win_dst
+    local src="$1" dst="$2"
     src="$(cd "$(dirname "$src")" 2>/dev/null && pwd)/$(basename "$src")"
-    win_src="$(win_path "$src")"
-    win_dst="$(win_path "$dst")"
     rm -f "$dst" 2>/dev/null
     mkdir -p "$(dirname "$dst")" 2>/dev/null
-    if [ "$IS_WINDOWS" -eq 1 ]; then
-        powershell -NoProfile -Command \
-            "New-Item -ItemType HardLink -Path '$win_dst' -Target '$win_src' -Force | Out-Null" 2>/dev/null
-    else
-        ln -sfn "$src" "$dst"
-    fi
+    ln -sfn "$src" "$dst"
 }
 
 # 通用 ANSI 交互菜单函数 (支持单选 single 与 多选 multi)
@@ -123,50 +109,47 @@ select_menu() {
     echo ""
 }
 
-# 1. 扫描源目录下的直接一级子目录及规则文件
-skill_names=()
-skill_paths=()
+# 候选表：一行一个候选，格式 "kind|key|菜单名|路径"
+#   kind: rule 宪法规则文件 / gitignore 忽略规则配置 / skill 技能目录
+ITEMS=()
 
 if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
-    skill_names+=("[规则文件] AGENTS 规则 (one-agents.md)")
-    skill_paths+=("$SCRIPT_DIR/one-agents.md")
+    ITEMS+=("rule|agents|[规则文件] AGENTS 规则 (one-agents.md)|$SCRIPT_DIR/one-agents.md")
 fi
 
-skill_names+=("[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)")
-skill_paths+=("SPECIAL_GITIGNORE_AGENTS")
+ITEMS+=("gitignore|gitignore|[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)|-")
 
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
         bname="$(basename "$d")"
         if [[ "$bname" == one-* ]]; then
-            skill_names+=("$bname")
-            skill_paths+=("$d")
+            ITEMS+=("skill|$bname|$bname|$d")
         fi
     fi
 done
 
-[ ${#skill_names[@]} -eq 0 ] && { echo "错误: $SKILLS_ROOT 下未找到任何技能或规则文件"; exit 0; }
+[ ${#ITEMS[@]} -eq 0 ] && { echo "错误: $SKILLS_ROOT 下未找到任何技能或规则文件"; exit 0; }
+
+ITEM_LABELS=()
+OPS_LABELS=()
+for it in "${ITEMS[@]}"; do IFS='|' read -r _ _ label _ <<< "$it"; ITEM_LABELS+=("$label"); done
+for op in "${OPS[@]}"; do OPS_LABELS+=("${op%%|*}"); done
 
 # 第一步：选择要安装/操作的技能 (Skills)
-select_menu "第一步：选择要安装/操作的技能 (Skills)" "multi" "${skill_names[@]}"
+select_menu "第一步：选择要安装/操作的技能 (Skills)" "multi" "${ITEM_LABELS[@]}"
+# select_menu 复用同一个全局变量，第二步会覆盖它，先存下来
+SELECTED_ITEMS=("${SELECTED_INDICES[@]}")
 
-if [ ${#SELECTED_INDICES[@]} -eq 0 ]; then
+if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
     echo "未勾选任何项目，取消操作。"
     exit 0
 fi
 
-user_selected_indices=("${SELECTED_INDICES[@]}")
-
 # 第二步：选择操作与目标位置
-op_options=(
-    "软链接到当前项目 (./.agents/skills)"
-    "卸载自当前项目 (./.agents/skills)"
-    "软链接到用户全局 (~/.agents/skills 等 3 处)"
-    "卸载自用户全局 (~/.agents/skills 等 3 处)"
-    "安装记忆钩子到所有同级仓库 (pre-commit + post-commit)"
-)
-select_menu "第二步：选择操作与目标位置" "single" "${op_options[@]}"
-dest_idx="${SELECTED_INDICES[0]}"
+select_menu "第二步：选择操作与目标位置" "single" "${OPS_LABELS[@]}"
+OP_IDX="${SELECTED_INDICES[0]}"
+
+IFS='|' read -r OP_NAME OP_SCOPE OP_DIR <<< "${OPS[OP_IDX]}"
 
 # 安装记忆钩子：遍历 ~/onespace/github/* 的 git 仓库，装 one-memory 的 pre-commit 与 post-commit
 # 跳过 one-hippocampus：它本身就是记忆中枢，记忆目录是 memory/ 而非 onememory/，装上反会被自己的门禁拦住
@@ -189,152 +172,159 @@ install_memory_hooks() {
     echo "✅ 记忆钩子已安装到 $n 个仓库 (pre-commit 记忆门禁 + post-commit 索引同步)"
 }
 
-USER_GLOBAL_DIRS=(
-    "$HOME/.agents/skills"
-    "$HOME/.codebuddy/skills"
-    "$HOME/.trae-cn/skills"
+# 全局分发目标表：一行一个 target，格式 "agent|kind|path"
+#   kind: skills-dir = 技能目录 / rules-file = 宪法规则文件
+#   每个 agent 的实测说明贴在对应行上方 —— 增删 agent 只动这一张表，两种 kind 同时生效
+TARGETS=(
+    "agents|skills-dir|$HOME/.agents/skills"
+    "agents|rules-file|$HOME/.agents/AGENTS.md"
+    "pi|rules-file|$HOME/.pi/agent/AGENTS.md"
+    "gemini|rules-file|$HOME/.gemini/config/AGENTS.md"
+    "gemini|rules-file|$HOME/.gemini/GEMINI.md"
+    "claude|rules-file|$HOME/.claude/CLAUDE.md"
+    "cursor|rules-file|$HOME/.cursor/AGENTS.md"
+    "opencode|rules-file|$HOME/.config/opencode/AGENTS.md"
+    "copilot|rules-file|$HOME/.copilot/copilot-instructions.md"
+    # CodeBuddy 说明（2026-09-13 勘误，2026-09-15 补技能位）：
+    #   CodeBuddy IDE 与 CodeBuddy Code CLI 同源，共享 ~/.codebuddy/ 配置与记忆
+    #   ~/.codebuddy/CODEBUDDY.md 为用户级全局记忆文件（类似 ~/.claude/CLAUDE.md），会话自动全文注入
+    #   （真权限在 ~/.codebuddy/settings.json 的 permissions 字段；CODEBUDDY.md 内曾残留的 YAML permissions 为无效死内容）
+    #   ~/.codebuddy/rules/*.md 为用户级规则目录（User Rules），随 ~/.codebuddy/CODEBUDDY.md 一同全量加载（2026-09-15 实测订正）
+    #   ~/.codebuddy/CODEBUDDY.md 是 `#` 快捷记忆与自动记忆的写入目标，不复用给宪法（避免自动记忆覆盖软链），宪法走 rules/ 单文件
+    #   用户级技能目录 = ~/.codebuddy/skills（2026-09-15 二进制实测，非文档推断）：
+    #     dist/codebuddy-headless.js 内 expandPaths 定义常量 es="~/.codebuddy/skills" 并做展开，
+    #     同文件路径白名单同时含 "~/.codebuddy/skills/" 与 "~/.agents/skills/"，二者并列有效。
+    #     修正前本数组只链了记忆位（~/.codebuddy/CODEBUDDY.md），技能位漏配，故 CodeBuddy 侧技能不生效。
+    "codebuddy|skills-dir|$HOME/.codebuddy/skills"
+    "codebuddy|rules-file|$HOME/.codebuddy/rules/AGENTS.md"
+    # Trae 说明（TraeCode）：
+    #   全局规则目录 ~/.trae-cn/user_rules（IDE 创建的文件名为 rule-<timestamp>.md，目录下 md 均会被读取）
+    #   项目规则目录 .trae/rules/（支持 3 层嵌套、alwaysApply / globs / description 生效方式）
+    #   项目根 AGENTS.md / CLAUDE.md 需在 Trae 设置 > 规则 > 导入设置中手动开启开关才生效（默认关闭）
+    #   用户级技能目录 = ~/.trae-cn/skills（2026-09-15 二进制实测，非文档推断）：
+    #     /usr/share/trae-cn/resources/app/out/vs/workbench/workbench.desktop.main.js 内路径判定并列出现
+    #     "/.trae-cn/skills/"（home 级）与 "/.trae/skills/"（项目级）；~/.trae-cn/ 下另有 builtin_skills/ 与 skill-config.json。
+    "trae-cn|skills-dir|$HOME/.trae-cn/skills"
+    "trae-cn|rules-file|$HOME/.trae-cn/user_rules/AGENTS.md"
+    # Qoder CLI 说明（qodercli 1.1.51）：
+    #   全局记忆 ~/.qoder-cn/AGENTS.md（scope=home, trigger=always 全文注入）；项目级读 <仓库>/AGENTS.md 与 AGENTS.local.md
+    #   目录名由进程内环境变量决定（本机实测 QODER_CONFIG_DIR_NAME=.qoder-cn；二进制内另有 QODERCN_CONFIG_DIR_NAME 分支，未验证）
+    #   Qoder 只扫 ~/.agents/skills，不读 ~/.agents/AGENTS.md —— 宪法必须另链一份到 .qoder-cn 才生效
+    "qoder-cn|rules-file|$HOME/.qoder-cn/AGENTS.md"
 )
-# CodeBuddy 说明（2026-09-13 勘误，2026-09-15 补技能位）：
-#   CodeBuddy IDE 与 CodeBuddy Code CLI 同源，共享 ~/.codebuddy/ 配置与记忆
-#   ~/.codebuddy/CODEBUDDY.md 为用户级全局记忆文件（类似 ~/.claude/CLAUDE.md），会话自动全文注入
-#   （真权限在 ~/.codebuddy/settings.json 的 permissions 字段；CODEBUDDY.md 内曾残留的 YAML permissions 为无效死内容）
-#   ~/.codebuddy/rules/*.md 为用户级规则目录（User Rules），随 ~/.codebuddy/CODEBUDDY.md 一同全量加载（2026-09-15 实测订正）
-#   ~/.codebuddy/CODEBUDDY.md 是 `#` 快捷记忆与自动记忆的写入目标，不复用给宪法（避免自动记忆覆盖软链），宪法走 rules/ 单文件
-#   用户级技能目录 = ~/.codebuddy/skills（2026-09-15 二进制实测，非文档推断）：
-#     dist/codebuddy-headless.js 内 expandPaths 定义常量 es="~/.codebuddy/skills" 并做展开，
-#     同文件路径白名单同时含 "~/.codebuddy/skills/" 与 "~/.agents/skills/"，二者并列有效。
-#     修正前本数组只链了记忆位（~/.codebuddy/CODEBUDDY.md），技能位漏配，故 CodeBuddy 侧技能不生效。
-# Trae 说明（TraeCode）：
-#   全局规则目录 ~/.trae-cn/user_rules（IDE 创建的文件名为 rule-<timestamp>.md，目录下 md 均会被读取）
-#   项目规则目录 .trae/rules/（支持 3 层嵌套、alwaysApply / globs / description 生效方式）
-#   项目根 AGENTS.md / CLAUDE.md 需在 Trae 设置 > 规则 > 导入设置中手动开启开关才生效（默认关闭）
-#   用户级技能目录 = ~/.trae-cn/skills（2026-09-15 二进制实测，非文档推断）：
-#     /usr/share/trae-cn/resources/app/out/vs/workbench/workbench.desktop.main.js 内路径判定并列出现
-#     "/.trae-cn/skills/"（home 级）与 "/.trae/skills/"（项目级）；~/.trae-cn/ 下另有 builtin_skills/ 与 skill-config.json。
-# Qoder CLI 说明（qodercli 1.1.51）：
-#   全局记忆 ~/.qoder-cn/AGENTS.md（scope=home, trigger=always 全文注入）；项目级读 <仓库>/AGENTS.md 与 AGENTS.local.md
-#   目录名由进程内环境变量决定（本机实测 QODER_CONFIG_DIR_NAME=.qoder-cn；二进制内另有 QODERCN_CONFIG_DIR_NAME 分支，未验证）
-#   Qoder 只扫 ~/.agents/skills，不读 ~/.agents/AGENTS.md —— 宪法必须另链一份到 .qoder-cn 才生效
-USER_GLOBAL_RULES=(
-    "$HOME/.pi/agent/AGENTS.md"
-    "$HOME/.gemini/config/AGENTS.md"
-    "$HOME/.gemini/GEMINI.md"
-    "$HOME/.claude/CLAUDE.md"
-    "$HOME/.cursor/AGENTS.md"
-    "$HOME/.config/opencode/AGENTS.md"
-    "$HOME/.copilot/copilot-instructions.md"
-    "$HOME/.agents/AGENTS.md"
-    "$HOME/.trae-cn/user_rules/AGENTS.md"
-    "$HOME/.codebuddy/rules/AGENTS.md"
-    "$HOME/.qoder-cn/AGENTS.md"
-)
+
+# 由 TARGETS 按 kind 派生，下游只认这两组
+USER_GLOBAL_DIRS=()
+USER_GLOBAL_RULES=()
+for t in "${TARGETS[@]}"; do
+    IFS='|' read -r agent kind path <<< "$t"
+    case "$kind" in
+        skills-dir) USER_GLOBAL_DIRS+=("$path") ;;
+        rules-file) USER_GLOBAL_RULES+=("$path") ;;
+    esac
+done
+
+gitignore_add() {
+    for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
+        if [ -f "./.gitignore" ]; then
+            grep -qF "$ig" "./.gitignore" || echo "$ig" >> "./.gitignore"
+        else
+            echo "$ig" >> "./.gitignore"
+        fi
+    done
+}
+
+gitignore_del() {
+    [ -f "./.gitignore" ] || return 0
+    for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
+        sed -i "/^$ig/d" "./.gitignore"
+    done
+}
+
+# 唯一执行入口：scope × direction 决定每个候选落到哪里
+#   rule      → 只在 user 生效（链到 USER_GLOBAL_RULES）
+#   gitignore → 只在 project 生效（改 ./.gitignore）
+#   skill     → project 落到 ./.agents/skills，user 落到每个 USER_GLOBAL_DIRS
+apply_selection() {
+    local scope="$1" direction="$2"
+    local n_skill=0
+
+    if [ "$scope" == "project" ] && [ "$direction" == "link" ]; then
+        mkdir -p "./.agents/skills"
+    fi
+
+    for idx in "${SELECTED_ITEMS[@]}"; do
+        IFS='|' read -r kind key label path <<< "${ITEMS[idx]}"
+        case "$kind" in
+            rule)
+                if [ "$scope" == "user" ]; then
+                    for t in "${USER_GLOBAL_RULES[@]}"; do
+                        if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -f "$t"; fi
+                    done
+                    if [ "$direction" == "link" ]; then
+                        echo "已软链接 AGENTS 规则到用户全局配置文件"
+                    else
+                        echo "已从用户全局卸载 AGENTS 规则"
+                    fi
+                fi
+                processed=$((processed + 1))
+                ;;
+            gitignore)
+                if [ "$scope" == "project" ]; then
+                    if [ "$direction" == "link" ]; then
+                        gitignore_add
+                        echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
+                    else
+                        gitignore_del
+                        [ -f "./.gitignore" ] && echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
+                    fi
+                else
+                    echo "全局操作跳过项目级 .gitignore"
+                fi
+                processed=$((processed + 1))
+                ;;
+            skill)
+                if [ "$scope" == "project" ]; then
+                    local t="./.agents/skills/$key"
+                    if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -rf "$t"; fi
+                elif [ "$scope" == "user" ]; then
+                    for g in "${USER_GLOBAL_DIRS[@]}"; do
+                        [ "$direction" == "link" ] && mkdir -p "$g"
+                        local t="$g/$key"
+                        if [ "$direction" == "link" ]; then link "$path" "$t"; else rm -rf "$t"; fi
+                    done
+                fi
+                n_skill=$((n_skill + 1))
+                ;;
+        esac
+    done
+
+    if [ "$n_skill" -gt 0 ]; then
+        if [ "$direction" == "link" ]; then
+            echo "已软链接到${OP_SCOPE_LABEL}: $n_skill 个 skills"
+        else
+            echo "已从${OP_SCOPE_LABEL}卸载: $n_skill 个 skills"
+        fi
+    fi
+    processed=$((processed + n_skill))
+}
 
 processed=0
 
-# 操作 4：安装记忆钩子（与具体 skill 无关，直接执行后退出）
-if [ "$dest_idx" -eq 4 ]; then
+# 操作 5：安装记忆钩子（与具体 skill 无关，直接执行后退出）
+if [ "$OP_SCOPE" == "repos" ]; then
     install_memory_hooks
     exit 0
 fi
 
-# 收集特殊项和常规 skills
-special_indices=()
-skill_indices=()
-for idx in "${user_selected_indices[@]}"; do
-    src="${skill_paths[idx]}"
-    if [ "$src" == "$SCRIPT_DIR/one-agents.md" ] || [ "$src" == "SPECIAL_GITIGNORE_AGENTS" ]; then
-        special_indices+=("$idx")
-    else
-        skill_indices+=("$idx")
-    fi
-done
+case "$OP_SCOPE" in
+    project) OP_SCOPE_LABEL="当前项目" ;;
+    user)    OP_SCOPE_LABEL="用户全局" ;;
+esac
 
-# 先处理特殊项（逐个）
-for idx in "${special_indices[@]}"; do
-    src="${skill_paths[idx]}"
+apply_selection "$OP_SCOPE" "$OP_DIR"
 
-    if [ "$src" == "$SCRIPT_DIR/one-agents.md" ]; then
-        case "$dest_idx" in
-            2) # 软链接到用户全局
-                for t in "${USER_GLOBAL_RULES[@]}"; do
-                    link "$src" "$t"
-                done
-                echo "已软链接 AGENTS 规则到用户全局配置文件"
-                ;;
-            3) # 卸载自用户全局
-                for t in "${USER_GLOBAL_RULES[@]}"; do
-                    rm -f "$t"
-                done
-                echo "已从用户全局卸载 AGENTS 规则"
-                ;;
-        esac
-        processed=$((processed + 1))
-    elif [ "$src" == "SPECIAL_GITIGNORE_AGENTS" ]; then
-        case "$dest_idx" in
-            0) # 软链接到当前项目
-                for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
-                    if [ -f "./.gitignore" ]; then
-                        grep -qF "$ig" "./.gitignore" || echo "$ig" >> "./.gitignore"
-                    else
-                        echo "$ig" >> "./.gitignore"
-                    fi
-                done
-                echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
-                ;;
-            1) # 卸载自当前项目
-                if [ -f "./.gitignore" ]; then
-                    for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
-                        sed -i "/^$ig/d" "./.gitignore"
-                    done
-                    echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
-                fi
-                ;;
-            2|3) # 用户全局
-                echo "全局操作跳过项目级 .gitignore"
-                ;;
-        esac
-        processed=$((processed + 1))
-    fi
-done
-
-# 再整体处理常规 skills
-if [ ${#skill_indices[@]} -gt 0 ]; then
-    case "$dest_idx" in
-        0) # 软链接到当前项目
-            mkdir -p "./.agents/skills"
-            for idx in "${skill_indices[@]}"; do
-                link "${skill_paths[idx]}" "./.agents/skills/${skill_names[idx]}"
-            done
-            echo "已软链接到当前项目: ${#skill_indices[@]} 个 skills"
-            ;;
-        1) # 卸载自当前项目
-            for idx in "${skill_indices[@]}"; do
-                rm -rf "./.agents/skills/${skill_names[idx]}"
-            done
-            echo "已从当前项目卸载: ${#skill_indices[@]} 个 skills"
-            ;;
-        2) # 软链接到用户全局
-            for g in "${USER_GLOBAL_DIRS[@]}"; do
-                mkdir -p "$g"
-                for idx in "${skill_indices[@]}"; do
-                    link "${skill_paths[idx]}" "$g/${skill_names[idx]}"
-                done
-            done
-            echo "已软链接到用户全局: ${#skill_indices[@]} 个 skills"
-            ;;
-        3) # 卸载自用户全局
-            for g in "${USER_GLOBAL_DIRS[@]}"; do
-                for idx in "${skill_indices[@]}"; do
-                    rm -rf "$g/${skill_names[idx]}"
-                done
-            done
-            echo "已从用户全局卸载: ${#skill_indices[@]} 个 skills"
-            ;;
-    esac
-    processed=$((processed + ${#skill_indices[@]}))
-fi
-
-if [ "$dest_idx" -eq 0 ] && [ "$processed" -gt 0 ]; then
+if [ "$OP_SCOPE" == "project" ] && [ "$OP_DIR" == "link" ] && [ "$processed" -gt 0 ]; then
     if [ ! -f "./one-context.md" ]; then
         echo '<!-- 用户可以在这里写一些对 AI 说的话/全局指令 -->' > "./one-context.md"
         echo "已自动初始化 ./one-context.md"
