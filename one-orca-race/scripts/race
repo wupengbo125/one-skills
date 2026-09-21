@@ -14,7 +14,7 @@ usage() {
 用法: race.sh -a <agent[:model[:effort]]...> [-i <issue>] [-p <prompt>] [-b <base>] [--dry-run]
 
   -a, --agents       参赛 Agent 列表（空格分隔），如: -a codex:gpt-5.2 omp claude:claude-3-7-sonnet codebuddy
-  -i, --issue        GitHub Issue 编号或 URL（gh issue view 抓取）
+  -i, --issue        GitHub Issue 编号或 URL（gh issue view 抓取）；支持负数倒数：-1 最新、-2 倒数第二
   -p, --prompt       追加/独立的自定义提示词
   -b, --base-branch  基线分支（默认 main）
   -sda --set-default-agent <agent>   记住默认 Agent，之后可省略 -a
@@ -131,6 +131,19 @@ echo "📦 目标仓库: $REPO"
 
 # ---- 抓取 Issue ----
 ISSUE_NUM=""; ISSUE_TITLE=""; ISSUE_BODY=""; ISSUE_URL=""
+
+# 负号数字：-1 倒数第一条（最新，等价于不传 -i），-2 倒数第二条，依此类推
+if [[ "$ISSUE" =~ ^-[0-9]+$ ]]; then
+  n="${ISSUE#-}"
+  echo "🔍 取倒数第 ${n} 条 open issue ..."
+  if ! ISSUE="$(gh issue list --state open --limit "$n" --json number \
+        --jq ".[$((n - 1))].number // empty")" \
+    || [[ -z "$ISSUE" ]]; then
+    echo "❌ 取倒数第 ${n} 条 open issue 失败（可能不足 ${n} 条 open issue）" >&2
+    exit 1
+  fi
+fi
+
 if [[ -z "$ISSUE" ]]; then
   echo "🔍 未指定 Issue，取最新一条 open issue ..."
   if ! ISSUE="$(gh issue list --state open --limit 1 --json number --jq '.[0].number // empty')" \

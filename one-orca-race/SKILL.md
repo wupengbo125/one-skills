@@ -28,7 +28,7 @@ race \
 
 ### 参数说明
 - `--agents, -a`: 参赛 Agent 列表（空格分隔），支持 `agent` 或 `agent:model` 或 `agent:model:effort`。
-- `--issue, -i`: GitHub Issue 编号或 URL，自动通过 `gh issue view` 抓取详情。
+- `--issue, -i`: GitHub Issue 编号或 URL，自动通过 `gh issue view` 抓取详情。支持负数倒数：`-1` 取最新一条 open issue（等价于不传 `-i`），`-2` 取倒数第二条，以此类推。
 - `--prompt, -p`: 自定义或补充提示词。
 - `--base-branch, -b`: 切分支基准（默认 `main`）。
 - `--dry-run`: 仅做语法解析和计划展示，不实际创建分支和启动终端。
