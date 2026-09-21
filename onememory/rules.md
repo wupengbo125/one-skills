@@ -60,3 +60,15 @@ Orca CLI 集成坑点（worktree / terminal / agent id）
   - 「STUNPort: -1 关 STUN」会让该 region 从 `tailscale netcheck` 候选列表消失、回落官方 DERP，别关；代价是自报公网 endpoint 变成 127.0.0.1（经 FRP 后源地址丢失），对称 NAT 场景无害
   - 链路多绕一层免费 FRP 时，derper 默认 `-tcp-user-timeout=15s`（官方刻意设短）会在隧道拥塞时主动掐连接，症状是 ping 有回包但 SSH 连不上/中途断；这类中继要显式放宽 `-tcp-user-timeout=60s -tcp-write-timeout=60s`
   - tailnet ACL 无法用 CLI 修改（`tailscale policy` 子命令不存在），只能改网页或用 API key（用户的在 `~/onespace/github/dotfiles/rc/bash/exports` 的 `$tailscale_api_key`）PATCH `/api/v2/tailnet/-/acl`，返回体是 HuJSON，需带 `If-Match: etag`
+
+检索脚本四份并存：改一份联动改全部
+- Date: 2026-09-21
+- Instructions:
+  - `cp` 整份覆盖其余几份，别逐行手改
+  - 不抽公共库：为解耦，别人只装一个 skill 也要能跑
+
+技能文档禁写死源仓路径
+- Date: 2026-09-21
+- Instructions:
+  - 脚本写 `<技能目录>/scripts/xxx.py`= 本 SKILL.md 处
+  - 不写宿主名/兜底路径；数据仓默认优先、env 兜底

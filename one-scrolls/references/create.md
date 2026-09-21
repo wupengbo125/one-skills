@@ -1,6 +1,6 @@
 # 封存卷轴手册
 
-卷轴库路径：`~/onespace/github/one-skills/one-scrolls/scrolls/`
+卷轴库路径：`scrolls/`
 
 ---
 
@@ -17,14 +17,14 @@
 0. **查找已有卷轴**：
    优先找出已知的卷轴，往里面继续写，找不到再新建
 1. **归档落盘**：
-   - 写入 `~/onespace/github/one-skills/one-scrolls/scrolls/<英文分类>/<中文主题>.md`；
+   - 写入 `scrolls/<英文分类>/<中文主题>.md`；
    - 若存在同名卷轴则章节追加，不存在则新建。
 2. **更新大纲**：
-   - 在 `~/onespace/github/one-skills/one-scrolls/scrolls/index.md` 追加卷轴指针与核心解决要点（= 描述）。
+   - 在 `scrolls/index.md` 追加卷轴指针与核心解决要点（= 描述）。
 3. **增量同步索引**：
    ```bash
-   python3 ~/onespace/github/one-skills/one-scrolls/scripts/scrolls.py sync "<英文分类>/<中文主题>.md"
+   python3 scripts/scrolls.py sync "<英文分类>/<中文主题>.md"
    ```
 4. **提交 Git**：
-   - 在 `~/onespace/github/one-skills/` 执行本地 commit 并 push。
+   - 在本技能所在仓库执行本地 commit 并 push。
 5. **极简反馈**：一句话仅反馈写入路径与标题。以及推送状态

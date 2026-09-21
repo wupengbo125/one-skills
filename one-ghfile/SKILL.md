@@ -16,7 +16,7 @@ GitHub 远端仓库文件操作，Agent 标准原语：`list` / `read` / `write`
 ## 用法（ghfile.py）
 
 ```bash
-python3 ~/onespace/github/one-skills/one-ghfile/scripts/ghfile.py <cmd> <repo> <path...>
+python3 scripts/ghfile.py <cmd> <repo> <path...>
 ```
 
 | 命令 | 示例 |

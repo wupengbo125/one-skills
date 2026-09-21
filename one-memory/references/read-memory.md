@@ -16,7 +16,7 @@ INDEX.md    总索引
 
 | 问法 | 手段 |
 | :--- | :--- |
-| 某个词、某句话是怎么说的（概念、踩坑、技术决策、方案、原话） | BM25 检索：`python3 ~/onespace/github/one-skills/one-memory/scripts/fts.py search "<关键词>"` |
+| 某个词、某句话是怎么说的（概念、踩坑、技术决策、方案、原话） | BM25 检索：`python3 scripts/fts.py search "<关键词>"` |
 | 某个方面、某一类里都有什么 | 从索引进：读总索引 `~/onespace/github/one-hippocampus/INDEX.md`，顺双链下钻 |
 | 最近、流水、时间 | 列目录：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读对应当日文件 |
 | 偏好、习惯、喜不喜欢 | 读 `~/onespace/github/one-hippocampus/personal/preferences.md` |
@@ -37,5 +37,5 @@ INDEX.md    总索引
 - **全局总索引**：`~/onespace/github/one-hippocampus/INDEX.md`
 - **全量重建索引**：若发现新写入的文档检索不到，或索引库异常，运行重建：
   ```bash
-  python3 ~/onespace/github/one-skills/one-memory/scripts/fts.py rebuild
+  python3 scripts/fts.py rebuild
   ```

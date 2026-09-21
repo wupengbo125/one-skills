@@ -31,6 +31,7 @@ done
 HIPPO_DIR="$HOME/onespace/github/one-hippocampus/.git"
 if [ -d "$HIPPO_DIR/hooks" ]; then
   cp "$POST_COMMIT" "$HIPPO_DIR/hooks/post-commit" || exit 1
+  cp "$SCRIPT_DIR/../scripts/fts.py" "$HIPPO_DIR/hooks/fts.py" || exit 1
   chmod +x "$HIPPO_DIR/hooks/post-commit" || exit 1
   echo "已安装 post-commit: one-hippocampus"
 else

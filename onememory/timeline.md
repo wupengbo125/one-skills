@@ -72,5 +72,5 @@
 - 2026-09-19 22:28 [01a0b9bf-1380-76c2-862c-9ecf4add49bf] one-orca-race 修 CodeBuddy 终端/命名；worktree ~/onespace/worktree
 - 2026-09-20 01:05 [01a0ba83-ad85-7e10-ae3a-c71cec63072f] orca 分支名去重；海马校验改本地 grep 放宽 5 条；新增 BLUEPRINT
 - 2026-09-20 11:35 [38442877] 记偏好 p1_AQsSc1t025I：先答后改，禁止不答先改
-- 2026-09-20 22:42 [01a0be7b-7cc8-7aab-9a35-f1b86e723819] fts.py 逐字 phrase/porter；查询意图分流；scrolls 并轨；宪法台词重写
 - 2026-09-20 22:30 [01a0bf03-1a4c-7a67-85f7-9df0735a5904] Tailscale 慢：跨运营商 IPv6 丢包，先不折腾；卷轴补坑 11
+- 2026-09-21 08:36 [01a0be7b-7cc8-7aab-9a35-f1b86e723819] fts 逐字 phrase/porter；技能路径改相对；钩子自带 fts.py；规则精简

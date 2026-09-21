@@ -8,5 +8,6 @@ GIT_DIR="$HOME/onespace/github/one-llmwiki/.git"
 
 rm -f "$GIT_DIR/hooks/post-commit"
 cp "$SCRIPT_DIR/post-commit" "$GIT_DIR/hooks/post-commit"
+cp "$SCRIPT_DIR/../scripts/fts.py" "$GIT_DIR/hooks/fts.py"
 chmod +x "$GIT_DIR/hooks/post-commit"
 echo "✅ one-wiki post-commit 已安装到 one-llmwiki/.git/hooks/（旧钩子已清理）"
