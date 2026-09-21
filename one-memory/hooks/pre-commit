@@ -12,7 +12,7 @@ if [ -n "$NON_MEMORY" ] && [ -z "$MEMORY" ]; then
 fi
 
 # 海马记忆仓校验：本地 one-hippocampus 当日文件须含本项目同一句话的摘要
-# （查本地 clone 而非 gh api：豆包环境 gh 未登录会误报；本地 pull 最新即可）
+# （查本地 clone 而非 gh api：豆包环境 gh 未登录会误报；钩子自动 pull 最新）
 # 多端并发：timeline 末行只要在海马仓本项目最近 5 条内即可，不强制必须是最后一条
 if [ -n "$NON_MEMORY" ]; then
   # 强制 timeline 格式："- YYYY-MM-DD HH:MM [id] 摘要"。无时间即报错。
@@ -30,6 +30,8 @@ if [ -n "$NON_MEMORY" ]; then
     echo "❌ 拒绝提交：摘要 $LEN 字，超 60 字上限。只写关键字，细节写进 onememory/tasks/<会话ID>.md"
     exit 1
   fi
+  # 自动拉海马仓最新，避免本地 clone 落后误判
+  git -C "$HOME/onespace/github/one-hippocampus" pull --ff-only --quiet 2>/dev/null
   PROJ=$(git rev-parse --show-toplevel | sed "s|^$HOME|~|")
   HIPPO_DAY="$HOME/onespace/github/one-hippocampus/memory/$(date +%Y-%m)/$(date +%Y-%m-%d).md"
   # 重复 ID 检查：timeline 全文同 id 超过 1 行即报错
@@ -45,7 +47,7 @@ if [ -n "$NON_MEMORY" ]; then
     exit 1
   fi
   if ! grep -F "[$PROJ]" "$HIPPO_DAY" 2>/dev/null | tail -5 | grep -qF "$LOCAL"; then
-    echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 匹配记录（timeline 末行须在海马仓最近 5 条内）。先按 one-memory Step 3 落盘并 git pull 最新。"
+    echo "❌ 拒绝提交：one-hippocampus 今日无 [$PROJ] 匹配记录（timeline 末行须在海马仓最近 5 条内）。先按 one-memory Step 3 落盘。"
     exit 1
   fi
 fi
