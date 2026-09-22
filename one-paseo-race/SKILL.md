@@ -27,7 +27,8 @@ prace -a codex claude --timeout 30m      # 发完就地等结果
 （脚本 `scripts/prace`；dotfiles/bin/prace 是它的相对软链，全局命令即 `prace`。Orca 版叫 `orace`。）
 
 ### 参数
-- `-a, --agents`：参赛 `agent` 或 `agent:model`（空格分隔）。Paseo 无 effort 概念，`--thinking` / `--mode` 走 provider 原生，需要就自己改脚本加透传。
+- `-a, --agents`：参赛 `agent` 或 `agent:model`（空格分隔）；省略时用默认 Agent。Paseo 无 effort 概念，`--thinking` / `--mode` 走 provider 原生，需要就自己改脚本加透传。
+- `-sda, --set-default-agent <agent>`：记住默认 Agent（`~/.config/prace/default-agent`），之后可省略 `-a`。
 - `-i, --issue`：Issue 编号或 URL；`-1` 最新一条 open（默认），`-2` 倒数第二。
 - `-p, --prompt`：追加指令。`-b, --base-branch`：基线分支（默认 `main`）。
 - `--timeout <duration>`：发完马后 `paseo wait` 每个 agent（`30s` / `10m` / `1h`）。不给就发完即返回。
