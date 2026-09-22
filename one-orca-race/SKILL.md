@@ -24,7 +24,7 @@ race \
   -p "实现并添加单元测试，写完自测通过"
 ```
 
-（脚本位于 `scripts/race`，已通过 `dotfiles/bin/race` 暴露为全局命令 `race`）
+（脚本位于 `scripts/race`，已通过 `dotfiles/bin/orace` 暴露为全局命令 `orace`；Paseo 版叫 `prace`）
 
 ### 参数说明
 - `--agents, -a`: 参赛 Agent 列表（空格分隔），支持 `agent` 或 `agent:model` 或 `agent:model:effort`。

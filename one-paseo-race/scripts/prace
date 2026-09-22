@@ -1,0 +1,160 @@
+#!/usr/bin/env bash
+# prace — Paseo 多 Agent 并行赛马调度器
+# 同一需求 / Issue 同时派给多个 Agent，各自独立 worktree workspace 并发跑。
+#
+# 用法:
+#   prace -a codex:gpt-5.4 claude:opus-4.6 omp [-i <issue>] [-p "补充指令"]
+#         [-b main] [--timeout 30m] [--host host:port] [--dry-run]
+set -euo pipefail
+
+usage() {
+  cat >&2 <<'EOF'
+用法: prace -a <agent[:model]...> [-i <issue>] [-p <prompt>] [-b <base>]
+            [--timeout <duration>] [--host <host:port>] [--dry-run]
+
+  -a, --agents       参赛 Agent 列表（空格分隔），如: -a codex:gpt-5.4 claude omp
+  -i, --issue        Issue 编号或 URL（gh issue view 抓取）；-1 最新（默认）、-2 倒数第二
+  -p, --prompt       追加/独立的自定义提示词
+  -b, --base-branch  基线分支（默认 main）
+      --timeout      发完后 wait 每个 agent（30s / 10m / 1h）；不给则发完即返回
+      --host         远程 daemon（host:port）
+      --dry-run      只打印命令，不实际创建
+EOF
+  exit 1
+}
+
+sanitize_ref() {
+  local s="$1"
+  s="$(printf '%s' "$s" | LC_ALL=C tr -d '\001-\037\177')"
+  s="${s//[[:space:]]/-}"; s="${s//\~/-}"; s="${s//\^/-}"; s="${s//:/-}"
+  s="${s//\?/-}"; s="${s//\*/-}"; s="${s//\[/-}"; s="${s//\]/-}"; s="${s//\\/-}"
+  s="${s//../-}"; s="${s//\//-}"
+  s="$(printf '%s' "$s" | LC_ALL=C tr -s '-')"
+  s="${s#-}"; s="${s%-}"; s="${s#.}"; s="${s%.}"; s="${s%.lock}"
+  printf '%s' "$s"
+}
+
+# 解析 agent[:model]，写入 AGENT_ID / A_MODEL。必须直接调用，不能 $(...) 包
+parse_spec() {
+  local spec="$1" rest
+  AGENT_ID="${spec%%:*}"
+  A_MODEL=""
+  rest="${spec#*:}"
+  if [[ "$rest" != "$spec" ]]; then A_MODEL="$rest"; fi
+}
+
+AGENTS=(); ISSUE=""; PROMPT=""; BASE="main"; TIMEOUT=""; HOST=""; DRY_RUN=0
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -a | --agents) shift; while [[ $# -gt 0 && "$1" != -* ]]; do AGENTS+=("$1"); shift; done ;;
+    -i | --issue) ISSUE="${2:?-i 缺少参数}"; shift 2 ;;
+    -p | --prompt) PROMPT="${2:?-p 缺少参数}"; shift 2 ;;
+    -b | --base-branch) BASE="${2:?-b 缺少参数}"; shift 2 ;;
+    --timeout) TIMEOUT="${2:?--timeout 缺少参数}"; shift 2 ;;
+    --host) HOST="${2:?--host 缺少参数}"; shift 2 ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h | --help) usage ;;
+    *) usage ;;
+  esac
+done
+[[ ${#AGENTS[@]} -gt 0 ]] || { echo "❌ 必须提供 -a 参赛 Agent 列表" >&2; exit 1; }
+
+REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "❌ 当前目录不在 git 仓库中" >&2; exit 1; }
+echo "📦 目标仓库: $REPO"
+
+ISSUE_NUM=""; ISSUE_TITLE=""; ISSUE_BODY=""; ISSUE_URL=""
+
+if [[ "$ISSUE" =~ ^-[0-9]+$ ]]; then
+  n="${ISSUE#-}"
+  echo "🔍 取倒数第 ${n} 条 open issue ..."
+  ISSUE="$(gh issue list --state open --limit "$n" --json number --jq ".[$((n - 1))].number // empty")" \
+    || { echo "❌ 取倒数第 ${n} 条 open issue 失败" >&2; exit 1; }
+fi
+if [[ -z "$ISSUE" ]]; then
+  echo "🔍 未指定 Issue，取最新一条 open issue ..."
+  ISSUE="$(gh issue list --state open --limit 1 --json number --jq '.[0].number // empty')" \
+    || { echo "❌ 取最新 open issue 失败" >&2; exit 1; }
+fi
+if [[ -n "$ISSUE" ]]; then
+  out="$(gh issue view "$ISSUE" --json number,title,body,url)"
+  ISSUE_NUM="$(jq -r '.number' <<<"$out")"
+  ISSUE_TITLE="$(jq -r '.title' <<<"$out")"
+  ISSUE_BODY="$(jq -r '.body // ""' <<<"$out")"
+  ISSUE_URL="$(jq -r '.url // ""' <<<"$out")"
+  echo "   已获取: #$ISSUE_NUM $ISSUE_TITLE"
+fi
+
+FULL_PROMPT=""
+if [[ -n "$ISSUE_TITLE" || -n "$ISSUE_BODY" ]]; then
+  FULL_PROMPT="# Target Task: GitHub Issue #${ISSUE_NUM} - ${ISSUE_TITLE}"
+  [[ -n "$ISSUE_BODY" ]] && FULL_PROMPT+=$'\n\n## Issue Description:\n'"${ISSUE_BODY}"
+fi
+if [[ -n "$PROMPT" ]]; then
+  [[ -n "$FULL_PROMPT" ]] && FULL_PROMPT+=$'\n\n'
+  FULL_PROMPT+="## User Instructions:"$'\n'"${PROMPT}"
+fi
+if [[ -n "$FULL_PROMPT" ]]; then FULL_PROMPT+=$'\n\n'; fi
+FULL_PROMPT+=$'## Race Rules:\n- Solve the issue cleanly and completely.\n- Do not touch unrelated files.\n- Verify all changes before reporting.'
+
+RACE_ID="$(printf '%03d' $((RANDOM % 1000)))"
+
+launch_horse() {
+  local idx="$1" raw="$2" agent model branch slug title horse model_slug out id
+  parse_spec "$raw"; agent="$AGENT_ID"; model="$A_MODEL"
+
+  horse="🐎-"
+  if [[ ${#AGENTS[@]} -eq 1 ]]; then horse=""; fi
+  model_slug=""
+  if [[ -n "$model" ]]; then model_slug="-$(sanitize_ref "$model")"; fi
+  slug="$(sanitize_ref "$ISSUE_TITLE")"
+  [[ -n "$slug" ]] || slug="issue-${ISSUE_NUM:-task}"
+
+  branch="${horse}${RACE_ID}-${idx}-${agent}${model_slug}-${slug}"
+  title="${horse}${agent}${model_slug} #${idx} - ${ISSUE_TITLE}"
+
+  printf '\n🚀 [Horse %s] %s\n' "$idx" "$title"
+  echo "   分支: $branch"
+
+  local cmd=(paseo run "$FULL_PROMPT"
+    --provider "$agent"
+    --new-workspace worktree --worktree-mode branch-off
+    --new-branch "$branch" --base "$BASE" --worktree-slug "$branch"
+    --title "$title"
+    --label "race=${RACE_ID}" --label "horse=${idx}"
+    --background --cwd "$REPO" --json --quiet)
+  if [[ -n "$model" ]]; then cmd+=(--model "$model"); fi
+  if [[ -n "$HOST" ]]; then cmd+=(--host "$HOST"); fi
+
+  if [[ $DRY_RUN -eq 1 ]]; then
+    printf '   [DRY-RUN]'; printf ' %q' "${cmd[@]:0:4}"; printf ' ...\n'
+    RESULTS+=("ok|${idx}|${raw}|${branch}|-")
+    return 0
+  fi
+
+  if ! out="$("${cmd[@]}" 2>&1)"; then
+    echo "   ❌ 启动失败: $agent" >&2
+    echo "$out" >&2
+    RESULTS+=("fail|${idx}|${raw}|${branch}|-")
+    return 0
+  fi
+  id="$(jq -r '.agentId // .result.agentId // .result[0].agentId // empty' <<<"$out" 2>/dev/null || true)"
+  [[ -n "$id" ]] || id="$(printf '%s' "$out" | head -1)"
+  echo "   ✅ agent: ${id:-未知}"
+  if [[ -n "$TIMEOUT" && "$id" != "未知" ]]; then paseo wait "$id" --timeout "$TIMEOUT" >/dev/null 2>&1; fi
+  RESULTS+=("ok|${idx}|${raw}|${branch}|${id:-未知}")
+}
+
+RESULTS=()
+idx=0
+for raw in "${AGENTS[@]}"; do idx=$((idx + 1)); launch_horse "$idx" "$raw"; done
+
+echo
+echo "=================================================="
+echo "🏆 赛马 #${RACE_ID} 分发完成  ${TIMEOUT:+（已等待 ${TIMEOUT}）}"
+for r in "${RESULTS[@]}"; do
+  IFS='|' read -r st i a b id <<<"$r"
+  [[ "$st" == "ok" ]] && echo "   ✅ Horse $i: $a -> $b (agent ${id})" \
+                     || echo "   ❌ Horse $i: $a -> $b"
+done
+echo "   记分牌: paseo ls --label race=${RACE_ID} -g"
+echo "=================================================="

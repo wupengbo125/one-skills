@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# race.sh — Orca 多 Agent 并行赛马调度器（race.py 的 shell 版）
+# orace — Orca 多 Agent 并行赛马调度器（race.py 的 shell 版）
 # 同一个需求 / Issue 同时派给多个 Agent，各自独立 Worktree 并发跑。
 #
 # 用法:
-#   race.sh -a codex:gpt-5.2 omp claude:claude-3-7-sonnet:high codebuddy \
+#   orace -a codex:gpt-5.2 omp claude:claude-3-7-sonnet:high codebuddy \
 #           [-i <issue>] [-p "补充指令"] [-b main] [--dry-run]
 set -euo pipefail
 
@@ -11,7 +11,7 @@ NATIVE_AGENTS="claude claude-agent-teams openclaude codex autohand ante trae ope
 
 usage() {
   cat >&2 <<'EOF'
-用法: race.sh -a <agent[:model[:effort]]...> [-i <issue>] [-p <prompt>] [-b <base>] [--dry-run]
+用法: orace -a <agent[:model[:effort]]...> [-i <issue>] [-p <prompt>] [-b <base>] [--dry-run]
 
   -a, --agents       参赛 Agent 列表（空格分隔），如: -a codex:gpt-5.2 omp claude:claude-3-7-sonnet codebuddy
   -i, --issue        GitHub Issue 编号或 URL（gh issue view 抓取）；支持负数倒数：-1 最新、-2 倒数第二

@@ -77,3 +77,4 @@
 - 2026-09-21 12:00 [01a0c200-85ac-7b64-aec8-d0a526ba9c87] one-orca-race -i 支持负数倒数选 Issue（-1最新/-2倒数第二）
 - 2026-09-21 15:15 [01a0c224-2540-7411-8229-b1859f9e53cc] Memory规则≤100字限定制文件；多仓rules压缩；ddd/ppp分流；hook加rules≤100字门禁
 - 2026-09-21 23:05 [01a0c463-0b60-745e-b7c0-4616b5c7f694] install.sh 菜单重构；pre-commit 自动 pull 海马仓（15s超时）
+- 2026-09-22 23:08 [334319e4-f589-4830-a650-25612ed75cac] 新增 one-paseo-race；orca 版命令更名 orace
