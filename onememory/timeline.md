@@ -81,3 +81,4 @@
 - 2026-09-23 00:12 [b3e6274e-3669-47a3-b799-e60e994a82b0] 新增 one-herdr-race；修 prace agentId 解析
 - 2026-09-23 11:13 [1eac5bae-d03f-407c-b231-8e4ad36c3a5b] prace 加 provider 名映射与预检（codebuddy→codebuddy-code）
 - 2026-09-23 11:37 [01a0cc42-9a9b-795b-8a53-b15b0c569701] one-write-skill 改名 one-writing-skill（目录+name 字段）
+- 2026-09-23 15:05 [a5892662-349d-4fbd-b7b6-1fa981e5ed19] 删 one-herdr-race（Herdr 赛马）

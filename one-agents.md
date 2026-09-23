@@ -12,7 +12,7 @@
 *#优雅实现**：修改任何东西前，使用 skikl：one-implement
 **提交代码并更新记忆**：做完先问是否提交；同意则用 skill: one-memory 写记忆 → commit → push → 汇报。worktree 下不问不提交；
 - 用户说"ppp"：分支内写记忆 → 推送 → `gh pr create`（正文 `Refs #编号`，不自动关 Issue）→ 汇报。
-- 用户说"ddd"：先走 `ppp`，再合并 PR 入主干 → 关 Issue → 汇报。
+- 用户说"ddd"：先走 `ppp`，再合并 PR 入主干 → 关 Issue →删 worktree →删本地分支→ 汇报。
 
 ## 宪法
 - **别修改代码**：不要动不动用户问一句话，就开始改代码。那是手贱
