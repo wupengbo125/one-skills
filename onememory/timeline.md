@@ -82,3 +82,4 @@
 - 2026-09-23 11:13 [1eac5bae-d03f-407c-b231-8e4ad36c3a5b] prace 加 provider 名映射与预检（codebuddy→codebuddy-code）
 - 2026-09-23 11:37 [01a0cc42-9a9b-795b-8a53-b15b0c569701] one-write-skill 改名 one-writing-skill（目录+name 字段）
 - 2026-09-23 15:05 [a5892662-349d-4fbd-b7b6-1fa981e5ed19] 删 one-herdr-race（Herdr 赛马）
+- 2026-09-23 16:56 [01a0c411-aa0e-7f02-9953-3f27672304ce] one-memory 删 pi-extension/package.json，清 pi 与收工残留

@@ -22,7 +22,7 @@ one-skills/
 ├── install.sh               # 交互式分发：软链技能/宪法、卸载、装记忆钩子
 ├── install-others.sh        # 第三方技能/工具批量安装
 ├── one-wiki/                # 个人知识库：SKILL.md + references/{note,ingest,query,lint}.md + scripts/wiki.py
-├── one-memory/     海马记忆仓记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/ pi-extension/
+├── one-memory/     海马记忆仓记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/
 ├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
 ├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
@@ -50,7 +50,7 @@ one-skills/
 | 技能 | 触发方式 | 职责 | 数据/依赖 |
 | :-- | :-- | :-- | :-- |
 | one-wiki | 自动："记笔记/记到大本子/ingest/lint" | raw 记录、ingest 编译、query 检索、lint 巡检 | one-llmwiki 仓；"记笔记"禁用 one-memory |
-| one-memory | 自动："查记忆/查偏好"；"收工"兜底；`/wrap` | 双轨记忆读写与检索 | one-hippocampus 仓 + 各项目 `onememory/` |
+| one-memory | 自动："查记忆/查偏好" | 双轨记忆读写与检索 | one-hippocampus 仓 + 各项目 `onememory/` |
 | one-life | 自动："记日记/记录生活/我上次去…/最近干了啥" | 个人生活日记（情景记忆）写入、检索、月年蒸馏 | one-life 私有仓（diary/ summary/ entities/） |
 | one-scrolls | 自动："查卷轴/避坑指南/封存卷轴" | 低频实操手册封存与检索 | 自带 scrolls/；个人笔记/记忆禁存这里 |
 | one-blueprint | 自动：蓝图维护/核对 | 维护项目唯一 `BLUEPRINT.md`（只写业务逻辑，不写 UI） | 被 one-harness 作基准 |
@@ -97,7 +97,6 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 - hooks：
   - `hooks/pre-commit`：暂存区有非 onememory/ 改动却无 onememory/ 文件 → 拒绝提交（`--no-verify` 可绕过）。
   - `hooks/post-commit`：仅 one-hippocampus 仓提交时，对本 diff 的 .md 逐个 `memory.py sync`（静默）。
-- Pi 扩展 `pi-extension/index.ts`：`before_agent_start` 每轮热注入 memory-rules.md + 会话 ID；命令 `/wrap`（收工沉淀）、`/memory sync`（rebuild）。
 - SOP：查资料第一步必跑 BM25，只精读命中 1~2 篇；查今日流水/偏好/画像走直达路径（见 references/read-memory.md）。
 
 ## 6. one-wiki 四操作要点
@@ -107,10 +106,9 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 - query：先 BM25，再沿双链精读，回答标注出处。
 - lint：查死链/孤儿页/矛盾/概念缺口，确认后修复并记 log。
 
-## 7. 扩展接口（三个 index.ts 文件同构）
+## 7. 扩展接口（两个 index.ts 文件同构）
 仅用 `node:fs/promises`、`node:path`、`node:url`，TS 由 Pi 宿主直接加载，无构建步骤。API：`pi.on(event, handler)`、`pi.registerCommand(name, {description, handler})`、`pi.sendUserMessage(msg, {deliverAs})`、`pi.exec(cmd, args)`；事件：`before_agent_start`（改 systemPrompt）、`tool_call`、`tool_result`（可追加 content 文本）。
 
-- one-memory：注入 memory-rules.md；`/wrap`、`/memory sync`。
 - one-harness-lite：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加审查提醒（禁止直接 commit，强制 Sub-agent 等号审查）；`/harness` 状态命令。
 - one-implement：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加极简实现提醒（平铺计划、最小化实现、严防多改、强制等号审查）；`/implement` 状态命令。
 
@@ -123,10 +121,6 @@ npx -y skills@latest add https://github.com/wupengbo125/one-skills --skill one-m
 # 本地
 bash install.sh          # 多选技能 → 单选操作：软链/卸载到 ./.agents/skills 或 ~/.agents/skills；装记忆钩子
 bash install-others.sh   # 第三方生态
-
-# Pi 包
-pi install /home/ctyun/onespace/github/one-skills/one-memory   # 或 -l 局部
-pi remove one-memory && pi list
 ```
 
 - install.sh 软链在 Windows 退化为 PowerShell 硬链接。
