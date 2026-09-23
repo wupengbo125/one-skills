@@ -41,7 +41,7 @@
 **等号铁律**：时间戳与项目路径之后的内容，必须与 Step 2.1 的 timeline 行**逐字照抄**（同一会话改写摘要时两边同改）；
 pre-commit 会拉远端当日文件做整行等值比对，缺失或不一致均拒绝提交。
 
-偏好与画像同理走远端：稳定偏好追加 `personal/preferences.md`（一条一条，不按天）；长期画像整合进 `personal/profile.md`。
+偏好与画像同理走远端：稳定偏好追加 `personal/preferences.md`（一条一条，不按天）；长期画像整合进 `personal/profile.md`；跨项目行为规则追加 `rules.md`（写前先按 rules-memory 范围分流）。
 
 ### Step 4 提交
 代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已同时门禁 `onememory/` 与海马摘要等号，禁止 `--no-verify`）。交付时报一句"记忆已沉淀"。

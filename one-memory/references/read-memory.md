@@ -5,6 +5,7 @@
 ```
 memory/     每日流水        <YYYY-MM>/<YYYY-MM-DD>.md
 personal/   preferences.md 偏好、profile.md 画像
+rules.md    全局规则（跨项目 AI 行为规范）
 INDEX.md    总索引
 ```
 
@@ -21,8 +22,9 @@ INDEX.md    总索引
 | 最近、流水、时间 | 列目录：`ls ~/onespace/github/one-hippocampus/memory/<YYYY-MM>/`，再读对应当日文件 |
 | 偏好、习惯、喜不喜欢 | 读 `~/onespace/github/one-hippocampus/personal/preferences.md` |
 | 画像、身份、信仰、健康、出行 | 读 `~/onespace/github/one-hippocampus/personal/profile.md` |
+| 全局规则、跨项目行为规范 | 读 `~/onespace/github/one-hippocampus/rules.md` |
 
-**完成标准**：一条路走空或对不上就换下一条，五条都走完才算查完；回答里说清走了哪几条。
+**完成标准**：一条路走空或对不上就换下一条，各条都走完才算查完；回答里说清走了哪几条。
 
 ### 检索执行与结果处理 SOP：
 1. **执行检索**：提炼用户诉求的核心关键词（如 `代理`、`FRP`、`显卡` 等），走上表第一行的检索命令。
