@@ -26,6 +26,8 @@ Scroll Index
   - **核心解决**：Moshi 滑动需先由 moshi-hook 确认复用器状态；bashrc 里的 printf 转义污染了 App 捕获的 SSH_CONNECTION（报到"无法确认复用器状态"），已删。含状态确认三步骤、手势层级映射（tab/workspace/session）与排错手法。
 - [CodeServer网页版VSCode远程改文件部署手册](./tech/CodeServer网页版VSCode远程改文件部署手册.md)
   - **核心解决**：手机/浏览器改 Linux 本机文件的自建方案：code-server 安装避坑（release 资产名无 v 前缀）、密码只用 common_password（systemd user 服务须自行 source exports 注入 $PASSWORD）、只监听 127.0.0.1 由 `tailscale serve --https` 出 HTTPS；附选型对比（File Browser 已归档）与 curl 302/200 验证法；第 10 节给出手机场景正确解——自研 fileweb（文件列表+全屏编辑，零依赖）。**code-server 本体已于 2026-09-15 卸载，fileweb 为现役方案。**
+- [Plugin输入框语音与IME断字避坑](./tech/Plugin输入框语音与IME断字避坑.md)
+  - **核心解决**：RN TextInput 语音/中文 IME 断字三层根因（initial 回写 effect、受控 value 每键回写、key 不随打开变）；修法=非受控 defaultValue + 打开表单 formGen bump 重挂 + 新增框 initial 恒 `""`；覆盖添加/编辑/开跑/分支/Picker 全部输入框与 typecheck/prettier/reload 检查单。
 
 ---
 

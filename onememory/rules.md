@@ -65,3 +65,11 @@ Orca CLI 集成坑点（worktree / terminal / agent id）
 - Instructions:
   - 脚本写 `<技能目录>/scripts/xxx.py`（本 SKILL.md 处），不写宿主名/兜底路径
   - 数据仓默认优先、env 兜底
+
+paseo-todo 空 agent 占位不许显示成错误
+- Date: 2026-09-23
+- Category: Troubleshooting & Debugging
+- Instructions:
+  - 新建待办 agents=[{provider:"",model:""}] 是占位，开跑时再选 Provider
+  - metaLine 禁止渲染「未配置 Agent」；无 provider 时省略 agent 段
+  - 交付前必查：列表文案不得把正常占位报成错误
