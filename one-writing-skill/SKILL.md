@@ -1,5 +1,5 @@
 ---
-name: one-write-skill
+name: one-writing-skill
 description: 写或改 skill 的规矩。
 disable-model-invocation: true
 ---
