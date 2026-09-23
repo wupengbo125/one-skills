@@ -1,6 +1,7 @@
 ---
 name: one-orca-race
-description: "Orca 多 Agent 赛马调度器：将 GitHub Issue 或提示词同时分发给多个 Agent（支持指定不同模型、不同 Agent 品牌如 Codex/Claude/OMP/CodeBuddy），为每位 Agent 自动创建独立 Git Worktree 并发运行比对。"
+description: "Orca 多 Agent 赛马调度器：同一个 Issue 或提示词并发派给多个 Agent（可各绑不同模型），每匹一个独立 worktree，跑完比对。"
+disable-model-invocation: true
 argument-hint: "-a <agent[:model]...> -i <issue> -p <prompt>"
 ---
 

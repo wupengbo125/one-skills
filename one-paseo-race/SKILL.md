@@ -1,6 +1,7 @@
 ---
 name: one-paseo-race
-description: "Paseo 多 Agent 赛马调度器：把同一个 GitHub Issue 或提示词同时派给多个 Agent（可各绑不同模型）在 Paseo 里并发跑，每匹马一个独立 git worktree 分支，跑完用 --label 一次性回收并比对。用户提到 Paseo 赛马、Paseo 多 agent 同题竞跑、用 Paseo 并行跑多个 agent 比谁写得好时用它；和 Orca 版本的区别是引擎换成 Paseo（claude/codex/opencode/pi/omp/codebuddy 走 ACP），换取远程 daemon、--output-schema 结构化判卷。"
+description: "Paseo 多 Agent 赛马调度器：同一个 Issue 或提示词并发派给多个 Agent，每匹一个独立 worktree 分支，跑完统一回收比对。"
+disable-model-invocation: true
 argument-hint: "-a <agent[:model]...> [-i <issue>] [-p <prompt>] [-b main] [--timeout 30m]"
 ---
 
