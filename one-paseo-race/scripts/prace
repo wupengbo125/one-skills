@@ -39,10 +39,18 @@ sanitize_ref() {
   printf '%s' "$s"
 }
 
+# 常见叫法 → Paseo provider id（Paseo 里 codebuddy 的 id 是 codebuddy-code）
+normalize_agent() {
+  case "$1" in
+    codebuddy | cbc | codebuddy-code) echo "codebuddy-code" ;;
+    *) echo "$1" ;;
+  esac
+}
+
 # 解析 agent[:model]，写入 AGENT_ID / A_MODEL。必须直接调用，不能 $(...) 包
 parse_spec() {
   local spec="$1" rest
-  AGENT_ID="${spec%%:*}"
+  AGENT_ID="$(normalize_agent "${spec%%:*}")"
   A_MODEL=""
   rest="${spec#*:}"
   if [[ "$rest" != "$spec" ]]; then A_MODEL="$rest"; fi
@@ -84,6 +92,20 @@ fi
 
 REPO="$(git rev-parse --show-toplevel 2>/dev/null)" || { echo "❌ 当前目录不在 git 仓库中" >&2; exit 1; }
 echo "📦 目标仓库: $REPO"
+
+# 开跑前查 provider 名字：paseo run 是先建 workspace 再创建 agent，
+# 名字写错会留下一个空 worktree + 分支（踩过）。只拦"不存在"的名字——
+# provider 状态在刷新/预热期可能短暂非 available，那种交给 paseo 自己报错。
+if KNOWN="$(paseo provider ls 2>/dev/null | awk 'NR>1{print $1}' | tr '\n' ' ')" && [[ -n "$KNOWN" ]]; then
+  for raw in "${AGENTS[@]}"; do
+    parse_spec "$raw"
+    if [[ " $KNOWN " != *" $AGENT_ID "* ]]; then
+      echo "❌ 没有这个 provider: $AGENT_ID（$raw）" >&2
+      echo "   已配置: $KNOWN" >&2
+      exit 1
+    fi
+  done
+fi
 
 ISSUE_NUM=""; ISSUE_TITLE=""; ISSUE_BODY=""; ISSUE_URL=""
 

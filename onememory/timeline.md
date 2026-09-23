@@ -79,3 +79,4 @@
 - 2026-09-21 23:05 [01a0c463-0b60-745e-b7c0-4616b5c7f694] install.sh 菜单重构；pre-commit 自动 pull 海马仓（15s超时）
 - 2026-09-22 23:08 [334319e4-f589-4830-a650-25612ed75cac] 新增 one-paseo-race；orca 版命令更名 orace
 - 2026-09-23 00:12 [b3e6274e-3669-47a3-b799-e60e994a82b0] 新增 one-herdr-race；修 prace agentId 解析
+- 2026-09-23 11:13 [1eac5bae-d03f-407c-b231-8e4ad36c3a5b] prace 加 provider 名映射与预检（codebuddy→codebuddy-code）
