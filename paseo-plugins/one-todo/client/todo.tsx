@@ -3,6 +3,7 @@ import { useRpc } from "@getpaseo/plugin/client";
 import {
   Icon,
   Modal,
+  ScrollView as SheetScrollView,
   useToast,
   copyText,
 } from "@getpaseo/plugin/client/react-native";
@@ -110,7 +111,7 @@ function HoldToLaunch({
   );
 }
 
-export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
+export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const toast = useToast();
   const qc = useQueryClient();
   const invalidate = useCallback(() => {
@@ -146,6 +147,12 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   }, []);
   const runTitleRef = useRef("");
   const runPromptRef = useRef("");
+  const formScrollRef = useRef<any>(null);
+  const fieldY = useRef<Record<string, number>>({});
+  const scrollToField = useCallback((key: string) => {
+    const y = fieldY.current[key] ?? 0;
+    formScrollRef.current?.scrollTo?.({ y: Math.max(0, y - 12), animated: true });
+  }, []);
 
   const onRunTitle = useCallback((v: string) => {
     runTitleRef.current = v;
@@ -709,13 +716,48 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           ) : null}
         </View>
 
-        <View style={{ position: "relative" }}>
+        <View
+          style={{
+            position: "relative",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 2,
+          }}
+        >
+          {isRunning && navigation && (t.agentIds?.length || t.workspaceId) ? (
+            <Pressable
+              accessibilityRole="button"
+              style={{
+                width: 28,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={(e) => {
+                e.stopPropagation();
+                const agentId = t.agentIds?.[0];
+                if (agentId) navigation.openAgent({ agentId });
+                else if (t.workspaceId)
+                  navigation.openWorkspace({ workspaceId: t.workspaceId });
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: theme.colors.accent,
+                  fontWeight: "700",
+                  lineHeight: 15,
+                }}
+              >
+                ↗
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
             accessibilityRole="button"
-            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
             style={{
-              paddingHorizontal: 8,
-              paddingVertical: 12,
+              width: 28,
+              height: 28,
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -971,27 +1013,45 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           if (!open) closeOverlays();
         }}
       >
-        <Modal.Content>
+        <Modal.Content scrollable={false} style={{ flex: 1 }}>
           {run ? (
-            <View style={s.scrollBody}>
-              <View>
+            <SheetScrollView
+              ref={formScrollRef}
+              style={{ flex: 1 }}
+              contentContainerStyle={[
+                s.scrollBody,
+                { padding: layout.compact ? 16 : 24, paddingBottom: 40 },
+              ]}
+              keyboardShouldPersistTaps="handled"
+            >
+              <View
+                onLayout={(e) => {
+                  fieldY.current.title = e.nativeEvent.layout.y;
+                }}
+              >
                 <Text style={s.label}>标题 *</Text>
                 <StableInput
                   key={`run-title-${formGen}`}
                   style={s.input}
                   initial={run.title}
                   onValue={onRunTitle}
+                  onFocus={() => scrollToField("title")}
                   placeholder="要做什么"
                   placeholderTextColor={theme.colors.foregroundMuted}
                 />
               </View>
-              <View>
+              <View
+                onLayout={(e) => {
+                  fieldY.current.prompt = e.nativeEvent.layout.y;
+                }}
+              >
                 <Text style={s.label}>内容</Text>
                 <StableInput
                   key={`run-prompt-${formGen}`}
                   style={s.inputMulti}
                   initial={run.prompt}
                   onValue={onRunPrompt}
+                  onFocus={() => scrollToField("prompt")}
                   placeholder="要做的事、验收标准…"
                   placeholderTextColor={theme.colors.foregroundMuted}
                   multiline
@@ -1266,7 +1326,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
                   onComplete={onRun}
                 />
               </View>
-            </View>
+            </SheetScrollView>
           ) : null}
         </Modal.Content>
       </Modal>

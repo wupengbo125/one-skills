@@ -11,6 +11,7 @@ type StableInputProps = {
   multiline?: boolean;
   autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
   autoCorrect?: boolean;
+  onFocus?: () => void;
 };
 
 export const StableInput = memo(function StableInput({
@@ -22,6 +23,7 @@ export const StableInput = memo(function StableInput({
   multiline,
   autoCapitalize,
   autoCorrect,
+  onFocus,
 }: StableInputProps) {
   const ref = useRef(initial);
   const handleChange = useCallback(
@@ -39,6 +41,7 @@ export const StableInput = memo(function StableInput({
       multiline={multiline}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
+      onFocus={onFocus}
     />
   );
 });
