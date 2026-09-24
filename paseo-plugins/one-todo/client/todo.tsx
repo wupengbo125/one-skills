@@ -5,10 +5,12 @@ import {
   Modal,
   TextInput,
   useToast,
+  copyText,
 } from "@getpaseo/plugin/client/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { memo, useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { StyleProp, ViewStyle } from "react-native";
+import { Animated, Pressable, ScrollView, Text, View } from "react-native";
 import {
   addTodoRpc,
   createIssueRpc,
@@ -17,34 +19,37 @@ import {
   listModelsRpc,
   listProjectsRpc,
   listProvidersRpc,
+  listSkillsRpc,
   listTodosRpc,
   listWorkspacesRpc,
   removeTodoRpc,
   startTodoRpc,
   updateTodoRpc,
+  branchFromTitle,
   type AgentRef,
   type Todo,
+  type TodoPreferences,
 } from "../shared/todo";
 
 type SourceFilter = "todo" | "issue";
-type Placement = "project" | "workspace";
 
 type RunDraft = {
   id: string;
   title: string;
   prompt: string;
   agents: AgentRef[];
-  placement: Placement;
   projectId: string;
   projectName: string;
   projectPath: string;
   isolation: "local" | "worktree";
-  workspaceId: string;
-  workspaceName: string;
-  cwd: string;
   baseBranch: string;
   newBranch: string;
-  issueLocked?: boolean;
+  skills: string[];
+  workspaceId: string;
+  workspaceName: string;
+  source?: "todo" | "issue";
+  issueRef?: string;
+  issueUrl?: string;
 };
 
 type Picker =
@@ -56,8 +61,8 @@ type Picker =
       provider: string;
     }
   | { kind: "project" }
-  | { kind: "workspace" };
-
+  | { kind: "workspace" }
+  | { kind: "skills" };
 type PickItem = {
   id: string;
   label: string;
@@ -88,18 +93,16 @@ function emptyRun(id: string, title: string, prompt: string): RunDraft {
     id,
     title,
     prompt,
-    agents: [{ provider: "", model: "" }],
-    placement: "project",
+    agents: [],
     projectId: "",
     projectName: "",
     projectPath: "",
-    isolation: "local",
-    workspaceId: "",
-    workspaceName: "",
-    cwd: "",
+    isolation: "worktree",
     baseBranch: "main",
     newBranch: "",
-    issueLocked: false,
+    skills: [],
+    workspaceId: "",
+    workspaceName: "",
   };
 }
 
@@ -124,8 +127,10 @@ const StableInput = memo(function StableInput({
   autoCapitalize,
   autoCorrect,
 }: StableInputProps) {
+  const ref = useRef(initial);
   const handleChange = useCallback(
     (t: string) => {
+      ref.current = t;
       onValue(t);
     },
     [onValue],
@@ -135,14 +140,57 @@ const StableInput = memo(function StableInput({
       style={style}
       defaultValue={initial}
       onChangeText={handleChange}
-      placeholder={placeholder}
-      placeholderTextColor={placeholderTextColor}
       multiline={multiline}
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
     />
   );
 });
+function PulsingPurpleDot() {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.25,
+          duration: 750,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [opacity]);
+
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+        marginTop: 4,
+      }}
+    >
+      <Animated.View
+        style={{
+          width: 5,
+          height: 5,
+          borderRadius: 2.5,
+          backgroundColor: "#a855f7",
+          opacity,
+        }}
+      />
+      <Text style={{ fontSize: 9, color: "#a855f7", fontWeight: "600" }}>
+        进行中
+      </Text>
+    </View>
+  );
+}
 
 export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   const toast = useToast();
@@ -159,8 +207,8 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   const startTodo = useRpc(startTodoRpc);
   const listProviders = useRpc(listProvidersRpc);
   const listModels = useRpc(listModelsRpc);
-  const listWorkspaces = useRpc(listWorkspacesRpc);
   const listProjects = useRpc(listProjectsRpc);
+  const listWorkspaces = useRpc(listWorkspacesRpc);
   const listIssues = useRpc(listIssuesRpc);
   const fetchIssue = useRpc(fetchIssueRpc);
   const createIssue = useRpc(createIssueRpc);
@@ -168,44 +216,26 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("todo");
   const [repoFilter, setRepoFilter] = useState<string>("");
   const [importingRef, setImportingRef] = useState<string | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [addTitle, setAddTitle] = useState("");
-  const [addPrompt, setAddPrompt] = useState("");
-  const [addRepo, setAddRepo] = useState("");
-  const [edit, setEdit] = useState<{
-    id: string;
-    title: string;
-    prompt: string;
-  } | null>(null);
   const [run, setRun] = useState<RunDraft | null>(null);
+  const [menuTodo, setMenuTodo] = useState<Todo | null>(null);
   const [picker, setPicker] = useState<Picker>(null);
   const [search, setSearch] = useState("");
   const [formGen, setFormGen] = useState(0);
 
   const closeOverlays = useCallback(() => {
-    setAddOpen(false);
-    setEdit(null);
     setRun(null);
     setPicker(null);
-    setAddTitle("");
-    setAddPrompt("");
-    setAddRepo("");
+  }, []);
+  const runTitleRef = useRef("");
+  const runPromptRef = useRef("");
+
+  const onRunTitle = useCallback((v: string) => {
+    runTitleRef.current = v;
   }, []);
 
-  const onAddTitle = useCallback((v: string) => setAddTitle(v), []);
-  const onAddPrompt = useCallback((v: string) => setAddPrompt(v), []);
-  const onEditTitle = useCallback(
-    (v: string) => setEdit((e) => (e ? { ...e, title: v } : e)),
-    [],
-  );
-  const onEditPrompt = useCallback(
-    (v: string) => setEdit((e) => (e ? { ...e, prompt: v } : e)),
-    [],
-  );
-  const onRunPrompt = useCallback(
-    (v: string) => setRun((d) => (d ? { ...d, prompt: v } : d)),
-    [],
-  );
+  const onRunPrompt = useCallback((v: string) => {
+    runPromptRef.current = v;
+  }, []);
   const onSearch = useCallback((v: string) => setSearch(v), []);
   const onBaseBranch = useCallback(
     (v: string) => setRun((d) => (d ? { ...d, baseBranch: v } : d)),
@@ -229,20 +259,26 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     queryFn: () => listProviders({}),
     staleTime: 60_000,
   });
-  const workspacesQ = useQuery({
-    queryKey: ["todo-workspaces"],
-    queryFn: () => listWorkspaces({}),
-    staleTime: 30_000,
-  });
   const projectsQ = useQuery({
     queryKey: ["todo-projects"],
     queryFn: () => listProjects({}),
     staleTime: 60_000,
   });
+  const workspacesQ = useQuery({
+    queryKey: ["todo-workspaces"],
+    queryFn: () => listWorkspaces({}),
+    staleTime: 30_000,
+  });
   const issuesQ = useQuery({
     queryKey: ["todo-issues"],
     queryFn: () => listIssues({}),
     staleTime: 30_000,
+  });
+  const listSkills = useRpc(listSkillsRpc);
+  const skillsQ = useQuery({
+    queryKey: ["todo-skills"],
+    queryFn: () => listSkills({}),
+    staleTime: 60_000,
   });
 
   const pickerProvider =
@@ -254,14 +290,14 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   });
 
   const addM = useMutation({
-    mutationFn: (vars: { title: string; prompt: string }) =>
-      addTodo({ title: vars.title, prompt: vars.prompt, source: "todo" }),
-    onSuccess: () => {
-      toast.show("已添加", { variant: "success" });
-      closeOverlays();
+    mutationFn: (vars: Parameters<typeof addTodo>[0]) => addTodo(vars),
+    onSuccess: (data) => {
+      toast.show("已保存", { variant: "success" });
       invalidate();
+      // update run.id if this was a new save so subsequent edits use editM
+      if (data?.todo && !run?.id) setRun((d) => d ? { ...d, id: data.todo!.id } : d);
     },
-    onError: (e: Error) => toast.error(e.message || "添加失败"),
+    onError: (e: Error) => toast.error(e.message || "保存失败"),
   });
 
   const createIssueM = useMutation({
@@ -276,14 +312,13 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   });
 
   const editM = useMutation({
-    mutationFn: (vars: { id: string; title: string; prompt: string }) =>
+    mutationFn: (vars: { id: string; patch: Parameters<typeof updateTodo>[0]["patch"] }) =>
       updateTodo({
         id: vars.id,
-        patch: { title: vars.title, prompt: vars.prompt },
+        patch: vars.patch,
       }),
     onSuccess: () => {
       toast.show("已保存", { variant: "success" });
-      closeOverlays();
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message || "保存失败"),
@@ -338,31 +373,25 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
 
   const startM = useMutation({
     mutationFn: async (d: RunDraft) => {
-      const placement =
-        d.placement === "workspace"
-          ? {
-              workspaceId: d.workspaceId,
-              workspaceName: d.workspaceName,
-              projectId: "",
-              projectName: "",
-              projectPath: "",
-              isolation: undefined,
-              cwd: "",
-            }
-          : {
-              workspaceId: "",
-              workspaceName: "",
-              projectId: d.projectId,
-              projectName: d.projectName,
-              projectPath: d.projectPath,
-              isolation: d.projectId || d.projectPath ? d.isolation : undefined,
-              cwd: d.projectId || d.projectPath ? "" : d.cwd.trim(),
-            };
+      if (d.workspaceId) {
+        return startTodo({
+          id: d.id,
+          agents: d.agents,
+          skills: d.skills,
+          prompt: d.prompt,
+          workspaceId: d.workspaceId,
+          workspaceName: d.workspaceName,
+        });
+      }
       return startTodo({
         id: d.id,
         agents: d.agents,
+        skills: d.skills,
         prompt: d.prompt,
-        ...placement,
+        projectId: d.projectId,
+        projectName: d.projectName,
+        projectPath: d.projectPath,
+        isolation: d.isolation,
         baseBranch: d.baseBranch.trim(),
         newBranch: d.newBranch.trim(),
       });
@@ -386,12 +415,19 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       status,
     }: {
       id: string;
-      status: "pending" | "done" | "failed";
+      status: Todo["status"];
     }) => updateTodo({ id, patch: { status } }),
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message || "更新失败"),
   });
 
+  const toggleRunning = useCallback(
+    (t: Todo) => {
+      const next = t.status === "running" ? "pending" : "running";
+      statusM.mutate({ id: t.id, status: next });
+    },
+    [statusM],
+  );
   const delM = useMutation({
     mutationFn: (id: string) => removeTodo({ id }),
     onSuccess: () => {
@@ -399,6 +435,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       invalidate();
     },
   });
+  const preferences: TodoPreferences | undefined = todosQ.data?.preferences;
 
   const todos: Todo[] = todosQ.data?.todos ?? [];
   const allIssues: LiveIssue[] = issuesQ.data?.issues ?? [];
@@ -501,21 +538,20 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         gap: 12,
       },
       check: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
         borderWidth: 2,
-        borderColor: theme.colors.border,
+        borderColor: theme.colors.accent,
         alignItems: "center" as const,
         justifyContent: "center" as const,
-        marginTop: 2,
+        marginTop: 1,
+        backgroundColor: theme.colors.surface0,
       },
       checkDone: {
         backgroundColor: theme.colors.statusSuccess,
         borderColor: theme.colors.statusSuccess,
       },
-      checkRunning: { borderColor: theme.colors.accent },
-      checkFailed: { borderColor: theme.colors.statusDanger },
       main: { flex: 1, gap: 6 },
       t: {
         color: theme.colors.foreground,
@@ -750,7 +786,32 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         fontSize: 12,
         fontWeight: "600" as const,
       },
+      pickerOverlay: {
+        position: "absolute" as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: theme.colors.surface0,
+        padding: layout.compact ? 16 : 24,
+        gap: 12,
+        zIndex: 99,
+      },
+      pickerScroll: {
+        flex: 1,
+      },
       pickList: { gap: 8 },
+      inlinePicker: {
+        borderColor: theme.colors.border,
+        borderRadius: 10,
+        backgroundColor: theme.colors.surface1,
+        padding: 10,
+        gap: 8,
+        marginTop: 6,
+      },
+      inlinePickerScroll: {
+        flexGrow: 0,
+      },
       issueRow: {
         gap: 8,
         flexDirection: "row" as const,
@@ -776,91 +837,144 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     };
   }, [theme, layout.compact]);
 
-  function openAdd() {
-    setEdit(null);
-    setRun(null);
+  function openDetail(t?: Todo, issue?: LiveIssue) {
     setPicker(null);
-    setAddTitle("");
-    setAddPrompt("");
-    setAddRepo(repoFilter || repos[0] || "");
-    setFormGen((g) => g + 1);
-    setAddOpen(true);
-  }
-
-  function openEdit(t: Todo) {
-    setAddOpen(false);
-    setRun(null);
-    setPicker(null);
-    setFormGen((g) => g + 1);
-    setEdit({ id: t.id, title: t.title, prompt: t.prompt ?? "" });
-  }
-
-  function openRun(t: Todo) {
-    setAddOpen(false);
-    setEdit(null);
+    const defaultAgent: AgentRef = preferences?.lastProvider
+      ? { provider: preferences.lastProvider, model: preferences.lastModel }
+      : { provider: "", model: "" };
     const agents =
-      t.agents?.length && t.agents.some((a) => a.provider)
+      t?.agents?.length && t.agents.some((a) => a.provider)
         ? t.agents
-        : [{ provider: "", model: "" }];
-    const d = emptyRun(t.id, t.title, t.prompt ?? "");
-    d.agents = agents;
-    d.placement = t.workspaceId ? "workspace" : "project";
-    d.projectId = t.projectId ?? "";
-    d.projectName = t.projectName ?? "";
-    d.projectPath = t.projectPath ?? "";
-    d.isolation = t.isolation ?? "local";
-    d.workspaceId = t.workspaceId ?? "";
-    d.workspaceName = t.workspaceName ?? "";
-    d.cwd = t.cwd ?? "";
-    d.baseBranch = t.baseBranch ?? "main";
-    d.newBranch = t.newBranch ?? "";
-    d.issueLocked = t.source === "issue" && Boolean(t.projectPath);
-    setPicker(null);
+        : [defaultAgent];
+    const title = t?.title ?? issue?.title ?? "";
+    const prompt = t?.prompt ?? issue?.body ?? "";
+    const d = emptyRun(t?.id ?? "", title, prompt);
+    if (issue) {
+      d.source = "issue";
+      d.issueRef = `${issue.repo}#${issue.number}`;
+      d.issueUrl = issue.url;
+      if (issue.projectPath) {
+        d.projectPath = issue.projectPath;
+        d.projectName = issue.projectName || issue.repo;
+        d.projectId = issue.projectId || "";
+      }
+      d.isolation = "local";
+    } else if (t?.projectId || t?.projectPath) {
+      d.projectId = t.projectId ?? "";
+      d.projectName = t.projectName ?? "";
+      d.projectPath = t.projectPath ?? "";
+      d.isolation = t.isolation ?? "worktree";
+    } else {
+      const gh = (projectsQ.data?.projects ?? []).find(
+        (p) =>
+          p.name.toLowerCase().includes("github") ||
+          p.path.toLowerCase().includes("github"),
+      );
+      if (gh) {
+        d.projectId = gh.id;
+        d.projectName = gh.name;
+        d.projectPath = gh.path;
+      }
+      d.isolation = "worktree";
+    }
+
+    d.baseBranch = t?.baseBranch || "main";
+    d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
+    runTitleRef.current = d.title;
+    runPromptRef.current = d.prompt;
     setSearch("");
     setFormGen((g) => g + 1);
     setRun(d);
   }
 
+  function openAdd() {
+    openDetail();
+  }
+
+  function openEdit(t: Todo) {
+    openDetail(t);
+  }
+
+  function openRun(t: Todo) {
+    openDetail(t);
+  }
+
+  function onSaveDraft() {
+    if (!run) return;
+    const title = runTitleRef.current.trim() || run.title.trim();
+    if (!title) return toast.error("标题必填");
+    const prompt = runPromptRef.current.trim();
+    const agents = run.agents.filter((a) => a.provider.trim());
+    if (run.id) {
+      editM.mutate({
+        id: run.id,
+        patch: {
+          title,
+          prompt,
+          skills: run.skills,
+          ...(agents.length ? { agents } : {}),
+          projectId: run.projectId,
+          projectName: run.projectName,
+          projectPath: run.projectPath,
+          isolation: run.isolation,
+          baseBranch: run.baseBranch,
+          newBranch: run.newBranch,
+        },
+      });
+    } else {
+      addM.mutate({
+        title,
+        prompt,
+        skills: run.skills,
+        ...(agents.length ? { agents } : {}),
+        projectId: run.projectId,
+        projectName: run.projectName,
+        projectPath: run.projectPath,
+        isolation: run.isolation,
+        baseBranch: run.baseBranch,
+        newBranch: run.newBranch,
+        source: run.source || "todo",
+        issueRef: run.issueRef,
+        issueUrl: run.issueUrl,
+      });
+    }
+  }
+
   function onRun() {
     if (!run) return;
-    if (!run.prompt.trim()) return toast.error("提示词必填");
-    if (!run.agents.length || !run.agents.every((a) => a.provider.trim())) {
+    const title = runTitleRef.current.trim() || run.title.trim();
+    if (title) run.title = title;
+    const prompt = runPromptRef.current.trim();
+    if (!prompt) return toast.error("提示词必填");
+    run.prompt = prompt;
+    if (!run.agents.length || !run.agents.every((a) => a.provider.trim()))
       return toast.error("每个 Agent 都要选 Provider");
-    }
-    if (run.issueLocked) {
-      if (!run.projectPath) return toast.error("缺少 Issue 所属项目路径");
-    } else if (run.placement === "workspace") {
-      if (!run.workspaceId) return toast.error("选一个 Workspace");
-    } else {
-      if (!run.projectId && !run.projectPath && !run.cwd.trim()) {
-        return toast.error("选一个项目（目录）");
+    if (!run.workspaceId) {
+      if (!run.projectId && !run.projectPath) {
+        return toast.error("选一个项目");
       }
-      if (run.isolation === "worktree" && !run.projectId && !run.projectPath) {
+      if (run.isolation === "worktree" && !run.projectId && !run.projectPath)
         return toast.error("Worktree 需要先选项目");
-      }
+      if (run.isolation === "worktree" && !run.newBranch.trim())
+        return toast.error("新建分支名不能为空");
     }
     startM.mutate(run);
   }
 
   function openPicker(next: Picker) {
     setSearch("");
-    setFormGen((g) => g + 1);
     setPicker(next);
   }
 
   function updateAgent(index: number, patch: Partial<AgentRef>) {
-    setRun((d) =>
-      d
-        ? {
-            ...d,
-            agents: d.agents.map((a, i) =>
-              i === index ? { ...a, ...patch } : a,
-            ),
-          }
-        : d,
-    );
+    setRun((d) => {
+      if (!d) return d;
+      return {
+        ...d,
+        agents: d.agents.map((a, i) => (i === index ? { ...a, ...patch } : a)),
+      };
+    });
   }
-
   function filtered(items: PickItem[]): PickItem[] {
     const q = search.trim().toLowerCase();
     if (!q) return items;
@@ -872,13 +986,17 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     );
   }
 
-  function renderPickList(items: PickItem[], onPick: (item: PickItem) => void) {
+  function renderPickList(
+    items: PickItem[],
+    onPick: (item: PickItem) => void,
+    scrollStyle?: StyleProp<ViewStyle>,
+  ) {
     const list = filtered(items);
     if (list.length === 0) {
       return <Text style={s.empty}>没有匹配「{search}」</Text>;
     }
     return (
-      <ScrollView contentContainerStyle={s.pickList}>
+      <View style={s.pickList}>
         {list.map((item) => (
           <Pressable
             key={item.id}
@@ -904,198 +1022,12 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
             {item.selected ? <Text style={s.pickCheck}>✓</Text> : null}
           </Pressable>
         ))}
-      </ScrollView>
-    );
-  }
-
-  function renderPickerBody() {
-    if (!picker || !run) return null;
-    const q = (
-      <StableInput
-        key={`picker-search-${formGen}`}
-        style={s.input}
-        initial=""
-        onValue={onSearch}
-        placeholder="搜索…"
-        placeholderTextColor={theme.colors.foregroundMuted}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
-    );
-
-    if (picker.kind === "project") {
-      const items: PickItem[] = (projectsQ.data?.projects ?? []).map((p) => ({
-        id: p.id,
-        label: p.name,
-        sub: `${p.path} · ${p.kind}`,
-        selected: run.projectId === p.id,
-      }));
-      return (
-        <View style={{ gap: 12 }}>
-          <View style={s.pickHeader}>
-            <Pressable style={s.pickBack} onPress={() => setPicker(null)}>
-              <Text style={s.pickBackText}>← 返回</Text>
-            </Pressable>
-            <Text style={s.pickTitle}>选择项目</Text>
-          </View>
-          {q}
-          {renderPickList(items, (item) => {
-            const p = (projectsQ.data?.projects ?? []).find(
-              (x) => x.id === item.id,
-            );
-            if (!p) return;
-            setRun((d) =>
-              d
-                ? {
-                    ...d,
-                    projectId: p.id,
-                    projectName: p.name,
-                    projectPath: p.path,
-                    workspaceId: "",
-                    workspaceName: "",
-                    cwd: "",
-                  }
-                : d,
-            );
-            setPicker(null);
-          })}
-        </View>
-      );
-    }
-
-    if (picker.kind === "workspace") {
-      const items: PickItem[] = (workspacesQ.data?.workspaces ?? []).map(
-        (w) => ({
-          id: w.id,
-          label: w.name,
-          sub: w.directory,
-          selected: run.workspaceId === w.id,
-        }),
-      );
-      return (
-        <View style={{ gap: 12 }}>
-          <View style={s.pickHeader}>
-            <Pressable style={s.pickBack} onPress={() => setPicker(null)}>
-              <Text style={s.pickBackText}>← 返回</Text>
-            </Pressable>
-            <Text style={s.pickTitle}>选择 Workspace</Text>
-          </View>
-          {q}
-          {renderPickList(items, (item) => {
-            const w = (workspacesQ.data?.workspaces ?? []).find(
-              (x) => x.id === item.id,
-            );
-            if (!w) return;
-            setRun((d) =>
-              d
-                ? {
-                    ...d,
-                    workspaceId: w.id,
-                    workspaceName: w.name,
-                    projectId: "",
-                    projectName: "",
-                    projectPath: "",
-                    cwd: "",
-                  }
-                : d,
-            );
-            setPicker(null);
-          })}
-        </View>
-      );
-    }
-
-    if (picker.step === "provider") {
-      const idx = picker.index;
-      const current = run.agents[idx];
-      const items: PickItem[] = (providersQ.data?.providers ?? []).map((p) => ({
-        id: p.id,
-        label: p.id,
-        selected: current?.provider === p.id,
-      }));
-      return (
-        <View style={{ gap: 12 }}>
-          <View style={s.pickHeader}>
-            <Pressable style={s.pickBack} onPress={() => setPicker(null)}>
-              <Text style={s.pickBackText}>← 返回</Text>
-            </Pressable>
-            <Text style={s.pickTitle}>Agent #{idx + 1} · Provider</Text>
-          </View>
-          {q}
-          {renderPickList(items, (item) => {
-            setPicker({
-              kind: "agent",
-              step: "model",
-              index: idx,
-              provider: item.id,
-            });
-            setSearch("");
-            setFormGen((g) => g + 1);
-          })}
-          {(providersQ.data?.providers ?? []).length === 0 ? (
-            <Text style={s.empty}>无可用 provider</Text>
-          ) : null}
-        </View>
-      );
-    }
-
-    const idx = picker.index;
-    const current = run.agents[idx];
-    const models = modelsQ.data?.models ?? [];
-    const items: PickItem[] = [
-      {
-        id: "__default__",
-        label: "默认模型",
-        sub: picker.provider,
-        selected: !current?.model,
-      },
-      ...models.map((m) => ({
-        id: m.id,
-        label: m.label,
-        sub: m.id,
-        selected: current?.model === m.id,
-      })),
-    ];
-    return (
-      <View style={{ gap: 12 }}>
-        <View style={s.pickHeader}>
-          <Pressable
-            style={s.pickBack}
-            onPress={() =>
-              setPicker({
-                kind: "agent",
-                step: "provider",
-                index: idx,
-                provider: "",
-              })
-            }
-          >
-            <Text style={s.pickBackText}>← Provider</Text>
-          </Pressable>
-          <Text style={s.pickTitle}>{picker.provider} · 模型</Text>
-        </View>
-        {q}
-        {modelsQ.isLoading ? <Text style={s.empty}>加载模型…</Text> : null}
-        {renderPickList(items, (item) => {
-          updateAgent(idx, {
-            provider: picker.provider,
-            model: item.id === "__default__" ? "" : item.id,
-          });
-          setPicker(null);
-        })}
       </View>
     );
   }
 
-  const runModalTitle = picker
-    ? picker.kind === "project"
-      ? "选择项目"
-      : picker.kind === "workspace"
-        ? "选择 Workspace"
-        : picker.step === "provider"
-          ? "选择 Provider"
-          : "选择模型"
-    : "开跑配置";
+
+  const runModalTitle = "开跑配置";
 
   function metaLine(t: Todo): string {
     const agents = t.agents?.filter((a) => a.provider) ?? [];
@@ -1131,126 +1063,193 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           isRunning && s.cardRunning,
           isFailed && s.cardFailed,
           isDone && s.cardDone,
+          { flexDirection: "row", alignItems: "center", gap: 8 },
+          menuTodo?.id === t.id && { zIndex: 1000, elevation: 10 },
         ]}
       >
-        <View style={s.cardTop}>
-          <Pressable
-            accessibilityRole="button"
-            style={[
-              s.check,
-              isDone && s.checkDone,
-              isRunning && s.checkRunning,
-              isFailed && s.checkFailed,
-            ]}
-            onPress={() => {
-              if (isDone) statusM.mutate({ id: t.id, status: "pending" });
-              else if (!isRunning) statusM.mutate({ id: t.id, status: "done" });
-            }}
-          >
-            {isDone ? (
-              <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>
-                ✓
-              </Text>
-            ) : isRunning ? (
-              <Text style={{ color: theme.colors.accent, fontSize: 10 }}>
-                ●
-              </Text>
-            ) : isFailed ? (
-              <Text style={{ color: theme.colors.statusDanger, fontSize: 12 }}>
-                !
-              </Text>
-            ) : null}
-          </Pressable>
-          <Pressable
-            style={s.main}
-            onPress={() => openEdit(t)}
-            accessibilityRole="button"
-          >
-            <View
-              style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
+        <View style={{ flex: 1 }}>
+          <View style={s.cardTop}>
+            <Pressable
+              accessibilityRole="button"
+              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+              style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
+              onPress={(e) => {
+                e.stopPropagation();
+                const next = isDone ? "pending" : "done";
+                statusM.mutate({ id: t.id, status: next });
+              }}
             >
-              <Text
-                style={[s.t, isDone && s.tDone, { flex: 1 }]}
-                numberOfLines={2}
+              <View
+                style={[
+                  s.check,
+                  isDone && s.checkDone,
+                ]}
               >
-                {t.title}
-              </Text>
-              <View style={s.badge}>
-                <Text style={s.badgeText}>
-                  {t.source === "issue" ? "ISSUE" : "待办"}
-                </Text>
+                {isDone ? (
+                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>
+                    ✓
+                  </Text>
+                ) : null}
               </View>
-            </View>
-            <Text style={s.meta}>{metaLine(t)}</Text>
-            {isFailed && t.error ? (
-              <Text style={s.err}>❌ {t.error}</Text>
-            ) : null}
-          </Pressable>
-        </View>
-
-        {!isDone && (
-          <View style={s.actions}>
-            {!isRunning && (
-              <Pressable
-                style={[s.btn, s.btnPrimary]}
-                onPress={() => openRun(t)}
-                disabled={startM.isPending}
+              {isRunning ? <PulsingPurpleDot /> : null}
+            </Pressable>
+            <Pressable
+              style={s.main}
+              onPress={() => openEdit(t)}
+              accessibilityRole="button"
+            >
+              <View
+                style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
               >
-                <Icon
-                  name="Play"
-                  size={12}
-                  color={theme.colors.accentForeground}
-                />
-                <Text style={[s.btnText, s.btnTextPrimary]}>
-                  {agentCount > 1 ? `开跑 ×${agentCount}` : "开跑"}
+                {t.seq ? (
+                  <Pressable
+                    style={[s.badge, { backgroundColor: theme.colors.surface1 }]}
+                    onPress={async (e) => {
+                      e.stopPropagation();
+                      toggleRunning(t);
+                      const text = [
+                        `请执行待办任务 #${t.seq}《${t.title}》：`,
+                        t.prompt ? `【说明与要求】\n${t.prompt}` : "",
+                      ]
+                        .filter(Boolean)
+                        .join("\n");
+                      await copyText(text);
+                      toast.show(
+                        t.status === "running"
+                          ? `已复制指令并恢复未开始`
+                          : `已复制指令并设为进行中`,
+                        { variant: "success" },
+                      );
+                    }}
+                  >
+                    <Text style={[s.badgeText, { color: theme.colors.accent }]}>
+                      #{t.seq}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                <Text
+                  style={[s.t, isDone && s.tDone, { flex: 1 }]}
+                  numberOfLines={2}
+                >
+                  {t.title}
                 </Text>
-              </Pressable>
-            )}
-            {isRunning && (
-              <Pressable
-                style={s.btn}
-                onPress={() => statusM.mutate({ id: t.id, status: "done" })}
-              >
-                <Text style={s.btnText}>标完成</Text>
-              </Pressable>
-            )}
-            {isFailed && (
+                {t.pinned ? (
+                  <View style={[s.badge, { backgroundColor: theme.colors.accent }]}>
+                    <Text style={[s.badgeText, { color: theme.colors.accentForeground }]}>
+                      置顶
+                    </Text>
+                  </View>
+                ) : null}
+                <View style={s.badge}>
+                  <Text style={s.badgeText}>
+                    {t.source === "issue" ? "ISSUE" : "待办"}
+                  </Text>
+                </View>
+              </View>
+              <Text style={s.meta}>{metaLine(t)}</Text>
+              {isFailed && t.error ? (
+                <Text style={s.err}>❌ {t.error}</Text>
+              ) : null}
+            </Pressable>
+          </View>
+
+          {isFailed ? (
+            <View style={[s.actions, { marginTop: 4 }]}>
               <Pressable
                 style={s.btn}
                 onPress={() => statusM.mutate({ id: t.id, status: "pending" })}
               >
                 <Text style={s.btnText}>重置</Text>
               </Pressable>
-            )}
-            <Pressable
-              style={[s.btn, s.btnDanger]}
-              onPress={() => delM.mutate(t.id)}
-            >
-              <Text style={[s.btnText, s.btnTextDanger]}>删除</Text>
-            </Pressable>
-          </View>
-        )}
+            </View>
+          ) : null}
+        </View>
 
-        {isDone && (
-          <View style={s.actions}>
-            <Pressable
-              style={s.btn}
-              onPress={() => statusM.mutate({ id: t.id, status: "pending" })}
+        <View style={{ position: "relative" }}>
+          <Pressable
+            accessibilityRole="button"
+            hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+            style={{
+              paddingHorizontal: 8,
+              paddingVertical: 12,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+            onPress={(e) => {
+              e.stopPropagation();
+              setMenuTodo((curr) => (curr?.id === t.id ? null : t));
+            }}
+          >
+            <Text style={{ fontSize: 18, color: theme.colors.foregroundMuted, fontWeight: "700", lineHeight: 18 }}>
+              ⋮
+            </Text>
+          </Pressable>
+          {menuTodo?.id === t.id ? (
+            <View
+              style={{
+                position: "absolute",
+                right: 0,
+                top: 36,
+                backgroundColor: theme.colors.surface1,
+                borderColor: theme.colors.border,
+                borderWidth: 1,
+                borderRadius: 8,
+                paddingVertical: 4,
+                minWidth: 110,
+                zIndex: 999,
+                elevation: 10,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.25,
+                shadowRadius: 8,
+              }}
             >
-              <Text style={s.btnText}>恢复未完成</Text>
-            </Pressable>
-            <Pressable
-              style={[s.btn, s.btnDanger]}
-              onPress={() => delM.mutate(t.id)}
-            >
-              <Text style={[s.btnText, s.btnTextDanger]}>删除</Text>
-            </Pressable>
-          </View>
-        )}
+              <Pressable
+                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setMenuTodo(null);
+                  editM.mutate({ id: t.id, patch: { pinned: !t.pinned } });
+                }}
+              >
+                <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+                  {t.pinned ? "取消置顶" : "置顶任务"}
+                </Text>
+              </Pressable>
+              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+              <Pressable
+                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setMenuTodo(null);
+                  delM.mutate(t.id);
+                }}
+              >
+                <Text style={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}>
+                  删除任务
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+        </View>
       </View>
     );
   }
 
+  async function onIssueClick(issue: LiveIssue) {
+    const ref = `${issue.repo}#${issue.number}`;
+    const existing = todos.find((t) => t.issueRef === ref);
+    if (existing) {
+      openDetail(existing);
+    } else {
+      const full = await fetchIssue({ ref }).catch(() => null);
+      openDetail(undefined, {
+        ...issue,
+        body: full?.body ?? issue.body ?? "",
+        title: full?.title ?? issue.title,
+      });
+    }
+  }
   function renderIssueRow(issue: LiveIssue) {
     const ref = `${issue.repo}#${issue.number}`;
     const saved = savedIssueRefs.has(ref);
@@ -1258,7 +1257,11 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     return (
       <View key={ref} style={s.card}>
         <View style={s.cardTop}>
-          <View style={s.main}>
+          <Pressable
+            style={s.main}
+            onPress={() => onIssueClick(issue)}
+            accessibilityRole="button"
+          >
             <View
               style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
             >
@@ -1273,7 +1276,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
               {ref}
               {issue.updatedAt ? `  ·  ${issue.updatedAt.slice(0, 10)}` : ""}
             </Text>
-          </View>
+          </Pressable>
         </View>
         <View style={s.actions}>
           <Pressable
@@ -1281,13 +1284,13 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
             onPress={() => importIssueM.mutate(issue)}
             disabled={saved || importing}
           >
-            {!saved && (
+            {!saved ? (
               <Icon
                 name="Plus"
                 size={12}
                 color={theme.colors.accentForeground}
               />
-            )}
+            ) : null}
             <Text
               style={[
                 s.btnText,
@@ -1303,18 +1306,29 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     );
   }
 
+  function isToday(iso?: string): boolean {
+    if (!iso) return false;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return false;
+    const now = new Date();
+    return (
+      d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate()
+    );
+  }
+
   const pendingTodos = filteredTodos.filter(
     (t) =>
-      t.status === "pending" || t.status === "running" || t.status === "failed",
+      t.status === "pending" ||
+      t.status === "running" ||
+      t.status === "failed",
   );
-  const doneTodos = filteredTodos.filter((t) => t.status === "done");
+  const doneTodos = filteredTodos.filter(
+    (t) => t.status === "done" && isToday(t.finishedAt || t.startedAt),
+  );
 
-  const modalOpen = addOpen || edit !== null || run !== null;
-  const isIssueAdd = addOpen && sourceFilter === "issue";
-  const canSubmitAdd = isIssueAdd
-    ? Boolean(addTitle.trim() && addRepo && !createIssueM.isPending)
-    : Boolean(addTitle.trim() && !addM.isPending);
-  const canSaveEdit = Boolean(edit && edit.title.trim() && !editM.isPending);
+  const modalOpen = run !== null;
 
   return (
     <View style={s.screen}>
@@ -1416,15 +1430,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       </ScrollView>
 
       <Modal
-        title={
-          edit
-            ? "编辑"
-            : addOpen
-              ? isIssueAdd
-                ? "新建 Issue"
-                : "添加"
-              : runModalTitle
-        }
+        title={run ? (run.source === "issue" ? "配置 Issue 任务" : run.id ? "编辑待办" : "新建待办") : ""}
         icon={
           <Icon name="ListTodo" size={18} color={theme.colors.foreground} />
         }
@@ -1434,145 +1440,21 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         }}
       >
         <Modal.Content>
-          {edit ? (
+          {run ? (
             <View style={s.scrollBody}>
               <View>
                 <Text style={s.label}>标题 *</Text>
                 <StableInput
-                  key={`edit-title-${edit.id}-${formGen}`}
+                  key={`run-title-${run.id}-${formGen}`}
                   style={s.input}
-                  initial={edit.title}
-                  onValue={onEditTitle}
-                  placeholder="标题"
+                  initial={run.title}
+                  onValue={onRunTitle}
+                  placeholder="要做什么"
                   placeholderTextColor={theme.colors.foregroundMuted}
                 />
               </View>
               <View>
                 <Text style={s.label}>内容</Text>
-                <StableInput
-                  key={`edit-prompt-${edit.id}-${formGen}`}
-                  style={s.inputMulti}
-                  initial={edit.prompt}
-                  onValue={onEditPrompt}
-                  placeholder="说明、验收标准…（可空）"
-                  placeholderTextColor={theme.colors.foregroundMuted}
-                  multiline
-                />
-              </View>
-              <Pressable
-                style={s.saveBtn}
-                onPress={() => {
-                  if (!edit || !edit.title.trim())
-                    return toast.error("标题必填");
-                  editM.mutate({
-                    id: edit.id,
-                    title: edit.title.trim(),
-                    prompt: edit.prompt,
-                  });
-                }}
-                disabled={!canSaveEdit}
-              >
-                <Text style={s.saveText}>
-                  {editM.isPending ? "保存中…" : "保存"}
-                </Text>
-              </Pressable>
-            </View>
-          ) : addOpen ? (
-            <View style={s.scrollBody}>
-              <View>
-                <Text style={s.label}>标题 *</Text>
-                <StableInput
-                  key={`add-title-${formGen}`}
-                  style={s.input}
-                  initial=""
-                  onValue={onAddTitle}
-                  placeholder={isIssueAdd ? "Issue 标题" : "要做什么"}
-                  placeholderTextColor={theme.colors.foregroundMuted}
-                />
-              </View>
-              {isIssueAdd ? (
-                <View style={s.formSection}>
-                  <Text style={s.label}>仓库 *</Text>
-                  <ScrollView
-                    horizontal
-                    style={{ flexGrow: 0 }}
-                    contentContainerStyle={{ gap: 8, flexDirection: "row" }}
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    {(issuesQ.data?.repos ?? []).map((r) => (
-                      <Pressable
-                        key={r}
-                        style={[s.repoFilter, addRepo === r && s.repoFilterOn]}
-                        onPress={() => setAddRepo(r)}
-                      >
-                        <Text
-                          style={[s.repoText, addRepo === r && s.repoTextOn]}
-                        >
-                          {r}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                  {(issuesQ.data?.repos ?? []).length === 0 ? (
-                    <Text style={s.empty}>没有可用 GitHub 仓库</Text>
-                  ) : null}
-                </View>
-              ) : null}
-              <View>
-                <Text style={s.label}>内容</Text>
-                <StableInput
-                  key={`add-prompt-${formGen}`}
-                  style={s.inputMulti}
-                  initial=""
-                  onValue={onAddPrompt}
-                  placeholder={
-                    isIssueAdd
-                      ? "Issue 正文（可空）"
-                      : "说明、验收标准…（可空）"
-                  }
-                  placeholderTextColor={theme.colors.foregroundMuted}
-                  multiline
-                />
-              </View>
-              <Pressable
-                style={s.saveBtn}
-                onPress={() => {
-                  const t = addTitle.trim();
-                  if (!t) return toast.error("标题必填");
-                  if (isIssueAdd) {
-                    if (!addRepo) return toast.error("选一个仓库");
-                    createIssueM.mutate({
-                      repo: addRepo,
-                      title: t,
-                      body: addPrompt,
-                    });
-                  } else {
-                    addM.mutate({ title: t, prompt: addPrompt });
-                  }
-                }}
-                disabled={!canSubmitAdd}
-              >
-                <Text style={s.saveText}>
-                  {isIssueAdd
-                    ? createIssueM.isPending
-                      ? "创建中…"
-                      : "添加"
-                    : addM.isPending
-                      ? "添加中…"
-                      : "添加"}
-                </Text>
-              </Pressable>
-            </View>
-          ) : picker ? (
-            renderPickerBody()
-          ) : run ? (
-            <View style={s.scrollBody}>
-              <View>
-                <Text style={s.formSectionTitle}>{run.title}</Text>
-              </View>
-
-              <View>
-                <Text style={s.label}>提示词 *（发给每个 Agent）</Text>
                 <StableInput
                   key={`run-prompt-${run.id}-${formGen}`}
                   style={s.inputMulti}
@@ -1584,350 +1466,428 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
                 />
               </View>
 
-              <View style={s.formSection}>
-                <Text style={s.formSectionTitle}>在哪跑 *</Text>
-                {run.issueLocked ? (
-                  <View style={s.formSection}>
-                    <Text style={s.label}>项目（来自 Issue 仓库）</Text>
-                    <View style={s.chip}>
-                      <Text style={s.chipText} numberOfLines={2}>
-                        {run.projectName || run.projectPath}
-                      </Text>
-                    </View>
-                    <View style={s.seg}>
-                      <Pressable
-                        style={[s.segBtn, run.isolation === "local" && s.segOn]}
-                        onPress={() => setRun({ ...run, isolation: "local" })}
-                      >
-                        <Text
-                          style={[
-                            s.segText,
-                            run.isolation === "local" && s.segTextOn,
-                          ]}
-                        >
-                          本地
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          s.segBtn,
-                          run.isolation === "worktree" && s.segOn,
-                        ]}
-                        onPress={() =>
-                          setRun({ ...run, isolation: "worktree" })
-                        }
-                      >
-                        <Text
-                          style={[
-                            s.segText,
-                            run.isolation === "worktree" && s.segTextOn,
-                          ]}
-                        >
-                          Worktree
-                        </Text>
-                      </Pressable>
-                    </View>
-                    {run.isolation === "worktree" ? (
-                      <View style={s.row}>
-                        <View style={{ flex: 1 }}>
-                          <Text style={s.label}>基线分支</Text>
-                          <StableInput
-                            key={`base-branch-${formGen}`}
-                            style={s.input}
-                            initial={run.baseBranch}
-                            onValue={onBaseBranch}
-                            placeholder="main"
-                            placeholderTextColor={theme.colors.foregroundMuted}
-                            autoCapitalize="none"
-                          />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <Text style={s.label}>新分支名</Text>
-                          <StableInput
-                            key={`new-branch-${formGen}`}
-                            style={s.input}
-                            initial={run.newBranch}
-                            onValue={onNewBranch}
-                            placeholder="feature/xxx"
-                            placeholderTextColor={theme.colors.foregroundMuted}
-                            autoCapitalize="none"
-                          />
-                        </View>
-                      </View>
-                    ) : null}
-                  </View>
-                ) : (
-                  <>
-                    <View style={s.seg}>
-                      <Pressable
-                        style={[
-                          s.segBtn,
-                          run.placement === "project" && s.segOn,
-                        ]}
-                        onPress={() => setRun({ ...run, placement: "project" })}
-                      >
-                        <Text
-                          style={[
-                            s.segText,
-                            run.placement === "project" && s.segTextOn,
-                          ]}
-                        >
-                          项目
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          s.segBtn,
-                          run.placement === "workspace" && s.segOn,
-                        ]}
-                        onPress={() =>
-                          setRun({ ...run, placement: "workspace" })
-                        }
-                      >
-                        <Text
-                          style={[
-                            s.segText,
-                            run.placement === "workspace" && s.segTextOn,
-                          ]}
-                        >
-                          Workspace
-                        </Text>
-                      </Pressable>
-                    </View>
-
-                    {run.placement === "project" ? (
-                      <View style={s.formSection}>
-                        <Pressable
-                          style={s.chip}
-                          onPress={() => openPicker({ kind: "project" })}
-                        >
-                          <Text
-                            style={run.projectId ? s.chipText : s.chipMuted}
-                            numberOfLines={1}
-                          >
-                            {run.projectId
-                              ? `${run.projectName} · ${run.projectPath}`
-                              : "选择项目…"}
-                          </Text>
-                          <Text
-                            style={{
-                              color: theme.colors.foregroundMuted,
-                              fontSize: 14,
-                            }}
-                          >
-                            ▾
-                          </Text>
-                        </Pressable>
-
-                        <View style={s.seg}>
-                          <Pressable
-                            style={[
-                              s.segBtn,
-                              run.isolation === "local" && s.segOn,
-                            ]}
-                            onPress={() =>
-                              setRun({ ...run, isolation: "local" })
-                            }
-                          >
-                            <Text
-                              style={[
-                                s.segText,
-                                run.isolation === "local" && s.segTextOn,
-                              ]}
-                            >
-                              本地
-                            </Text>
-                          </Pressable>
-                          <Pressable
-                            style={[
-                              s.segBtn,
-                              run.isolation === "worktree" && s.segOn,
-                            ]}
-                            onPress={() =>
-                              setRun({ ...run, isolation: "worktree" })
-                            }
-                          >
-                            <Text
-                              style={[
-                                s.segText,
-                                run.isolation === "worktree" && s.segTextOn,
-                              ]}
-                            >
-                              Worktree
-                            </Text>
-                          </Pressable>
-                        </View>
-
-                        {run.isolation === "worktree" ? (
-                          <View style={s.row}>
-                            <View style={{ flex: 1 }}>
-                              <Text style={s.label}>基线分支</Text>
-                              <StableInput
-                                key={`base-branch-${formGen}`}
-                                style={s.input}
-                                initial={run.baseBranch}
-                                onValue={onBaseBranch}
-                                placeholder="main"
-                                placeholderTextColor={
-                                  theme.colors.foregroundMuted
-                                }
-                                autoCapitalize="none"
-                              />
-                            </View>
-                            <View style={{ flex: 1 }}>
-                              <Text style={s.label}>新分支名</Text>
-                              <StableInput
-                                key={`new-branch-${formGen}`}
-                                style={s.input}
-                                initial={run.newBranch}
-                                onValue={onNewBranch}
-                                placeholder="feature/xxx"
-                                placeholderTextColor={
-                                  theme.colors.foregroundMuted
-                                }
-                                autoCapitalize="none"
-                              />
-                            </View>
-                          </View>
-                        ) : null}
-
-                        {!run.projectId ? (
-                          <View>
-                            <Text style={s.label}>或手动填路径</Text>
-                            <StableInput
-                              key={`run-cwd-${formGen}`}
-                              style={s.input}
-                              initial={run.cwd}
-                              onValue={onCwd}
-                              placeholder="/home/you/repo"
-                              placeholderTextColor={
-                                theme.colors.foregroundMuted
-                              }
-                              autoCapitalize="none"
-                              autoCorrect={false}
-                            />
-                          </View>
-                        ) : null}
-                      </View>
-                    ) : (
-                      <Pressable
-                        style={s.chip}
-                        onPress={() => openPicker({ kind: "workspace" })}
-                      >
-                        <Text
-                          style={run.workspaceId ? s.chipText : s.chipMuted}
-                          numberOfLines={1}
-                        >
-                          {run.workspaceId
-                            ? run.workspaceName || run.workspaceId
-                            : "选择 Workspace…"}
-                        </Text>
-                        <Text
-                          style={{
-                            color: theme.colors.foregroundMuted,
-                            fontSize: 14,
-                          }}
-                        >
-                          ▾
-                        </Text>
-                      </Pressable>
-                    )}
-                  </>
-                )}
-              </View>
-
-              <View style={s.formSection}>
-                <Text style={s.formSectionTitle}>
-                  放码（{run.agents.length} 个，多个并行）
+          <View style={s.formSection}>
+            <Text style={s.formSectionTitle}>在哪跑 *</Text>
+            <View style={s.formSection}>
+              <Pressable
+                style={s.chip}
+                onPress={() => {
+                  setSearch("");
+                  setPicker(
+                    picker?.kind === "project" ? null : { kind: "project" }
+                  );
+                }}
+              >
+                <Text
+                  style={
+                    run.projectId || run.projectPath
+                      ? s.chipText
+                      : s.chipMuted
+                  }
+                  numberOfLines={1}
+                >
+                  {run.projectId || run.projectPath
+                    ? `${run.projectName || run.projectPath} · ${run.projectPath}`
+                    : "选择项目…"}
                 </Text>
-                {run.agents.map((a, i) => (
-                  <View key={i} style={s.agentRow}>
-                    <Pressable
-                      style={[s.chip, s.agentChip]}
-                      onPress={() =>
-                        openPicker({
-                          kind: "agent",
-                          step: "provider",
-                          index: i,
-                          provider: "",
-                        })
+                <Text
+                  style={{
+                    color: theme.colors.foregroundMuted,
+                    fontSize: 14,
+                  }}
+                >
+                  {picker?.kind === "project" ? "▲" : "▼"}
+                </Text>
+              </Pressable>
+              {picker?.kind === "project" ? (
+                <View style={s.inlinePicker}>
+                  <StableInput
+                    key="picker-search-project"
+                    style={s.input}
+                    initial=""
+                    onValue={onSearch}
+                    placeholder="搜索项目…"
+                    placeholderTextColor={theme.colors.foregroundMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {projectsQ.isLoading ? (
+                    <Text style={s.empty}>加载项目中…</Text>
+                  ) : (
+                    renderPickList(
+                      (projectsQ.data?.projects ?? []).map((p) => ({
+                        id: p.id,
+                        label: p.name,
+                        sub: p.path,
+                        selected:
+                          run.projectId === p.id ||
+                          run.projectPath === p.path,
+                      })),
+                      (item) => {
+                        const p = projectsQ.data?.projects.find(
+                          (x) => x.id === item.id
+                        );
+                        if (p) {
+                          setRun({
+                            ...run,
+                            projectId: p.id,
+                            projectName: p.name,
+                            projectPath: p.path,
+                          });
+                        }
+                        setPicker(null);
                       }
-                    >
-                      <Text
-                        style={a.provider ? s.chipText : s.chipMuted}
-                        numberOfLines={1}
-                      >
-                        {`#${i + 1}  ${agentLabel(a)}`}
-                      </Text>
-                      <Text
-                        style={{
-                          color: theme.colors.foregroundMuted,
-                          fontSize: 14,
-                        }}
-                      >
-                        ▾
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={s.iconBtn}
-                      disabled={run.agents.length <= 1}
-                      onPress={() =>
-                        setRun((d) =>
-                          d
-                            ? {
-                                ...d,
-                                agents: d.agents.filter((_, idx) => idx !== i),
-                              }
-                            : d,
-                        )
-                      }
-                    >
-                      <Text
-                        style={{
-                          color: theme.colors.statusDanger,
-                          fontSize: 16,
-                          opacity: run.agents.length <= 1 ? 0.3 : 1,
-                        }}
-                      >
-                        ×
-                      </Text>
-                    </Pressable>
-                  </View>
-                ))}
-                <Pressable
-                  style={s.addAgent}
-                  onPress={() =>
-                    setRun((d) =>
-                      d
-                        ? {
-                            ...d,
-                            agents: [...d.agents, { provider: "", model: "" }],
-                          }
-                        : d,
                     )
+                  )}
+                </View>
+              ) : null}
+
+              <View style={s.seg}>
+                <Pressable
+                  style={[
+                    s.segBtn,
+                    run.isolation === "local" && s.segOn,
+                  ]}
+                  onPress={() =>
+                    setRun({ ...run, isolation: "local" })
                   }
                 >
-                  <Text style={s.addAgentText}>+ 加一个</Text>
+                  <Text
+                    style={[
+                      s.segText,
+                      run.isolation === "local" && s.segTextOn,
+                    ]}
+                  >
+                    Local
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    s.segBtn,
+                    run.isolation === "worktree" && s.segOn,
+                  ]}
+                  onPress={() =>
+                    setRun({ ...run, isolation: "worktree" })
+                  }
+                >
+                  <Text
+                    style={[
+                      s.segText,
+                      run.isolation === "worktree" && s.segTextOn,
+                    ]}
+                  >
+                    Worktree
+                  </Text>
                 </Pressable>
               </View>
 
-              <Pressable
-                style={s.saveBtn}
-                onPress={onRun}
-                disabled={startM.isPending}
+              {run.isolation === "worktree" ? (
+                <View style={s.row}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.label}>基线分支</Text>
+                    <StableInput
+                      key={`base-branch-${formGen}`}
+                      style={s.input}
+                      initial={run.baseBranch}
+                      onValue={onBaseBranch}
+                      placeholder="main"
+                      placeholderTextColor={
+                        theme.colors.foregroundMuted
+                      }
+                      autoCapitalize="none"
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={s.label}>新分支名</Text>
+                    <StableInput
+                      key={`new-branch-${formGen}`}
+                      style={s.input}
+                      initial={run.newBranch}
+                      onValue={onNewBranch}
+                      placeholder="feature/xxx"
+                      placeholderTextColor={
+                        theme.colors.foregroundMuted
+                      }
+                      autoCapitalize="none"
+                    />
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          </View>
+          <View style={s.formSection}>
+            <Text style={s.formSectionTitle}>
+              使用技能{run.skills.length ? ` (${run.skills.length} 个已选)` : "（可选，多选）"}
+            </Text>
+            <Pressable
+              style={s.chip}
+              onPress={() => {
+                setSearch("");
+                setPicker({ kind: "skills" });
+              }}
+            >
+              <Text
+                style={run.skills.length ? s.chipText : s.chipMuted}
+                numberOfLines={1}
               >
-                <Text style={s.saveText}>
-                  {startM.isPending
-                    ? "启动中…"
-                    : run.agents.length > 1
-                      ? `开跑 ×${run.agents.length}`
-                      : "开跑"}
-                </Text>
-              </Pressable>
+                {run.skills.length
+                  ? run.skills.join(", ")
+                  : "选择技能…"}
+              </Text>
+              <Text
+                style={{
+                  color: theme.colors.foregroundMuted,
+                  fontSize: 14,
+                }}
+              >
+                ▼
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={s.formSection}>
+            <Text style={s.formSectionTitle}>
+              放马（{run.agents.length} 个，多个并行）
+            </Text>
+            {run.agents.map((a, i) => {
+              return (
+                <View key={i} style={s.agentRow}>
+                  <Pressable
+                    style={[s.chip, s.agentChip]}
+                    onPress={() => {
+                      setSearch("");
+                      setPicker({
+                        kind: "agent",
+                        step: "provider",
+                        index: i,
+                        provider: a.provider || "",
+                      });
+                    }}
+                  >
+                    <Text style={a.provider ? s.chipText : s.chipMuted} numberOfLines={1}>
+                      {`#${i + 1}  ${agentLabel(a)}`}
+                    </Text>
+                    <Text style={{ color: theme.colors.foregroundMuted, fontSize: 14 }}>
+                      ▼
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    style={s.iconBtn}
+                    disabled={run.agents.length <= 1}
+                    onPress={() => {
+                      setRun((d) =>
+                        d
+                          ? {
+                              ...d,
+                              agents: d.agents.filter(
+                                (_, idx) => idx !== i
+                              ),
+                            }
+                          : null
+                      );
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.statusDanger,
+                        fontSize: 16,
+                        opacity: run.agents.length <= 1 ? 0.3 : 1,
+                      }}
+                    >
+                      ✕
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+            <Pressable style={s.addAgent} onPress={() => {
+              const defAgent: AgentRef = preferences?.lastProvider
+                ? { provider: preferences.lastProvider, model: preferences.lastModel }
+                : { provider: "", model: "" };
+              setRun((d) => d ? { ...d, agents: [...d.agents, defAgent] } : null);
+            }}>
+              <Text style={s.addAgentText}>+ 加一个</Text>
+            </Pressable>
+          </View>
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <Pressable
+                  style={[s.saveBtn, { flex: 1, backgroundColor: theme.colors.surface2 }]}
+                  onPress={onSaveDraft}
+                  disabled={editM.isPending || addM.isPending}
+                >
+                  <Text style={[s.saveText, { color: theme.colors.foreground }]}>
+                    {editM.isPending || addM.isPending ? "保存中…" : "保存"}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[s.saveBtn, { flex: 1 }]}
+                  onPress={onRun}
+                  disabled={startM.isPending}
+                >
+                  <Text style={s.saveText}>
+                    {startM.isPending
+                      ? "启动中…"
+                      : run.agents.length > 1
+                        ? `开跑 ×${run.agents.length}`
+                        : "开跑"}
+                  </Text>
+                </Pressable>
+              </View>
             </View>
           ) : null}
         </Modal.Content>
       </Modal>
-    </View>
-  );
-}
+
+      <Modal
+        title={
+          picker?.kind === "agent"
+            ? picker.step === "provider"
+              ? `选择 Provider (#${picker.index + 1})`
+              : `选择 Model (${picker.provider})`
+            : ""
+        }
+        icon={
+          <Icon name="Bot" size={18} color={theme.colors.foreground} />
+        }
+        open={Boolean(run && picker?.kind === "agent")}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSearch("");
+            setPicker(null);
+          }
+        }}
+      >
+        <Modal.Content>
+          {run && picker?.kind === "agent" ? (
+            <View style={{ gap: 12 }}>
+              {picker.step === "model" ? (
+                <Pressable
+                  style={s.pickBack}
+                  onPress={() => {
+                    setSearch("");
+                    setPicker({
+                      kind: "agent",
+                      step: "provider",
+                      index: picker.index,
+                      provider: "",
+                    });
+                  }}
+                >
+                  <Text style={s.pickBackText}>← 返回重新选 Provider</Text>
+                </Pressable>
+              ) : null}
+              <StableInput
+                key={`picker-agent-modal-${picker.step}-${picker.index}`}
+                style={s.input}
+                initial=""
+                onValue={onSearch}
+                placeholder={picker.step === "provider" ? "搜索 Provider…" : "搜索 Model…"}
+                placeholderTextColor={theme.colors.foregroundMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {picker.step === "provider"
+                ? renderPickList(
+                    (providersQ.data?.providers ?? []).map((p) => ({
+                      id: p.id,
+                      label: p.id,
+                      selected: run.agents[picker.index]?.provider === p.id,
+                    })),
+                    (item) => {
+                      setSearch("");
+                      setPicker({
+                        kind: "agent",
+                        index: picker.index,
+                        step: "model",
+                        provider: item.id,
+                      });
+                    }
+                  )
+                : renderPickList(
+                    [
+                      {
+                        id: "",
+                        label: "（默认 Model）",
+                        sub: "使用 Provider 默认模型",
+                        selected: !run.agents[picker.index]?.model,
+                      },
+                      ...((modelsQ.data?.models ?? []) as Array<{ id: string; label: string }>).map((m) => ({
+                        id: m.id,
+                        label: m.label || m.id,
+                        sub: m.label && m.label !== m.id ? m.id : undefined,
+                        selected: run.agents[picker.index]?.model === m.id,
+                      })),
+                    ],
+                    (item) => {
+                      const provider = picker.provider;
+                      const model = item.id;
+                      const idx = picker.index;
+                      setRun((d) => {
+                        if (!d) return null;
+                        const next = [...d.agents];
+                        next[idx] = { provider, model };
+                        return { ...d, agents: next };
+                      });
+                      setPicker(null);
+                    }
+                  )}
+            </View>
+          ) : null}
+        </Modal.Content>
+      </Modal>
+
+      <Modal
+        title={run?.skills.length ? `选择技能 (${run.skills.length} 个已选)` : "选择技能"}
+        icon={<Icon name="Wrench" size={18} color={theme.colors.foreground} />}
+        open={Boolean(run && picker?.kind === "skills")}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSearch("");
+            setPicker(null);
+          }
+        }}
+      >
+        <Modal.Content>
+          {run && picker?.kind === "skills" ? (
+            <View style={{ gap: 12 }}>
+              <StableInput
+                key="picker-skills-modal"
+                style={s.input}
+                initial=""
+                onValue={onSearch}
+                placeholder="搜索技能…"
+                placeholderTextColor={theme.colors.foregroundMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {skillsQ.isLoading ? (
+                <Text style={s.empty}>加载技能中…</Text>
+              ) : (skillsQ.data?.skills ?? []).length === 0 ? (
+                <Text style={s.empty}>暂无可用技能 (~/.agents/skills, ~/.claude/skills)</Text>
+              ) : (
+                renderPickList(
+                  (skillsQ.data?.skills ?? []).map((skill) => ({
+                    id: skill,
+                    label: skill,
+                    selected: run.skills.includes(skill),
+                  })),
+                  (item) => {
+                    setRun((d) => {
+                      if (!d) return null;
+                      const selected = d.skills.includes(item.id);
+                      const next = selected
+                        ? d.skills.filter((x) => x !== item.id)
+                        : [...d.skills, item.id];
+                      return { ...d, skills: next };
+                    });
+                  }
+                )
+              )}
+            </View>
+          ) : null}
+        </Modal.Content>
+      </Modal>
+      </View>
+    );
+  }

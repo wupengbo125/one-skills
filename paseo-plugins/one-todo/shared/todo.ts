@@ -23,6 +23,7 @@ export type AgentRef = z.infer<typeof agentRefSchema>;
 
 export const todoSchema = z.object({
   id: z.string(),
+  seq: z.number().optional(),
   title: z.string(),
   prompt: z.string(),
   provider: z.string(),
@@ -45,10 +46,22 @@ export const todoSchema = z.object({
   agentId: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
   pendingAgentIds: z.array(z.string()).optional(),
-  createdAt: z.string(),
-  startedAt: z.string().optional(),
-  finishedAt: z.string().optional(),
-});
+    createdAt: z.string(),
+    startedAt: z.string().optional(),
+    finishedAt: z.string().optional(),
+    skills: z.array(z.string()).optional(),
+    pinned: z.boolean().optional(),
+  });
+  export const preferencesSchema = z.object({
+    lastProvider: z.string().optional(),
+    lastModel: z.string().optional(),
+    lastProjectId: z.string().optional(),
+    lastProjectName: z.string().optional(),
+    lastProjectPath: z.string().optional(),
+    lastIsolation: isolationSchema.optional(),
+    lastSkills: z.array(z.string()).optional(),
+  });
+  export type TodoPreferences = z.infer<typeof preferencesSchema>;
 export type Todo = z.infer<typeof todoSchema>;
 
 const todoPlacementFields = {
@@ -66,7 +79,7 @@ const todoPlacementFields = {
 export const listTodosRpc = defineRpc({
   name: "todo.list",
   input: z.object({}),
-  output: z.object({ todos: z.array(todoSchema) }),
+    output: z.object({ todos: z.array(todoSchema), preferences: preferencesSchema.optional() }),
 });
 
 export const addTodoRpc = defineRpc({
@@ -77,6 +90,10 @@ export const addTodoRpc = defineRpc({
     source: sourceSchema.default("todo"),
     issueRef: z.string().optional(),
     issueUrl: z.string().optional(),
+    skills: z.array(z.string()).optional(),
+    agents: z.array(agentRefSchema).min(1).optional(),
+    ...todoPlacementFields,
+    pinned: z.boolean().optional(),
   }),
   output: z.object({ todo: todoSchema }),
 });
@@ -102,15 +119,19 @@ export const updateTodoRpc = defineRpc({
     patch: z.object({
       title: z.string().optional(),
       prompt: z.string().optional(),
+      skills: z.array(z.string()).optional(),
       agents: z.array(agentRefSchema).min(1).optional(),
       source: sourceSchema.optional(),
       issueRef: z.string().optional(),
       issueUrl: z.string().optional(),
       ...todoPlacementFields,
       status: todoStatusSchema.optional(),
+      pinned: z.boolean().optional(),
     }),
   }),
-  output: z.object({ todo: todoSchema.nullable() }),
+  output: z.object({
+    todo: todoSchema.nullable(),
+  }),
 });
 
 export const removeTodoRpc = defineRpc({
@@ -123,14 +144,23 @@ export const startTodoRpc = defineRpc({
   name: "todo.start",
   input: z.object({
     id: z.string(),
-    agents: z.array(agentRefSchema).min(1).optional(),
-    prompt: z.string().optional(),
-    ...todoPlacementFields,
+      agents: z.array(agentRefSchema).min(1).optional(),
+      prompt: z.string().optional(),
+      skills: z.array(z.string()).optional(),
+      ...todoPlacementFields,
   }),
   output: z.object({
     ok: z.boolean(),
     todo: todoSchema.nullable(),
     error: z.string().optional(),
+  }),
+});
+  
+export const listSkillsRpc = defineRpc({
+  name: "todo.skills",
+  input: z.object({}),
+  output: z.object({
+    skills: z.array(z.string()),
   }),
 });
 
@@ -223,3 +253,12 @@ export const fetchIssueRpc = defineRpc({
     url: z.string(),
   }),
 });
+
+export function branchFromTitle(title: string): string {
+  const sliced = title.trim().slice(0, 20);
+  const cleaned = sliced
+    .replace(/[\s~^:?*\[\\/@{}]+|\/\/+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/^[-.]+|[-.]+$/g, "");
+  return cleaned || `todo-${Date.now().toString(36)}`;
+}

@@ -2,6 +2,7 @@ import type { PluginServerContext } from "@getpaseo/plugin/server";
 import {
   addTodoRpc,
   completeByAgentId,
+  completeByWorkspaceId,
   createIssueRpc,
   fetchIssueRpc,
   handleAddTodo,
@@ -11,6 +12,7 @@ import {
   handleListModels,
   handleListProjects,
   handleListProviders,
+  handleListSkills,
   handleListTodos,
   handleListWorkspaces,
   handleRemoveTodo,
@@ -20,6 +22,7 @@ import {
   listModelsRpc,
   listProjectsRpc,
   listProvidersRpc,
+  listSkillsRpc,
   listTodosRpc,
   listWorkspacesRpc,
   removeTodoRpc,
@@ -40,17 +43,22 @@ export default function contribute(server: PluginServerContext) {
   server.handle(listIssuesRpc, (input, ctx) => handleListIssues(input, ctx));
   server.handle(fetchIssueRpc, (input) => handleFetchIssue(input));
   server.handle(createIssueRpc, (input) => handleCreateIssue(input));
+  server.handle(listSkillsRpc, () => handleListSkills());
 
   server.on("agent.turn_ended", (event) => {
+    if (event.outcome.kind === "completed") return;
     const outcome =
-      event.outcome.kind === "completed"
-        ? "completed"
-        : event.outcome.kind === "failed"
-          ? "failed"
-          : "canceled";
+      event.outcome.kind === "failed" ? "failed" : "canceled";
     const errMsg =
       event.outcome.kind === "failed" ? event.outcome.error.message : undefined;
     completeByAgentId(event.agent.id, outcome, errMsg);
+  });
+
+  server.on("workspace.archived", (event) => {
+    completeByWorkspaceId(
+      event.workspace.id,
+      event.workspace.archivedAt ?? undefined,
+    );
   });
 
   return () => {};

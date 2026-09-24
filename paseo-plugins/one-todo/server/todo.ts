@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { execFile } from "node:child_process";
+import { existsSync, readdirSync, statSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { promisify } from "node:util";
 import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
@@ -11,10 +14,12 @@ import {
   listModelsRpc,
   listProjectsRpc,
   listProvidersRpc,
+  listSkillsRpc,
   listTodosRpc,
   listWorkspacesRpc,
   removeTodoRpc,
   startTodoRpc,
+  branchFromTitle,
   updateTodoRpc,
   type AgentRef,
   type Todo,
@@ -22,16 +27,46 @@ import {
 } from "../shared/todo";
 import {
   findTodoByIssueRef,
+  getPreferences,
   getTodo,
   listTodos,
   removeTodo,
+  savePreferences,
   saveTodo,
 } from "./store";
 
 const execFileAsync = promisify(execFile);
 
 export function handleListTodos() {
-  return { todos: listTodos() };
+  return { todos: listTodos(), preferences: getPreferences() };
+}
+
+export function handleListSkills(): { skills: string[] } {
+  const dirs = [
+    join(homedir(), ".agents", "skills"),
+    join(homedir(), ".claude", "skills"),
+  ];
+  const skillNames = new Set<string>();
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    try {
+      const names = readdirSync(dir);
+      for (const name of names) {
+        if (name.startsWith(".")) continue;
+        try {
+          const fullPath = join(dir, name);
+          if (statSync(fullPath).isDirectory()) {
+            skillNames.add(name);
+          }
+        } catch {
+          // skip broken symlinks
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return { skills: Array.from(skillNames).sort((a, b) => a.localeCompare(b)) };
 }
 
 type PlacementInput = {
@@ -97,16 +132,31 @@ export function handleAddTodo(input: RpcInput<typeof addTodoRpc>): {
     };
     return { todo: saveTodo(merged) };
   }
+  const firstAgent = input.agents?.length ? input.agents[0] : { provider: "", model: "" };
+  const placement = pickPlacement({
+    projectId: input.projectId,
+    projectName: input.projectName,
+    projectPath: input.projectPath,
+    isolation: input.isolation,
+    workspaceId: input.workspaceId,
+    workspaceName: input.workspaceName,
+    cwd: input.cwd,
+  });
   const todo: Todo = {
     id: randomUUID(),
     title: input.title.trim(),
     prompt: input.prompt ?? "",
-    provider: "",
-    model: undefined,
-    agents: [{ provider: "", model: "" }],
+    skills: input.skills ?? [],
+    provider: firstAgent.provider,
+    model: firstAgent.model,
+    agents: input.agents?.length ? input.agents : [{ provider: "", model: "" }],
     source,
     issueRef: input.issueRef,
     issueUrl: input.issueUrl,
+    ...placement,
+    baseBranch: input.baseBranch?.trim() || undefined,
+    newBranch: input.newBranch?.trim() || undefined,
+    pinned: input.pinned,
     status: "pending",
     createdAt: now,
   };
@@ -127,6 +177,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     const first = primaryAgent(p.agents);
     next.provider = first.provider;
     next.model = first.model;
+    if (p.skills !== undefined) next.skills = p.skills;
   }
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;
@@ -166,6 +217,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     next.baseBranch = p.baseBranch.trim() || undefined;
   if (p.newBranch !== undefined)
     next.newBranch = p.newBranch.trim() || undefined;
+  if (p.pinned !== undefined) next.pinned = p.pinned;
   if (p.status !== undefined) {
     next.status = p.status;
     if (p.status === "pending") {
@@ -213,14 +265,6 @@ async function resolveProviderField(
   throw new Error(`Provider ${provider} 没有可用默认模型，请选一个模型`);
 }
 
-function slugifyBranch(input: string): string {
-  const cleaned = input
-    .replace(/[^\w.-]+/g, "-")
-    .replace(/-{2,}/g, "-")
-    .replace(/^[-.]+|[-.]+$/g, "")
-    .slice(0, 60);
-  return cleaned || `todo-${Date.now().toString(36)}`;
-}
 
 function todoAgents(todo: Todo): AgentRef[] {
   if (todo.agents?.length && todo.agents.some((a) => a.provider)) {
@@ -252,18 +296,26 @@ export async function handleStartTodo(
     (v) => v !== undefined,
   );
   let todo = base;
-  if (input.agents || input.prompt !== undefined || hasPlacementPatch) {
-    const updated = handleUpdateTodo({
-      id: base.id,
-      patch: {
-        ...(input.agents ? { agents: input.agents } : {}),
-        ...(input.prompt !== undefined ? { prompt: input.prompt } : {}),
-        ...(hasPlacementPatch ? placementPatch : {}),
-      },
-    });
-    if (!updated.todo) return { ok: false, todo: null, error: "待办不存在" };
-    todo = updated.todo;
-  }
+    if (
+      input.agents ||
+      input.prompt !== undefined ||
+      input.skills !== undefined ||
+      hasPlacementPatch
+    ) {
+      const updated = handleUpdateTodo({
+        id: base.id,
+        patch: {
+          ...(input.agents ? { agents: input.agents } : {}),
+          ...(input.prompt !== undefined ? { prompt: input.prompt } : {}),
+          ...(input.skills !== undefined ? { skills: input.skills } : {}),
+          ...(hasPlacementPatch ? placementPatch : {}),
+        },
+      });
+      if (!updated.todo) {
+        return { ok: false, todo: null, error: "待办不存在" };
+      }
+      todo = updated.todo;
+    }
 
   if (todo.status === "running") {
     return { ok: false, todo, error: "已在运行中" };
@@ -277,8 +329,12 @@ export async function handleStartTodo(
     return { ok: false, todo, error: "提示词为空，先填提示词" };
   }
 
-  const title = todo.title;
-  const prompt = todo.prompt;
+    const title = todo.title;
+    const skillPrefix =
+      todo.skills && todo.skills.length > 0
+        ? `[使用技能: ${todo.skills.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
+        : "";
+    const prompt = skillPrefix + (todo.prompt || todo.title);
   const now = new Date().toISOString();
   const multi = refs.length > 1;
 
@@ -310,9 +366,9 @@ export async function handleStartTodo(
 
       if (isWorktree && multi) {
         for (let i = 0; i < configs.length; i++) {
-          const branchName = todo.newBranch?.trim()
-            ? `${slugifyBranch(todo.newBranch)}-a${i + 1}`
-            : `${slugifyBranch(title)}-a${i + 1}`;
+        const branchName = todo.newBranch?.trim()
+          ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
+          : `${branchFromTitle(title)}-a${i + 1}`;
           const ws = await paseo.workspaces.create({
             source: {
               kind: "worktree",
@@ -321,16 +377,16 @@ export async function handleStartTodo(
               action: "branch-off",
               baseBranch: todo.baseBranch?.trim() || "main",
               branchName,
-              worktreeSlug: slugifyBranch(branchName),
+            worktreeSlug: branchFromTitle(branchName),
             },
             title: multi ? `${title} #${i + 1}` : title,
           });
-          if (i === 0) {
-            workspaceId = ws.id;
-            workspaceName = ws.name ?? title;
-            projectId = ws.projectId ?? projectId;
-            projectPath = ws.directory ?? projectPath;
-          }
+        if (i === 0) {
+          workspaceId = ws.id;
+          workspaceName = ws.name || title;
+          projectId = ws.projectId || projectId;
+          projectPath = ws.directory || projectPath;
+        }
           const handle = await ws.agents.create({
             config: { provider: configs[i] },
             title: multi ? `${title} #${i + 1}` : title,
@@ -344,10 +400,8 @@ export async function handleStartTodo(
               kind: "worktree" as const,
               cwd: todo.projectPath,
               ...(todo.projectId ? { projectId: todo.projectId } : {}),
-              action: "branch-off" as const,
-              baseBranch: todo.baseBranch?.trim() || "main",
-              branchName: todo.newBranch?.trim() || slugifyBranch(title),
-              worktreeSlug: slugifyBranch(todo.newBranch?.trim() || title),
+            branchName: todo.newBranch?.trim() || branchFromTitle(title),
+            worktreeSlug: branchFromTitle(todo.newBranch?.trim() || title),
             }
           : {
               kind: "directory" as const,
@@ -388,16 +442,16 @@ export async function handleStartTodo(
         if (todo.newBranch && todo.baseBranch) {
           createOpts.worktree = {
             mode: "branch-off",
-            newBranch:
-              multi && i > 0
-                ? `${slugifyBranch(todo.newBranch)}-a${i + 1}`
-                : todo.newBranch,
-            base: todo.baseBranch,
-          };
-        }
-        const handle = await paseo.agents.create(createOpts);
-        agentIds.push(handle.id);
-        if (i === 0) workspaceId = handle.workspaceId ?? workspaceId;
+          newBranch:
+            multi && i > 0
+              ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
+              : todo.newBranch,
+          base: todo.baseBranch,
+        };
+      }
+      const handle = await paseo.agents.create(createOpts);
+      agentIds.push(handle.id);
+      if (i === 0) workspaceId = handle.workspaceId || workspaceId;
       }
     }
 
@@ -415,6 +469,16 @@ export async function handleStartTodo(
       finishedAt: undefined,
       error: undefined,
     };
+    const firstAgent = primaryAgent(todoAgents(todo));
+    savePreferences({
+      lastProvider: firstAgent.provider || undefined,
+      lastModel: firstAgent.model || undefined,
+      lastProjectId: todo.projectId,
+      lastProjectName: todo.projectName,
+      lastProjectPath: todo.projectPath,
+      lastIsolation: todo.isolation,
+      lastSkills: todo.skills,
+    });
     return { ok: true, todo: saveTodo(next) };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -442,13 +506,13 @@ export function completeByAgentId(
   if (!todo) return null;
   const now = new Date().toISOString();
 
-  if (outcome === "failed") {
+  if (outcome === "failed" || outcome === "canceled") {
     return saveTodo({
       ...todo,
       status: "failed",
       finishedAt: now,
       pendingAgentIds: [],
-      error: errorMessage || "agent turn failed",
+      error: errorMessage || (outcome === "canceled" ? "会话已取消" : "agent turn failed"),
     });
   }
 
@@ -467,6 +531,24 @@ export function completeByAgentId(
     });
   }
   return saveTodo({ ...todo, pendingAgentIds: pool });
+}
+
+export function completeByWorkspaceId(
+  workspaceId: string,
+  archivedAt?: string,
+): Todo[] {
+  const now = archivedAt ?? new Date().toISOString();
+  return listTodos()
+    .filter((t) => t.status === "running" && t.workspaceId === workspaceId)
+    .map((t) =>
+      saveTodo({
+        ...t,
+        status: "done",
+        finishedAt: now,
+        pendingAgentIds: [],
+        error: undefined,
+      }),
+    );
 }
 
 export async function handleListProviders({ paseo }: PluginHandlerContext) {
@@ -741,6 +823,7 @@ export {
   listModelsRpc,
   listProjectsRpc,
   listProvidersRpc,
+  listSkillsRpc,
   listTodosRpc,
   listWorkspacesRpc,
   removeTodoRpc,
