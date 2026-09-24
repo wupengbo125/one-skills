@@ -58,6 +58,7 @@ function HoldToLaunch({
   textStyle: StyleProp<any>;
   onComplete: () => void;
 }) {
+  const toast = useToast();
   const progress = useRef(new Animated.Value(0)).current;
   const anim = useRef<Animated.CompositeAnimation | null>(null);
   const fired = useRef(false);
@@ -84,6 +85,11 @@ function HoldToLaunch({
     progress.setValue(0);
   }, [progress]);
 
+  const handlePress = useCallback(() => {
+    if (disabled || fired.current) return;
+    toast.show("请长按全军出击", { durationMs: 2000 });
+  }, [disabled, toast]);
+
   const width = progress.interpolate({
     inputRange: [0, 1],
     outputRange: ["0%", "100%"],
@@ -94,6 +100,7 @@ function HoldToLaunch({
       style={[style, { overflow: "hidden" }]}
       onPressIn={start}
       onPressOut={cancel}
+      onPress={handlePress}
       disabled={disabled}
     >
       <Animated.View
