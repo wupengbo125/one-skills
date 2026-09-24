@@ -81,3 +81,11 @@ paseo-todo 空 agent 占位不许显示成错误
   - 按用户原话主题写完整手册，不收窄成单点/避坑专篇
   - 标题写明软件名（如 PaseoPlugin创作手册），禁止只写 Plugin
   - 宿主写错（非用户点名）=整篇作废重写
+
+Paseo 插件仓库布局与命名
+- Date: 2026-09-23
+- Context: 用户定稿目录/id/数据路径约定
+- Instructions:
+  - 插件放 `paseo-plugins/<名>/`；待办插件目录 `one-todo`、id `one-todo`
+  - 数据在 `~/.paseo/plugin-data/<id>/`；改 id 必须迁数据目录
+  - 不用把宿主名/类型词粘进 id（如 `paseo-*-plugin`）

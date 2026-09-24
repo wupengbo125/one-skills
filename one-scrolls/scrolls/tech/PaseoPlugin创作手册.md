@@ -1,7 +1,7 @@
 # Paseo Plugin 创作手册
 
 > 从零创建一个 **Paseo** 插件（不是 VS Code 扩展）：骨架 → 接口 → 界面 → 存储 → 联调。
-> 实例：`paseo-todo-plugin` / `paseo-race-plugin`；2026-09-23。
+> 实例：`paseo-plugins/one-todo`；2026-09-23。
 
 ## 1. 骨架（最小可跑）
 
@@ -126,6 +126,6 @@ paseo plugin logs <id>        # 看到 Plugin ready
 
 ## 9. 相关路径
 
-- 参考实现：`paseo-todo-plugin/`、`paseo-race-plugin/`
+- 参考实现：`paseo-plugins/one-todo/`
 - 数据：`~/.paseo/plugin-data/<plugin-id>/`
 - 命令：`paseo plugin reload|ls|logs <id>`

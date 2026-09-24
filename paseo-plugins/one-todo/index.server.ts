@@ -1,0 +1,57 @@
+import type { PluginServerContext } from "@getpaseo/plugin/server";
+import {
+  addTodoRpc,
+  completeByAgentId,
+  createIssueRpc,
+  fetchIssueRpc,
+  handleAddTodo,
+  handleCreateIssue,
+  handleFetchIssue,
+  handleListIssues,
+  handleListModels,
+  handleListProjects,
+  handleListProviders,
+  handleListTodos,
+  handleListWorkspaces,
+  handleRemoveTodo,
+  handleStartTodo,
+  handleUpdateTodo,
+  listIssuesRpc,
+  listModelsRpc,
+  listProjectsRpc,
+  listProvidersRpc,
+  listTodosRpc,
+  listWorkspacesRpc,
+  removeTodoRpc,
+  startTodoRpc,
+  updateTodoRpc,
+} from "./server/todo";
+
+export default function contribute(server: PluginServerContext) {
+  server.handle(listTodosRpc, () => handleListTodos());
+  server.handle(addTodoRpc, (input) => handleAddTodo(input));
+  server.handle(updateTodoRpc, (input) => handleUpdateTodo(input));
+  server.handle(removeTodoRpc, (input) => handleRemoveTodo(input));
+  server.handle(startTodoRpc, (input, ctx) => handleStartTodo(input, ctx));
+  server.handle(listProvidersRpc, (_input, ctx) => handleListProviders(ctx));
+  server.handle(listModelsRpc, (input, ctx) => handleListModels(input, ctx));
+  server.handle(listWorkspacesRpc, (_input, ctx) => handleListWorkspaces(ctx));
+  server.handle(listProjectsRpc, (_input, ctx) => handleListProjects(ctx));
+  server.handle(listIssuesRpc, (input, ctx) => handleListIssues(input, ctx));
+  server.handle(fetchIssueRpc, (input) => handleFetchIssue(input));
+  server.handle(createIssueRpc, (input) => handleCreateIssue(input));
+
+  server.on("agent.turn_ended", (event) => {
+    const outcome =
+      event.outcome.kind === "completed"
+        ? "completed"
+        : event.outcome.kind === "failed"
+          ? "failed"
+          : "canceled";
+    const errMsg =
+      event.outcome.kind === "failed" ? event.outcome.error.message : undefined;
+    completeByAgentId(event.agent.id, outcome, errMsg);
+  });
+
+  return () => {};
+}
