@@ -86,4 +86,4 @@
 - 2026-09-24 18:25 [f34ca918-74f3-45b2-86d6-6f965715ce43] one-todo 技能多选与Issue修复；one-memory 探针加 PASEO_AGENT_ID
 - 2026-09-24 19:05 [01a0d2fc-d523-75e2-8e28-54595488dd73] one-todo：待办可存技能与马、默认一匹上次的马；failed 加「重连」回 running
 - 2026-09-24 19:56 [bf173bd1-abf6-4159-9274-1d4f5c93fb13] fix(one-todo): 开跑前校验 workspace 失效并按项目重建
-- 2026-09-24 21:17 [01a0d34c-02bd-71e0-a8a3-c17790e17075] one-todo 架构优化：服务端/客户端拆模块，去 provider/model/agentId 冗余并迁移老数据
+- 2026-09-24 21:17 [01a0d34c-02bd-71e0-a8a3-c17790e17075] one-todo 架构重构；全军出击长按2秒、Local多马合一worktree、默认Local、归档删分支

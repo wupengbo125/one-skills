@@ -67,7 +67,7 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
     projectId: "",
     projectName: "",
     projectPath: "",
-    isolation: "worktree",
+    isolation: "local",
     baseBranch: "main",
     newBranch: "",
     skills: [],

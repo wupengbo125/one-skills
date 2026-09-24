@@ -10,6 +10,7 @@ import {
 import { getTodo, listTodos, saveTodo } from "./store";
 import { savePreferences } from "./preferences";
 import { handleUpdateTodo } from "./todo";
+import { deleteBranches } from "./worktree";
 
 async function resolveProviderField(
   paseo: PluginHandlerContext["paseo"],
@@ -139,6 +140,8 @@ export async function handleStartTodo(
     let projectPath = todo.projectPath;
     let projectId = todo.projectId;
     const agentIds: string[] = [];
+    const wtWorkspaces: Array<{ workspaceId: string; branch: string }> = [];
+    let wtRepo: string | undefined;
 
     let staleWorkspace = false;
     if (workspaceId && !(await workspaceIsActive(paseo, workspaceId))) {
@@ -170,12 +173,16 @@ export async function handleStartTodo(
       workspaceName = workspaceName ?? todo.workspaceName;
     } else if (projectPath) {
       const isWorktree = (todo.isolation ?? "local") === "worktree";
+      // Local 选多个 Provider（赛马）时，也建一个 worktree 把会话都放进去
+      const makeWorktree = isWorktree || multi;
+      const srcRepo = projectPath;
 
       if (isWorktree && multi) {
         for (let i = 0; i < configs.length; i++) {
           const branchName = todo.newBranch?.trim()
             ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
             : `${branchFromTitle(title)}-a${i + 1}`;
+          wtRepo = srcRepo;
           const ws = await paseo.workspaces.create({
             source: {
               kind: "worktree",
@@ -188,6 +195,7 @@ export async function handleStartTodo(
             },
             title: multi ? `${title} #${i + 1}` : title,
           });
+          wtWorkspaces.push({ workspaceId: ws.id, branch: branchName });
           if (i === 0) {
             workspaceId = ws.id;
             workspaceName = ws.name || title;
@@ -202,12 +210,16 @@ export async function handleStartTodo(
           agentIds.push(handle.id);
         }
       } else {
-        const source = isWorktree
+        const singleBranch = todo.newBranch?.trim() || branchFromTitle(title);
+        if (makeWorktree) {
+          wtRepo = srcRepo;
+        }
+        const source = makeWorktree
           ? {
               kind: "worktree" as const,
               cwd: projectPath,
               ...(projectId ? { projectId } : {}),
-              branchName: todo.newBranch?.trim() || branchFromTitle(title),
+              branchName: singleBranch,
               worktreeSlug: branchFromTitle(todo.newBranch?.trim() || title),
             }
           : {
@@ -217,6 +229,9 @@ export async function handleStartTodo(
             };
 
         const ws = await paseo.workspaces.create({ source, title });
+        if (makeWorktree) {
+          wtWorkspaces.push({ workspaceId: ws.id, branch: singleBranch });
+        }
         workspaceId = ws.id;
         workspaceName = ws.name ?? title;
         projectId = ws.projectId ?? projectId;
@@ -246,18 +261,25 @@ export async function handleStartTodo(
           title: multi ? `${title} #${i + 1}` : title,
           prompt,
         };
+        let branch: string | undefined;
         if (todo.newBranch && todo.baseBranch) {
+          const newBranch =
+            multi && i > 0
+              ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
+              : todo.newBranch;
           createOpts.worktree = {
             mode: "branch-off",
-            newBranch:
-              multi && i > 0
-                ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
-                : todo.newBranch,
+            newBranch,
             base: todo.baseBranch,
           };
+          wtRepo = todo.cwd;
+          branch = newBranch;
         }
         const handle = await paseo.agents.create(createOpts);
         agentIds.push(handle.id);
+        if (branch && handle.workspaceId) {
+          wtWorkspaces.push({ workspaceId: handle.workspaceId, branch });
+        }
         if (i === 0) workspaceId = handle.workspaceId || workspaceId;
       }
     }
@@ -267,6 +289,8 @@ export async function handleStartTodo(
       status: "running",
       agentIds,
       pendingAgentIds: [...agentIds],
+      worktreeRepo: wtRepo,
+      worktrees: wtWorkspaces.length ? wtWorkspaces : undefined,
       workspaceId: workspaceId || undefined,
       workspaceName: workspaceName || undefined,
       projectId: projectId || undefined,
@@ -345,6 +369,29 @@ export function stashWorkspaceProject(
   for (const t of listTodos()) {
     if (t.workspaceId !== workspaceId || t.projectId) continue;
     saveTodo({ ...t, projectId });
+  }
+}
+
+/**
+ * workspace 归档时，删掉该任务开跑时创建的分支（工作目录已由 Paseo 删）。
+ * 归档即用户确认，未合并的改动会一并丢弃。
+ */
+export async function cleanupWorkspaceBranches(
+  workspaceId: string,
+): Promise<void> {
+  for (const t of listTodos()) {
+    const hit = (t.worktrees ?? []).filter((w) => w.workspaceId === workspaceId);
+    if (hit.length === 0) continue;
+    const repo = t.worktreeRepo;
+    if (!repo) continue;
+    await deleteBranches(
+      repo,
+      hit.map((w) => w.branch),
+    );
+    saveTodo({
+      ...t,
+      worktrees: (t.worktrees ?? []).filter((w) => w.workspaceId !== workspaceId),
+    });
   }
 }
 

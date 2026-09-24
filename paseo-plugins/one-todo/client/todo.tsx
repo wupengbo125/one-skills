@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { Animated } from "react-native";
 import {
   addTodoRpc,
   createIssueRpc,
@@ -42,6 +43,72 @@ import {
   type RunDraft,
   type SourceFilter,
 } from "./model";
+
+function HoldToLaunch({
+  label,
+  disabled,
+  style,
+  textStyle,
+  onComplete,
+}: {
+  label: string;
+  disabled: boolean;
+  style: StyleProp<ViewStyle>;
+  textStyle: StyleProp<any>;
+  onComplete: () => void;
+}) {
+  const progress = useRef(new Animated.Value(0)).current;
+  const anim = useRef<Animated.CompositeAnimation | null>(null);
+  const fired = useRef(false);
+
+  const start = useCallback(() => {
+    if (disabled) return;
+    fired.current = false;
+    progress.setValue(0);
+    anim.current = Animated.timing(progress, {
+      toValue: 1,
+      duration: 2000,
+      useNativeDriver: false,
+    });
+    anim.current.start(({ finished }) => {
+      if (finished && !fired.current) {
+        fired.current = true;
+        onComplete();
+      }
+    });
+  }, [disabled, onComplete, progress]);
+
+  const cancel = useCallback(() => {
+    anim.current?.stop();
+    progress.setValue(0);
+  }, [progress]);
+
+  const width = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "100%"],
+  });
+
+  return (
+    <Pressable
+      style={[style, { overflow: "hidden" }]}
+      onPressIn={start}
+      onPressOut={cancel}
+      disabled={disabled}
+    >
+      <Animated.View
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width,
+          backgroundColor: "rgba(0,0,0,0.22)",
+        }}
+      />
+      <Text style={textStyle}>{label}</Text>
+    </Pressable>
+  );
+}
 
 export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   const toast = useToast();
@@ -344,7 +411,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       d.projectId = t.projectId ?? "";
       d.projectName = t.projectName ?? "";
       d.projectPath = t.projectPath ?? "";
-      d.isolation = t.isolation ?? "worktree";
+      d.isolation = t.isolation ?? "local";
     } else {
       const gh = (projectsQ.data?.projects ?? []).find(
         (p) =>
@@ -356,7 +423,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         d.projectName = gh.name;
         d.projectPath = gh.path;
       }
-      d.isolation = "worktree";
+      d.isolation = "local";
     }
 
     d.workspaceId = t?.workspaceId ?? "";
@@ -1185,19 +1252,19 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
                     {editM.isPending || addM.isPending ? "保存中…" : "保存"}
                   </Text>
                 </Pressable>
-                <Pressable
+                <HoldToLaunch
                   style={[s.saveBtn, { flex: 1 }]}
-                  onPress={onRun}
+                  textStyle={s.saveText}
                   disabled={startM.isPending}
-                >
-                  <Text style={s.saveText}>
-                    {startM.isPending
+                  label={
+                    startM.isPending
                       ? "启动中…"
                       : run.agents.length > 1
-                        ? `开跑 ×${run.agents.length}`
-                        : "开跑"}
-                  </Text>
-                </Pressable>
+                        ? `全军出击 ×${run.agents.length}`
+                        : "全军出击"
+                  }
+                  onComplete={onRun}
+                />
               </View>
             </View>
           ) : null}

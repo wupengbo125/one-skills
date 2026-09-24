@@ -43,6 +43,10 @@ export const todoSchema = z.object({
   error: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
   pendingAgentIds: z.array(z.string()).optional(),
+  worktreeRepo: z.string().optional(),
+  worktrees: z
+    .array(z.object({ workspaceId: z.string(), branch: z.string() }))
+    .optional(),
     createdAt: z.string(),
     startedAt: z.string().optional(),
     finishedAt: z.string().optional(),
