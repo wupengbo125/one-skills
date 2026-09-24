@@ -42,6 +42,7 @@ export const todoSchema = z.object({
   status: todoStatusSchema,
   error: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
+  terminalIds: z.array(z.string()).optional(),
   pendingAgentIds: z.array(z.string()).optional(),
   worktreeRepo: z.string().optional(),
   worktrees: z

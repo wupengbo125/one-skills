@@ -716,7 +716,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           {isFailed ? (
             <View style={[s.actions, { marginTop: 4 }]}>
-              {t.workspaceId || t.agentIds?.length ? (
+              {t.workspaceId || t.agentIds?.length || t.terminalIds?.length ? (
                 <Pressable
                   style={s.btn}
                   onPress={() =>
@@ -744,7 +744,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             gap: 2,
           }}
         >
-          {isRunning && navigation && (t.agentIds?.length || t.workspaceId) ? (
+          {isRunning && navigation && (t.agentIds?.length || t.terminalIds?.length || t.workspaceId) ? (
             <Pressable
               accessibilityRole="button"
               style={{
@@ -755,10 +755,14 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               }}
               onPress={(e) => {
                 e.stopPropagation();
-                const agentId = t.agentIds?.[0];
-                if (agentId) navigation.openAgent({ agentId });
-                else if (t.workspaceId)
+                if (t.terminalIds?.length && t.workspaceId) {
                   navigation.openWorkspace({ workspaceId: t.workspaceId });
+                } else {
+                  const agentId = t.agentIds?.[0];
+                  if (agentId) navigation.openAgent({ agentId });
+                  else if (t.workspaceId)
+                    navigation.openWorkspace({ workspaceId: t.workspaceId });
+                }
               }}
             >
               <Text

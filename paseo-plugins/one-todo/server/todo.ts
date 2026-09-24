@@ -194,16 +194,35 @@ export function handleRemoveTodo(input: RpcInput<typeof removeTodoRpc>) {
   return { ok: removeTodo(input.id) };
 }
 
+const AGY_MODELS = [
+  { id: "gemini-3.8-flash-high", label: "Gemini 3.8 Flash (High)" },
+  { id: "gemini-3.8-flash-medium", label: "Gemini 3.8 Flash (Medium)", isDefault: true },
+  { id: "gemini-3.8-flash-low", label: "Gemini 3.8 Flash (Low)" },
+  { id: "gemini-3.7-flash-high", label: "Gemini 3.7 Flash (High)" },
+  { id: "gemini-3.7-flash-medium", label: "Gemini 3.7 Flash (Medium)" },
+  { id: "gemini-3.7-flash-low", label: "Gemini 3.7 Flash (Low)" },
+  { id: "gemini-3.6-flash-high", label: "Gemini 3.6 Flash (High)" },
+  { id: "gemini-3.6-flash-medium", label: "Gemini 3.6 Flash (Medium)" },
+  { id: "gemini-3.6-flash-low", label: "Gemini 3.6 Flash (Low)" },
+  { id: "gemini-3.1-pro-high", label: "Gemini 3.1 Pro (High)" },
+  { id: "gemini-3.1-pro-low", label: "Gemini 3.1 Pro (Low)" },
+  { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6 (Thinking)" },
+  { id: "claude-opus-4-6-thinking", label: "Claude Opus 4.6 (Thinking)" },
+  { id: "gpt-oss-120b-medium", label: "GPT-OSS 120B (Medium)" },
+];
+
 export async function handleListProviders({ paseo }: PluginHandlerContext) {
   try {
     const res = await paseo.providers.listAvailable();
-    return {
-      providers: (res.providers ?? [])
-        .filter((p) => p.available)
-        .map((p) => ({ id: p.provider, available: p.available })),
-    };
+    const providers = (res.providers ?? [])
+      .filter((p) => p.available)
+      .map((p) => ({ id: p.provider, available: p.available }));
+    if (!providers.some((p) => p.id === "agy")) {
+      providers.push({ id: "agy", available: true });
+    }
+    return { providers };
   } catch {
-    return { providers: [] };
+    return { providers: [{ id: "agy", available: true }] };
   }
 }
 
@@ -211,6 +230,9 @@ export async function handleListModels(
   input: RpcInput<typeof listModelsRpc>,
   { paseo }: PluginHandlerContext,
 ) {
+  if (input.provider.toLowerCase() === "agy") {
+    return { models: AGY_MODELS };
+  }
   try {
     const res = await paseo.providers.listModels(input.provider);
     const models = (res.models ?? [])

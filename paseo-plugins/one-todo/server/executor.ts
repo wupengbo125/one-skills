@@ -130,16 +130,45 @@ export async function handleStartTodo(
   const multi = refs.length > 1;
 
   try {
-    const configs: string[] = [];
-    for (const ref of refs) {
-      configs.push(await resolveProviderField(paseo, ref.provider, ref.model));
+function isAgy(provider: string): boolean {
+  return provider.trim().toLowerCase() === "agy";
+}
+
+async function launchAgentOrTerminal(
+  paseo: PluginHandlerContext["paseo"],
+  ws: ReturnType<PluginHandlerContext["paseo"]["workspaces"]["ref"]>,
+  ref: AgentRef,
+  title: string,
+  prompt: string,
+): Promise<{ agentId?: string; terminalId?: string }> {
+  if (isAgy(ref.provider)) {
+    const args = ["--dangerously-skip-permissions"];
+    if (ref.model) {
+      args.push("--model", ref.model);
     }
+    args.push("-i", prompt);
+    const term = await ws.terminals.create({
+      name: title,
+      command: "agy",
+      args,
+    });
+    return { terminalId: term.id };
+  }
+  const config = await resolveProviderField(paseo, ref.provider, ref.model);
+  const handle = await ws.agents.create({
+    config: { provider: config },
+    title,
+    prompt,
+  });
+  return { agentId: handle.id };
+}
 
     let workspaceId = todo.workspaceId;
     let workspaceName = todo.workspaceName;
     let projectPath = todo.projectPath;
     let projectId = todo.projectId;
     const agentIds: string[] = [];
+    const terminalIds: string[] = [];
     const wtWorkspaces: Array<{ workspaceId: string; branch: string }> = [];
     let wtRepo: string | undefined;
 
@@ -162,13 +191,16 @@ export async function handleStartTodo(
 
     if (workspaceId) {
       const ws = paseo.workspaces.ref(workspaceId);
-      for (let i = 0; i < configs.length; i++) {
-        const handle = await ws.agents.create({
-          config: { provider: configs[i] },
-          title: multi ? `${title} #${i + 1}` : title,
+      for (let i = 0; i < refs.length; i++) {
+        const launched = await launchAgentOrTerminal(
+          paseo,
+          ws,
+          refs[i],
+          multi ? `${title} #${i + 1}` : title,
           prompt,
-        });
-        agentIds.push(handle.id);
+        );
+        if (launched.agentId) agentIds.push(launched.agentId);
+        if (launched.terminalId) terminalIds.push(launched.terminalId);
       }
       workspaceName = workspaceName ?? todo.workspaceName;
     } else if (projectPath) {
@@ -178,7 +210,7 @@ export async function handleStartTodo(
       const srcRepo = projectPath;
 
       if (isWorktree && multi) {
-        for (let i = 0; i < configs.length; i++) {
+        for (let i = 0; i < refs.length; i++) {
           const branchName = todo.newBranch?.trim()
             ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
             : `${branchFromTitle(title)}-a${i + 1}`;
@@ -202,12 +234,15 @@ export async function handleStartTodo(
             projectId = ws.projectId || projectId;
             projectPath = ws.directory || projectPath;
           }
-          const handle = await ws.agents.create({
-            config: { provider: configs[i] },
-            title: multi ? `${title} #${i + 1}` : title,
+          const launched = await launchAgentOrTerminal(
+            paseo,
+            ws,
+            refs[i],
+            multi ? `${title} #${i + 1}` : title,
             prompt,
-          });
-          agentIds.push(handle.id);
+          );
+          if (launched.agentId) agentIds.push(launched.agentId);
+          if (launched.terminalId) terminalIds.push(launched.terminalId);
         }
       } else {
         const singleBranch = todo.newBranch?.trim() || branchFromTitle(title);
@@ -237,13 +272,16 @@ export async function handleStartTodo(
         projectId = ws.projectId ?? projectId;
         projectPath = ws.directory ?? projectPath;
 
-        for (let i = 0; i < configs.length; i++) {
-          const handle = await ws.agents.create({
-            config: { provider: configs[i] },
-            title: multi ? `${title} #${i + 1}` : title,
+        for (let i = 0; i < refs.length; i++) {
+          const launched = await launchAgentOrTerminal(
+            paseo,
+            ws,
+            refs[i],
+            multi ? `${title} #${i + 1}` : title,
             prompt,
-          });
-          agentIds.push(handle.id);
+          );
+          if (launched.agentId) agentIds.push(launched.agentId);
+          if (launched.terminalId) terminalIds.push(launched.terminalId);
         }
       }
     } else {
@@ -254,33 +292,41 @@ export async function handleStartTodo(
           error: "未选项目/Workspace，也未填仓库路径 cwd",
         };
       }
-      for (let i = 0; i < configs.length; i++) {
-        const createOpts: Parameters<typeof paseo.agents.create>[0] = {
-          config: { provider: configs[i] },
-          cwd: todo.cwd,
-          title: multi ? `${title} #${i + 1}` : title,
+      const isWorktree = (todo.isolation ?? "local") === "worktree";
+      const source =
+        isWorktree && todo.newBranch && todo.baseBranch
+          ? {
+              kind: "worktree" as const,
+              cwd: todo.cwd,
+              action: "branch-off" as const,
+              baseBranch: todo.baseBranch.trim() || "main",
+              branchName: todo.newBranch.trim(),
+              worktreeSlug: branchFromTitle(todo.newBranch.trim()),
+            }
+          : {
+              kind: "directory" as const,
+              path: todo.cwd,
+            };
+      const ws = await paseo.workspaces.create({ source, title });
+      workspaceId = ws.id;
+      workspaceName = ws.name ?? title;
+      if (source.kind === "worktree") {
+        wtRepo = todo.cwd;
+        wtWorkspaces.push({
+          workspaceId: ws.id,
+          branch: todo.newBranch!.trim(),
+        });
+      }
+      for (let i = 0; i < refs.length; i++) {
+        const launched = await launchAgentOrTerminal(
+          paseo,
+          ws,
+          refs[i],
+          multi ? `${title} #${i + 1}` : title,
           prompt,
-        };
-        let branch: string | undefined;
-        if (todo.newBranch && todo.baseBranch) {
-          const newBranch =
-            multi && i > 0
-              ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
-              : todo.newBranch;
-          createOpts.worktree = {
-            mode: "branch-off",
-            newBranch,
-            base: todo.baseBranch,
-          };
-          wtRepo = todo.cwd;
-          branch = newBranch;
-        }
-        const handle = await paseo.agents.create(createOpts);
-        agentIds.push(handle.id);
-        if (branch && handle.workspaceId) {
-          wtWorkspaces.push({ workspaceId: handle.workspaceId, branch });
-        }
-        if (i === 0) workspaceId = handle.workspaceId || workspaceId;
+        );
+        if (launched.agentId) agentIds.push(launched.agentId);
+        if (launched.terminalId) terminalIds.push(launched.terminalId);
       }
     }
 
@@ -288,6 +334,7 @@ export async function handleStartTodo(
       ...todo,
       status: "running",
       agentIds,
+      terminalIds: terminalIds.length ? terminalIds : undefined,
       pendingAgentIds: [...agentIds],
       worktreeRepo: wtRepo,
       worktrees: wtWorkspaces.length ? wtWorkspaces : undefined,
