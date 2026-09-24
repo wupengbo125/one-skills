@@ -1157,6 +1157,16 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
 
           {isFailed ? (
             <View style={[s.actions, { marginTop: 4 }]}>
+              {t.workspaceId || t.agentIds?.length ? (
+                <Pressable
+                  style={s.btn}
+                  onPress={() =>
+                    statusM.mutate({ id: t.id, status: "running" })
+                  }
+                >
+                  <Text style={s.btnText}>重连</Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 style={s.btn}
                 onPress={() => statusM.mutate({ id: t.id, status: "pending" })}

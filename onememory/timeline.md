@@ -84,4 +84,4 @@
 - 2026-09-23 15:05 [a5892662-349d-4fbd-b7b6-1fa981e5ed19] 删 one-herdr-race（Herdr 赛马）
 - 2026-09-24 08:02 [01a0c411-aa0e-7f02-9953-3f27672304ce] one-memory 规则分流；one-todo 迁 paseo-plugins；修断字；PaseoPlugin卷轴
 - 2026-09-24 18:25 [f34ca918-74f3-45b2-86d6-6f965715ce43] one-todo 技能多选与Issue修复；one-memory 探针加 PASEO_AGENT_ID
-- 2026-09-24 18:53 [01a0d2fc-d523-75e2-8e28-54595488dd73] one-todo 待办可存技能/马：openDetail 回填 agents+skills，默认一匹上次的马
+- 2026-09-24 19:05 [01a0d2fc-d523-75e2-8e28-54595488dd73] one-todo：待办可存技能与马、默认一匹上次的马；failed 加「重连」回 running

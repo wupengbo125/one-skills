@@ -220,6 +220,10 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.pinned !== undefined) next.pinned = p.pinned;
   if (p.status !== undefined) {
     next.status = p.status;
+    if (p.status === "running") {
+      next.error = undefined;
+      next.finishedAt = undefined;
+    }
     if (p.status === "pending") {
       next.agentId = undefined;
       next.agentIds = [];
