@@ -177,8 +177,8 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     const first = primaryAgent(p.agents);
     next.provider = first.provider;
     next.model = first.model;
-    if (p.skills !== undefined) next.skills = p.skills;
   }
+  if (p.skills !== undefined) next.skills = p.skills;
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;
   if (p.issueUrl !== undefined) next.issueUrl = p.issueUrl || undefined;

@@ -878,6 +878,8 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       d.isolation = "worktree";
     }
 
+    d.agents = agents;
+    d.skills = t?.skills ?? [];
     d.baseBranch = t?.baseBranch || "main";
     d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
     runTitleRef.current = d.title;
