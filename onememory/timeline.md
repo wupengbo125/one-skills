@@ -85,3 +85,4 @@
 - 2026-09-24 08:02 [01a0c411-aa0e-7f02-9953-3f27672304ce] one-memory 规则分流；one-todo 迁 paseo-plugins；修断字；PaseoPlugin卷轴
 - 2026-09-24 18:25 [f34ca918-74f3-45b2-86d6-6f965715ce43] one-todo 技能多选与Issue修复；one-memory 探针加 PASEO_AGENT_ID
 - 2026-09-24 19:05 [01a0d2fc-d523-75e2-8e28-54595488dd73] one-todo：待办可存技能与马、默认一匹上次的马；failed 加「重连」回 running
+- 2026-09-24 19:56 [bf173bd1-abf6-4159-9274-1d4f5c93fb13] fix(one-todo): 开跑前校验 workspace 失效并按项目重建

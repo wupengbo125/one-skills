@@ -878,6 +878,8 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
       d.isolation = "worktree";
     }
 
+    d.workspaceId = t?.workspaceId ?? "";
+    d.workspaceName = t?.workspaceName ?? "";
     d.agents = agents;
     d.skills = t?.skills ?? [];
     d.baseBranch = t?.baseBranch || "main";
@@ -907,6 +909,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
     if (!title) return toast.error("标题必填");
     const prompt = runPromptRef.current.trim();
     const agents = run.agents.filter((a) => a.provider.trim());
+    setRun((d) => (d ? { ...d, title, prompt } : d));
     if (run.id) {
       editM.mutate({
         id: run.id,
@@ -919,6 +922,8 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           projectName: run.projectName,
           projectPath: run.projectPath,
           isolation: run.isolation,
+          workspaceId: run.workspaceId,
+          workspaceName: run.workspaceName,
           baseBranch: run.baseBranch,
           newBranch: run.newBranch,
         },
@@ -933,6 +938,8 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         projectName: run.projectName,
         projectPath: run.projectPath,
         isolation: run.isolation,
+        workspaceId: run.workspaceId,
+        workspaceName: run.workspaceName,
         baseBranch: run.baseBranch,
         newBranch: run.newBranch,
         source: run.source || "todo",
@@ -1457,7 +1464,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
               <View>
                 <Text style={s.label}>标题 *</Text>
                 <StableInput
-                  key={`run-title-${run.id}-${formGen}`}
+                  key={`run-title-${formGen}`}
                   style={s.input}
                   initial={run.title}
                   onValue={onRunTitle}
@@ -1468,7 +1475,7 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
               <View>
                 <Text style={s.label}>内容</Text>
                 <StableInput
-                  key={`run-prompt-${run.id}-${formGen}`}
+                  key={`run-prompt-${formGen}`}
                   style={s.inputMulti}
                   initial={run.prompt}
                   onValue={onRunPrompt}

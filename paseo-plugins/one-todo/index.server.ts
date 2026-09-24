@@ -27,6 +27,7 @@ import {
   listWorkspacesRpc,
   removeTodoRpc,
   startTodoRpc,
+  stashWorkspaceProject,
   updateTodoRpc,
 } from "./server/todo";
 
@@ -55,6 +56,7 @@ export default function contribute(server: PluginServerContext) {
   });
 
   server.on("workspace.archived", (event) => {
+    stashWorkspaceProject(event.workspace.id, event.workspace.projectId);
     completeByWorkspaceId(
       event.workspace.id,
       event.workspace.archivedAt ?? undefined,

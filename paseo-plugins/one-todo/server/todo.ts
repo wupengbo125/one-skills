@@ -37,6 +37,33 @@ import {
 
 const execFileAsync = promisify(execFile);
 
+async function workspaceIsActive(
+  paseo: PluginHandlerContext["paseo"],
+  workspaceId: string,
+): Promise<boolean> {
+  try {
+    const res = await paseo.workspaces.list();
+    return (res.entries ?? []).some((w) => w.id === workspaceId);
+  } catch {
+    return false;
+  }
+}
+
+async function resolveProjectPath(
+  paseo: PluginHandlerContext["paseo"],
+  projectId: string,
+): Promise<string | undefined> {
+  try {
+    const res = await paseo.projects.list();
+    return (
+      res.projects?.find((p) => p.projectId === projectId)?.projectRootPath ||
+      undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
+
 export function handleListTodos() {
   return { todos: listTodos(), preferences: getPreferences() };
 }
@@ -80,28 +107,21 @@ type PlacementInput = {
 };
 
 function pickPlacement(input: PlacementInput) {
-  if (input.workspaceId) {
-    return {
-      projectId: undefined as string | undefined,
-      projectName: undefined as string | undefined,
-      projectPath: undefined as string | undefined,
-      isolation: undefined as "local" | "worktree" | undefined,
-      workspaceId: input.workspaceId,
-      workspaceName: input.workspaceName?.trim() || undefined,
-      cwd: undefined as string | undefined,
-    };
-  }
   const hasProject = Boolean(input.projectId || input.projectPath);
+  const hasWorkspace = Boolean(input.workspaceId);
   return {
     projectId: input.projectId || undefined,
     projectName: hasProject
       ? input.projectName?.trim() || undefined
       : undefined,
     projectPath: input.projectPath || undefined,
-    isolation: hasProject ? (input.isolation ?? "local") : undefined,
-    workspaceId: undefined as string | undefined,
-    workspaceName: undefined as string | undefined,
-    cwd: hasProject ? undefined : input.cwd?.trim() || undefined,
+    isolation: input.isolation ?? (hasProject ? "local" : undefined),
+    workspaceId: input.workspaceId || undefined,
+    workspaceName: hasWorkspace
+      ? input.workspaceName?.trim() || undefined
+      : undefined,
+    cwd:
+      hasProject || hasWorkspace ? undefined : input.cwd?.trim() || undefined,
   };
 }
 
@@ -354,8 +374,25 @@ export async function handleStartTodo(
     let projectId = todo.projectId;
     const agentIds: string[] = [];
 
-    if (todo.workspaceId) {
-      const ws = paseo.workspaces.ref(todo.workspaceId);
+    let staleWorkspace = false;
+    if (workspaceId && !(await workspaceIsActive(paseo, workspaceId))) {
+      workspaceId = undefined;
+      workspaceName = undefined;
+      staleWorkspace = true;
+    }
+    if (!projectPath && projectId) {
+      projectPath = await resolveProjectPath(paseo, projectId);
+    }
+    if (staleWorkspace && !projectPath) {
+      return {
+        ok: false,
+        todo,
+        error: "该任务的工作目录已失效，请重新选择项目目录",
+      };
+    }
+
+    if (workspaceId) {
+      const ws = paseo.workspaces.ref(workspaceId);
       for (let i = 0; i < configs.length; i++) {
         const handle = await ws.agents.create({
           config: { provider: configs[i] },
@@ -365,7 +402,7 @@ export async function handleStartTodo(
         agentIds.push(handle.id);
       }
       workspaceName = workspaceName ?? todo.workspaceName;
-    } else if (todo.projectPath) {
+    } else if (projectPath) {
       const isWorktree = (todo.isolation ?? "local") === "worktree";
 
       if (isWorktree && multi) {
@@ -376,8 +413,8 @@ export async function handleStartTodo(
           const ws = await paseo.workspaces.create({
             source: {
               kind: "worktree",
-              cwd: todo.projectPath,
-              ...(todo.projectId ? { projectId: todo.projectId } : {}),
+              cwd: projectPath,
+              ...(projectId ? { projectId } : {}),
               action: "branch-off",
               baseBranch: todo.baseBranch?.trim() || "main",
               branchName,
@@ -402,15 +439,15 @@ export async function handleStartTodo(
         const source = isWorktree
           ? {
               kind: "worktree" as const,
-              cwd: todo.projectPath,
-              ...(todo.projectId ? { projectId: todo.projectId } : {}),
+              cwd: projectPath,
+              ...(projectId ? { projectId } : {}),
             branchName: todo.newBranch?.trim() || branchFromTitle(title),
             worktreeSlug: branchFromTitle(todo.newBranch?.trim() || title),
             }
           : {
               kind: "directory" as const,
-              path: todo.projectPath,
-              ...(todo.projectId ? { projectId: todo.projectId } : {}),
+              path: projectPath,
+              ...(projectId ? { projectId } : {}),
             };
 
         const ws = await paseo.workspaces.create({ source, title });
@@ -535,6 +572,17 @@ export function completeByAgentId(
     });
   }
   return saveTodo({ ...todo, pendingAgentIds: pool });
+}
+
+export function stashWorkspaceProject(
+  workspaceId: string,
+  projectId?: string,
+): void {
+  if (!projectId) return;
+  for (const t of listTodos()) {
+    if (t.workspaceId !== workspaceId || t.projectId) continue;
+    saveTodo({ ...t, projectId });
+  }
 }
 
 export function completeByWorkspaceId(
