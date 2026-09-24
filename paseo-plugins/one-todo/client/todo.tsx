@@ -1332,66 +1332,64 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     {editM.isPending || addM.isPending ? "保存中…" : "保存"}
                   </Text>
                 </Pressable>
-                <HoldToLaunch
-                  style={[s.saveBtn, { flex: 1 }]}
-                  textStyle={s.saveText}
-                  disabled={startM.isPending}
-                  label={
-                    startM.isPending
-                      ? "启动中…"
-                      : run.agents.length > 1
-                        ? `全军出击 ×${run.agents.length}`
-                        : "全军出击"
-                  }
-                  onComplete={onRun}
-                  onShortPress={triggerHoldTip}
-                />
+                <View style={{ flex: 1, position: "relative" }}>
+                  {holdTip ? (
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        marginBottom: 8,
+                        left: 0,
+                        right: 0,
+                        alignItems: "center",
+                        zIndex: 9999,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "rgba(20, 20, 25, 0.94)",
+                          borderColor: "rgba(255, 255, 255, 0.16)",
+                          borderWidth: 1,
+                          borderRadius: 8,
+                          paddingVertical: 7,
+                          paddingHorizontal: 14,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 3 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 6,
+                          elevation: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#ffffff",
+                            fontSize: 13,
+                            fontWeight: "600",
+                          }}
+                        >
+                          请长按全军出击
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+                  <HoldToLaunch
+                    style={[s.saveBtn, { width: "100%" }]}
+                    textStyle={s.saveText}
+                    disabled={startM.isPending}
+                    label={
+                      startM.isPending
+                        ? "启动中…"
+                        : run.agents.length > 1
+                          ? `全军出击 ×${run.agents.length}`
+                          : "全军出击"
+                    }
+                    onComplete={onRun}
+                    onShortPress={triggerHoldTip}
+                  />
+                </View>
               </View>
             </SheetScrollView>
-          ) : null}
-          {holdTip ? (
-            <View
-              pointerEvents="none"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                justifyContent: "center",
-                alignItems: "center",
-                zIndex: 9999,
-              }}
-            >
-              <View
-                style={{
-                  backgroundColor: "rgba(20, 20, 25, 0.94)",
-                  borderColor: "rgba(255, 255, 255, 0.16)",
-                  borderWidth: 1,
-                  borderRadius: 14,
-                  paddingVertical: 30,
-                  paddingHorizontal: 36,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 6 },
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  elevation: 10,
-                }}
-              >
-                <Text
-                  style={{
-                    color: "#ffffff",
-                    fontSize: 16,
-                    fontWeight: "600",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  请长按全军出击
-                </Text>
-              </View>
-            </View>
           ) : null}
         </Modal.Content>
       </Modal>
