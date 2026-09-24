@@ -1,14 +1,9 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
 import {
   addTodoRpc,
-  completeByAgentId,
-  completeByWorkspaceId,
   createIssueRpc,
   fetchIssueRpc,
   handleAddTodo,
-  handleCreateIssue,
-  handleFetchIssue,
-  handleListIssues,
   handleListModels,
   handleListProjects,
   handleListProviders,
@@ -16,7 +11,6 @@ import {
   handleListTodos,
   handleListWorkspaces,
   handleRemoveTodo,
-  handleStartTodo,
   handleUpdateTodo,
   listIssuesRpc,
   listModelsRpc,
@@ -27,9 +21,19 @@ import {
   listWorkspacesRpc,
   removeTodoRpc,
   startTodoRpc,
-  stashWorkspaceProject,
   updateTodoRpc,
 } from "./server/todo";
+import {
+  completeByAgentId,
+  completeByWorkspaceId,
+  handleStartTodo,
+  stashWorkspaceProject,
+} from "./server/executor";
+import {
+  handleCreateIssue,
+  handleFetchIssue,
+  handleListIssues,
+} from "./server/github";
 
 export default function contribute(server: PluginServerContext) {
   server.handle(listTodosRpc, () => handleListTodos());

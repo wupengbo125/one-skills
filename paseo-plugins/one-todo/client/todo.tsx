@@ -3,14 +3,13 @@ import { useRpc } from "@getpaseo/plugin/client";
 import {
   Icon,
   Modal,
-  TextInput,
   useToast,
   copyText,
 } from "@getpaseo/plugin/client/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
-import { Animated, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import {
   addTodoRpc,
   createIssueRpc,
@@ -30,167 +29,19 @@ import {
   type Todo,
   type TodoPreferences,
 } from "../shared/todo";
-
-type SourceFilter = "todo" | "issue";
-
-type RunDraft = {
-  id: string;
-  title: string;
-  prompt: string;
-  agents: AgentRef[];
-  projectId: string;
-  projectName: string;
-  projectPath: string;
-  isolation: "local" | "worktree";
-  baseBranch: string;
-  newBranch: string;
-  skills: string[];
-  workspaceId: string;
-  workspaceName: string;
-  source?: "todo" | "issue";
-  issueRef?: string;
-  issueUrl?: string;
-};
-
-type Picker =
-  | null
-  | {
-      kind: "agent";
-      step: "provider" | "model";
-      index: number;
-      provider: string;
-    }
-  | { kind: "project" }
-  | { kind: "workspace" }
-  | { kind: "skills" };
-type PickItem = {
-  id: string;
-  label: string;
-  sub?: string;
-  selected: boolean;
-};
-
-type LiveIssue = {
-  repo: string;
-  number: number;
-  title: string;
-  url: string;
-  state: string;
-  updatedAt?: string;
-  body?: string;
-  projectPath?: string;
-  projectName?: string;
-  projectId?: string;
-};
-
-function agentLabel(a?: AgentRef): string {
-  if (!a?.provider) return "选择 Provider";
-  return a.model ? `${a.provider} / ${a.model}` : `${a.provider} / 默认`;
-}
-
-function emptyRun(id: string, title: string, prompt: string): RunDraft {
-  return {
-    id,
-    title,
-    prompt,
-    agents: [],
-    projectId: "",
-    projectName: "",
-    projectPath: "",
-    isolation: "worktree",
-    baseBranch: "main",
-    newBranch: "",
-    skills: [],
-    workspaceId: "",
-    workspaceName: "",
-  };
-}
-
-type StableInputProps = {
-  initial: string;
-  onValue: (v: string) => void;
-  style?: any;
-  placeholder?: string;
-  placeholderTextColor?: string;
-  multiline?: boolean;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
-  autoCorrect?: boolean;
-};
-
-const StableInput = memo(function StableInput({
-  initial,
-  onValue,
-  style,
-  placeholder,
-  placeholderTextColor,
-  multiline,
-  autoCapitalize,
-  autoCorrect,
-}: StableInputProps) {
-  const ref = useRef(initial);
-  const handleChange = useCallback(
-    (t: string) => {
-      ref.current = t;
-      onValue(t);
-    },
-    [onValue],
-  );
-  return (
-    <TextInput
-      style={style}
-      defaultValue={initial}
-      onChangeText={handleChange}
-      multiline={multiline}
-      autoCapitalize={autoCapitalize}
-      autoCorrect={autoCorrect}
-    />
-  );
-});
-function PulsingPurpleDot() {
-  const opacity = useRef(new Animated.Value(0.3)).current;
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 750,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 0.25,
-          duration: 750,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [opacity]);
-
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 3,
-        marginTop: 4,
-      }}
-    >
-      <Animated.View
-        style={{
-          width: 5,
-          height: 5,
-          borderRadius: 2.5,
-          backgroundColor: "#a855f7",
-          opacity,
-        }}
-      />
-      <Text style={{ fontSize: 9, color: "#a855f7", fontWeight: "600" }}>
-        进行中
-      </Text>
-    </View>
-  );
-}
+import { createStyles } from "./styles";
+import { PulsingPurpleDot, StableInput } from "./primitives";
+import {
+  agentLabel,
+  emptyRun,
+  isToday,
+  metaLine,
+  type LiveIssue,
+  type PickItem,
+  type Picker,
+  type RunDraft,
+  type SourceFilter,
+} from "./model";
 
 export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
   const toast = useToast();
@@ -454,388 +305,18 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           return true;
         });
 
-  const s = useMemo(() => {
-    const input = {
-      backgroundColor: theme.colors.surface0,
-      borderColor: theme.colors.border,
-      borderWidth: 1,
-      borderRadius: 10,
-      color: theme.colors.foreground,
-      paddingHorizontal: 12,
-      paddingVertical: 11,
-      fontSize: 15,
-      width: "100%" as const,
-    };
-    return {
-      screen: { flex: 1, backgroundColor: theme.colors.surface0 },
-      body: { padding: layout.compact ? 16 : 24, gap: 14, paddingBottom: 32 },
-      toolbar: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 10,
-        marginBottom: 2,
-      },
-      filters: {
-        flexDirection: "row" as const,
-        gap: 8,
-        flex: 1,
-        flexWrap: "nowrap" as const,
-      },
-      filterBtn: {
-        paddingHorizontal: 12,
-        paddingVertical: 7,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface1,
-      },
-      filterOn: {
-        backgroundColor: theme.colors.accent,
-        borderColor: theme.colors.accent,
-      },
-      filterText: { color: theme.colors.foregroundMuted, fontSize: 13 },
-      filterTextOn: {
-        color: theme.colors.accentForeground,
-        fontWeight: "600" as const,
-      },
-      addBtn: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 5,
-        backgroundColor: theme.colors.accent,
-        paddingHorizontal: 13,
-        paddingVertical: 8,
-        borderRadius: 999,
-      },
-      addText: {
-        color: theme.colors.accentForeground,
-        fontWeight: "700" as const,
-        fontSize: 13,
-      },
-      section: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 11,
-        fontWeight: "700" as const,
-        letterSpacing: 0.6,
-        textTransform: "uppercase" as const,
-        marginTop: 6,
-        marginBottom: -4,
-      },
-      card: {
-        backgroundColor: theme.colors.surface1,
-        borderRadius: 14,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        padding: 14,
-        gap: 10,
-      },
-      cardRunning: { borderColor: theme.colors.accent },
-      cardFailed: { borderColor: theme.colors.statusDanger },
-      cardDone: { opacity: 0.72 },
-      cardTop: {
-        flexDirection: "row" as const,
-        alignItems: "flex-start" as const,
-        gap: 12,
-      },
-      check: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: theme.colors.accent,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-        marginTop: 1,
-        backgroundColor: theme.colors.surface0,
-      },
-      checkDone: {
-        backgroundColor: theme.colors.statusSuccess,
-        borderColor: theme.colors.statusSuccess,
-      },
-      main: { flex: 1, gap: 6 },
-      t: {
-        color: theme.colors.foreground,
-        fontSize: 15,
-        fontWeight: "600" as const,
-        lineHeight: 21,
-      },
-      tDone: {
-        textDecorationLine: "line-through" as const,
-        color: theme.colors.foregroundMuted,
-      },
-      meta: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 12,
-        lineHeight: 17,
-      },
-      prompt: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 12,
-        lineHeight: 18,
-      },
-      err: { color: theme.colors.statusDanger, fontSize: 12 },
-      badge: {
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 5,
-        backgroundColor: theme.colors.surface0,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        alignSelf: "flex-start" as const,
-      },
-      badgeText: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 10,
-        fontWeight: "700" as const,
-        letterSpacing: 0.4,
-      },
-      actions: {
-        flexDirection: "row" as const,
-        gap: 8,
-        flexWrap: "wrap" as const,
-        marginTop: 2,
-      },
-      btn: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 4,
-        paddingHorizontal: 11,
-        paddingVertical: 7,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface0,
-      },
-      btnPrimary: {
-        backgroundColor: theme.colors.accent,
-        borderColor: theme.colors.accent,
-      },
-      btnDanger: { borderColor: theme.colors.statusDanger },
-      btnText: {
-        color: theme.colors.foreground,
-        fontSize: 12,
-        fontWeight: "600" as const,
-      },
-      btnTextPrimary: { color: theme.colors.accentForeground },
-      btnTextDanger: { color: theme.colors.statusDanger },
-      label: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 12,
-        marginBottom: 6,
-      },
-      input,
-      inputMulti: {
-        ...input,
-        minHeight: 110,
-        textAlignVertical: "top" as const,
-      },
-      row: { flexDirection: "row" as const, gap: 12 },
-      seg: { flexDirection: "row" as const, gap: 8, marginBottom: 8 },
-      segBtn: {
-        flex: 1,
-        padding: 9,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        alignItems: "center" as const,
-        backgroundColor: theme.colors.surface0,
-      },
-      segOn: {
-        backgroundColor: theme.colors.accent,
-        borderColor: theme.colors.accent,
-      },
-      segText: { color: theme.colors.foreground, fontSize: 13 },
-      segTextOn: {
-        color: theme.colors.accentForeground,
-        fontWeight: "600" as const,
-      },
-      empty: {
-        color: theme.colors.foregroundMuted,
-        fontSize: 13,
-        paddingVertical: 14,
-        textAlign: "center" as const,
-      },
-      saveBtn: {
-        backgroundColor: theme.colors.accent,
-        padding: 15,
-        borderRadius: 12,
-        alignItems: "center" as const,
-        opacity:
-          addM.isPending ||
+  const s = useMemo(
+    () =>
+      createStyles(
+        theme,
+        layout.compact,
+        addM.isPending ||
           startM.isPending ||
           createIssueM.isPending ||
-          editM.isPending
-            ? 0.6
-            : 1,
-      },
-      saveText: {
-        color: theme.colors.accentForeground,
-        fontWeight: "700" as const,
-        fontSize: 15,
-      },
-      scrollBody: { gap: 16 },
-      pathText: { color: theme.colors.foregroundMuted, fontSize: 11 },
-      formSection: { gap: 8 },
-      formSectionTitle: {
-        color: theme.colors.foreground,
-        fontSize: 13,
-        fontWeight: "600" as const,
-      },
-      chip: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        justifyContent: "space-between" as const,
-        gap: 8,
-        paddingVertical: 12,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface0,
-      },
-      chipText: {
-        color: theme.colors.foreground,
-        fontSize: 14,
-        fontWeight: "600" as const,
-      },
-      chipMuted: { color: theme.colors.foregroundMuted, fontSize: 14 },
-      agentRow: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 8,
-      },
-      agentChip: { flex: 1 },
-      iconBtn: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface0,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-      },
-      addAgent: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-        gap: 6,
-        borderWidth: 1,
-        borderStyle: "dashed" as const,
-        borderColor: theme.colors.accent,
-        borderRadius: 10,
-        paddingVertical: 11,
-        backgroundColor: theme.colors.surface1,
-      },
-      addAgentText: {
-        color: theme.colors.accent,
-        fontSize: 13,
-        fontWeight: "600" as const,
-      },
-      pickItem: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        justifyContent: "space-between" as const,
-        paddingVertical: 14,
-        paddingHorizontal: 12,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface0,
-        gap: 8,
-      },
-      pickItemOn: {
-        backgroundColor: theme.colors.accent,
-        borderColor: theme.colors.accent,
-      },
-      pickMain: { flex: 1, gap: 2 },
-      pickText: {
-        color: theme.colors.foreground,
-        fontSize: 15,
-        fontWeight: "600" as const,
-      },
-      pickTextOn: { color: theme.colors.accentForeground },
-      pickSub: { color: theme.colors.foregroundMuted, fontSize: 11 },
-      pickSubOn: { color: theme.colors.accentForeground, opacity: 0.85 },
-      pickCheck: {
-        color: theme.colors.accentForeground,
-        fontSize: 16,
-        fontWeight: "700" as const,
-      },
-      pickHeader: {
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-        gap: 8,
-        marginBottom: 4,
-      },
-      pickTitle: {
-        color: theme.colors.foreground,
-        fontSize: 15,
-        fontWeight: "700" as const,
-        flex: 1,
-      },
-      pickBack: {
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-      },
-      pickBackText: {
-        color: theme.colors.foreground,
-        fontSize: 12,
-        fontWeight: "600" as const,
-      },
-      pickerOverlay: {
-        position: "absolute" as const,
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: theme.colors.surface0,
-        padding: layout.compact ? 16 : 24,
-        gap: 12,
-        zIndex: 99,
-      },
-      pickerScroll: {
-        flex: 1,
-      },
-      pickList: { gap: 8 },
-      inlinePicker: {
-        borderColor: theme.colors.border,
-        borderRadius: 10,
-        backgroundColor: theme.colors.surface1,
-        padding: 10,
-        gap: 8,
-        marginTop: 6,
-      },
-      inlinePickerScroll: {
-        flexGrow: 0,
-      },
-      issueRow: {
-        gap: 8,
-        flexDirection: "row" as const,
-        alignItems: "center" as const,
-      },
-      repoFilter: {
-        paddingHorizontal: 10,
-        paddingVertical: 7,
-        borderRadius: 999,
-        borderWidth: 1,
-        borderColor: theme.colors.border,
-        backgroundColor: theme.colors.surface1,
-      },
-      repoFilterOn: {
-        backgroundColor: theme.colors.accent,
-        borderColor: theme.colors.accent,
-      },
-      repoText: { color: theme.colors.foregroundMuted, fontSize: 12 },
-      repoTextOn: {
-        color: theme.colors.accentForeground,
-        fontWeight: "600" as const,
-      },
-    };
-  }, [theme, layout.compact]);
+          editM.isPending,
+      ),
+    [theme, layout.compact],
+  );
 
   function openDetail(t?: Todo, issue?: LiveIssue) {
     setPicker(null);
@@ -938,8 +419,6 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
         projectName: run.projectName,
         projectPath: run.projectPath,
         isolation: run.isolation,
-        workspaceId: run.workspaceId,
-        workspaceName: run.workspaceName,
         baseBranch: run.baseBranch,
         newBranch: run.newBranch,
         source: run.source || "todo",
@@ -1037,27 +516,6 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
 
 
   const runModalTitle = "开跑配置";
-
-  function metaLine(t: Todo): string {
-    const agents = t.agents?.filter((a) => a.provider) ?? [];
-    const agentText =
-      agents.length > 1
-        ? `${agents.length} Agent`
-        : agents[0]
-          ? agentLabel(agents[0])
-          : "";
-    const parts = agentText ? [agentText] : [];
-    if (t.source === "issue" && t.issueRef) parts.push(t.issueRef);
-    if (t.workspaceName) parts.push(t.workspaceName);
-    else if (t.projectName || t.projectPath) {
-      const iso = t.isolation === "worktree" ? "worktree" : "local";
-      parts.push(`${t.projectName || t.projectPath} · ${iso}`);
-    } else if (t.cwd) parts.push(t.cwd);
-    if (t.status === "running") parts.push("运行中");
-    if (t.status === "done") parts.push("完成");
-    if (t.status === "failed") parts.push("失败");
-    return parts.join("  ·  ");
-  }
 
   function renderTodoCard(t: Todo) {
     const isRunning = t.status === "running";
@@ -1322,18 +780,6 @@ export function TodoSurface({ theme, layout }: PluginSurfaceProps) {
           </Pressable>
         </View>
       </View>
-    );
-  }
-
-  function isToday(iso?: string): boolean {
-    if (!iso) return false;
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return false;
-    const now = new Date();
-    return (
-      d.getFullYear() === now.getFullYear() &&
-      d.getMonth() === now.getMonth() &&
-      d.getDate() === now.getDate()
     );
   }
 

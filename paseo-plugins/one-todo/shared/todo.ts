@@ -26,8 +26,6 @@ export const todoSchema = z.object({
   seq: z.number().optional(),
   title: z.string(),
   prompt: z.string(),
-  provider: z.string(),
-  model: z.string().optional(),
   agents: z.array(agentRefSchema).min(1),
   source: sourceSchema,
   issueRef: z.string().optional(),
@@ -43,7 +41,6 @@ export const todoSchema = z.object({
   newBranch: z.string().optional(),
   status: todoStatusSchema,
   error: z.string().optional(),
-  agentId: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
   pendingAgentIds: z.array(z.string()).optional(),
     createdAt: z.string(),
@@ -261,4 +258,8 @@ export function branchFromTitle(title: string): string {
     .replace(/-{2,}/g, "-")
     .replace(/^[-.]+|[-.]+$/g, "");
   return cleaned || `todo-${Date.now().toString(36)}`;
+}
+
+export function primaryAgent(agents: AgentRef[]): AgentRef {
+  return agents[0] ?? { provider: "" };
 }
