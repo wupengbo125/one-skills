@@ -87,3 +87,4 @@
 - 2026-09-24 19:05 [01a0d2fc-d523-75e2-8e28-54595488dd73] one-todo：待办可存技能与马、默认一匹上次的马；failed 加「重连」回 running
 - 2026-09-24 19:56 [bf173bd1-abf6-4159-9274-1d4f5c93fb13] fix(one-todo): 开跑前校验 workspace 失效并按项目重建
 - 2026-09-24 21:17 [01a0d34c-02bd-71e0-a8a3-c17790e17075] one-todo 架构重构；全军出击长按、Local多马合一、默认Local、归档删分支、跳会话、编辑框聚焦滚动
+- 2026-09-24 23:23 [dabc3a8a-131e-482f-90c0-74b758f617ce] 移除 one-orca-race 技能与 scripts/race
