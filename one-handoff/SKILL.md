@@ -1,26 +1,26 @@
 ---
 name: one-handoff
-description: Save a high-signal project handoff in the current workspace so a fresh agent can seamlessly continue.
+description: Compress this session into `handoff.md` — a cold-start brief the next agent works from.
 argument-hint: "what will the next session focus on?"
 disable-model-invocation: true
 ---
 
 # Project Handoff
 
-Filter out chat fluff and generate a structured `handoff.md` in the workspace root, overwriting any previous handoff file.
+Compress this session into `handoff.md` at the workspace root. The next agent starts cold and works only from this file, so it has to stand on its own. One file, one job: each run overwrites it, so it always describes the latest state instead of piling up history.
 
-## Handoff Document Structure
+## Steps
 
-The generated `handoff.md` must focus strictly on engineering facts and actionable status:
+1. **Sweep the session.** Keep the settled outcomes: what got done, where it stalled, what was decided.
 
-1. **Completed Work**: Concrete outputs, file edits, or git commits accomplished in this session.
-2. **Current State & In-Progress**: Active tasks being worked on, current step, and any immediate blockers.
-3. **Key Decisions & Constraints**: Agreed-upon architectural choices, user constraints, or design consensus.
-4. **Next Steps & Suggested Skills**: Concrete next steps and recommended skills for the next agent to invoke.
+2. **Ground each item.** Verify it against the real state — `git status`, `git log`, the files themselves. Keep what traces to a file, a commit, or a command; cut the rest. Redact every secret: keys, tokens, passwords.
 
-## Guidelines
+3. **Write `handoff.md`** in four sections:
+   - **Completed** — concrete outputs: files changed, commits, commands run.
+   - **Current state** — what is in progress, the exact step, and any blocker.
+   - **Decisions & constraints** — settled choices with their reasons, and what must not change.
+   - **Next steps** — the concrete next actions. When an argument names a focus, it leads here.
 
-- **Filter Fluff**: Ignore conversational chatter, trial-and-error noise, or intermediate chat discussion.
-- **Reference, Don't Duplicate**: Link to existing artifacts (`BLUEPRINT.md`, git diffs) instead of copying their contents.
-- **Security**: Redact all sensitive credentials (API keys, tokens, passwords).
-- **Tailored Focus**: If arguments are provided, incorporate them into the Next Steps as the primary objective for the next session.
+   Reference artifacts by path or diff rather than copying them; the reader has the repo.
+
+4. **Self-check.** Re-read as the cold reader: can they start without asking you anything?
