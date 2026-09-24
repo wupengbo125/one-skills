@@ -51,14 +51,15 @@ function HoldToLaunch({
   style,
   textStyle,
   onComplete,
+  onShortPress,
 }: {
   label: string;
   disabled: boolean;
   style: StyleProp<ViewStyle>;
   textStyle: StyleProp<any>;
   onComplete: () => void;
+  onShortPress?: () => void;
 }) {
-  const toast = useToast();
   const progress = useRef(new Animated.Value(0)).current;
   const anim = useRef<Animated.CompositeAnimation | null>(null);
   const fired = useRef(false);
@@ -87,8 +88,8 @@ function HoldToLaunch({
 
   const handlePress = useCallback(() => {
     if (disabled || fired.current) return;
-    toast.show("请长按全军出击", { durationMs: 2000 });
-  }, [disabled, toast]);
+    onShortPress?.();
+  }, [disabled, onShortPress]);
 
   const width = progress.interpolate({
     inputRange: [0, 1],
@@ -147,8 +148,20 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [picker, setPicker] = useState<Picker>(null);
   const [search, setSearch] = useState("");
   const [formGen, setFormGen] = useState(0);
+  const [holdTip, setHoldTip] = useState(false);
+  const holdTipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerHoldTip = useCallback(() => {
+    if (holdTipTimer.current) clearTimeout(holdTipTimer.current);
+    setHoldTip(true);
+    holdTipTimer.current = setTimeout(() => {
+      setHoldTip(false);
+    }, 2000);
+  }, []);
 
   const closeOverlays = useCallback(() => {
+    if (holdTipTimer.current) clearTimeout(holdTipTimer.current);
+    setHoldTip(false);
     setRun(null);
     setPicker(null);
   }, []);
@@ -1331,9 +1344,54 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         : "全军出击"
                   }
                   onComplete={onRun}
+                  onShortPress={triggerHoldTip}
                 />
               </View>
             </SheetScrollView>
+          ) : null}
+          {holdTip ? (
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 9999,
+              }}
+            >
+              <View
+                style={{
+                  backgroundColor: "rgba(20, 20, 25, 0.94)",
+                  borderColor: "rgba(255, 255, 255, 0.16)",
+                  borderWidth: 1,
+                  borderRadius: 14,
+                  paddingVertical: 30,
+                  paddingHorizontal: 36,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 6 },
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  elevation: 10,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#ffffff",
+                    fontSize: 16,
+                    fontWeight: "600",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  请长按全军出击
+                </Text>
+              </View>
+            </View>
           ) : null}
         </Modal.Content>
       </Modal>
