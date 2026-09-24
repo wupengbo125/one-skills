@@ -216,13 +216,16 @@ export async function handleListProviders({ paseo }: PluginHandlerContext) {
     const res = await paseo.providers.listAvailable();
     const providers = (res.providers ?? [])
       .filter((p) => p.available)
-      .map((p) => ({ id: p.provider, available: p.available }));
-    if (!providers.some((p) => p.id === "agy")) {
-      providers.push({ id: "agy", available: true });
+      .map((p) => ({
+        id: p.provider === "antigravity" ? "antigravity acp" : p.provider,
+        available: p.available,
+      }));
+    if (!providers.some((p) => p.id === "antigravity cli")) {
+      providers.push({ id: "antigravity cli", available: true });
     }
     return { providers };
   } catch {
-    return { providers: [{ id: "agy", available: true }] };
+    return { providers: [{ id: "antigravity cli", available: true }] };
   }
 }
 
@@ -230,11 +233,14 @@ export async function handleListModels(
   input: RpcInput<typeof listModelsRpc>,
   { paseo }: PluginHandlerContext,
 ) {
-  if (input.provider.toLowerCase() === "agy") {
+  const provider = input.provider.toLowerCase();
+  if (provider === "antigravity cli" || provider === "agy") {
     return { models: AGY_MODELS };
   }
+  const realProvider =
+    provider === "antigravity acp" ? "antigravity" : input.provider;
   try {
-    const res = await paseo.providers.listModels(input.provider);
+    const res = await paseo.providers.listModels(realProvider);
     const models = (res.models ?? [])
       .filter((m) => m.isSelectable !== false)
       .map((m) => ({

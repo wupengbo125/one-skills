@@ -17,12 +17,16 @@ async function resolveProviderField(
   provider: string,
   model?: string,
 ): Promise<string> {
+  const actual =
+    provider.trim().toLowerCase() === "antigravity acp"
+      ? "antigravity"
+      : provider;
   if (model) {
-    if (model.startsWith(provider + "/")) return model;
-    return `${provider}/${model}`;
+    if (model.startsWith(actual + "/")) return model;
+    return `${actual}/${model}`;
   }
   try {
-    const res = await paseo.providers.listModels(provider);
+    const res = await paseo.providers.listModels(actual);
     const selectable = (res.models ?? []).filter(
       (m) => m.isSelectable !== false,
     );
@@ -131,7 +135,8 @@ export async function handleStartTodo(
 
   try {
 function isAgy(provider: string): boolean {
-  return provider.trim().toLowerCase() === "agy";
+  const p = provider.trim().toLowerCase();
+  return p === "antigravity cli" || p === "agy";
 }
 
 async function launchAgentOrTerminal(
