@@ -120,16 +120,19 @@ export async function handleStartTodo(
   if (refs.length === 0) {
     return { ok: false, todo, error: "先选至少一个 Provider" };
   }
-  if (!todo.prompt.trim()) {
-    return { ok: false, todo, error: "提示词为空，先填提示词" };
+  if (!todo.title.trim() && !todo.prompt.trim()) {
+    return { ok: false, todo, error: "标题或内容至少填一项" };
   }
 
-  const title = todo.title;
+  const title = todo.title.trim();
   const skillPrefix =
     todo.skills && todo.skills.length > 0
       ? `[使用技能: ${todo.skills.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
       : "";
-  const prompt = skillPrefix + (todo.prompt || todo.title);
+  const body = todo.prompt.trim()
+    ? (title ? `${title}\n\n${todo.prompt.trim()}` : todo.prompt.trim())
+    : title;
+  const prompt = skillPrefix + body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
 

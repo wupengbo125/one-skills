@@ -90,3 +90,4 @@
 - 2026-09-24 23:23 [dabc3a8a-131e-482f-90c0-74b758f617ce] 移除 one-orca-race 技能与 scripts/race
 - 2026-09-25 07:18 [43fa8ed5-20c9-416d-927a-60cde29d35dc] one-todo：全军出击短按提醒移至按钮正上方且恢复小巧
 - 2026-09-25 07:22 [76233f88-6790-4902-903c-6cacdfc9c3dc] one-todo 对接 antigravity acp 与 cli 并支持开跑与跳转
+- 2026-09-25 09:31 [b38795ff-4ccf-43ce-abd4-c9e94009178b] one-todo 支持仅填标题直接开跑，提示词自动拼合标题与内容

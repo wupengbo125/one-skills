@@ -526,8 +526,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     if (!run) return;
     const title = runTitleRef.current.trim() || run.title.trim();
     if (title) run.title = title;
+    if (!run.title.trim()) return toast.error("标题必填");
     const prompt = runPromptRef.current.trim();
-    if (!prompt) return toast.error("提示词必填");
     run.prompt = prompt;
     if (!run.agents.length || !run.agents.every((a) => a.provider.trim()))
       return toast.error("每个 Agent 都要选 Provider");
