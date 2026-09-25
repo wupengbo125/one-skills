@@ -14,6 +14,10 @@ import { Pressable, ScrollView, Text, View } from "react-native";
 import { Animated } from "react-native";
 import {
   addTodoRpc,
+  arbitrationDirsRpc,
+  arbitrationSendRpc,
+  arbitrationStartRpc,
+  arbitrationVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
   listIssuesRpc,
@@ -70,7 +74,7 @@ function HoldToLaunch({
     progress.setValue(0);
     anim.current = Animated.timing(progress, {
       toValue: 1,
-      duration: 2000,
+      duration: 1000,
       useNativeDriver: false,
     });
     anim.current.start(({ finished }) => {
@@ -139,6 +143,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const listIssues = useRpc(listIssuesRpc);
   const fetchIssue = useRpc(fetchIssueRpc);
   const createIssue = useRpc(createIssueRpc);
+  const arbitrationDirs = useRpc(arbitrationDirsRpc);
+  const arbitrationStart = useRpc(arbitrationStartRpc);
+  const arbitrationVerdict = useRpc(arbitrationVerdictRpc);
+  const arbitrationSend = useRpc(arbitrationSendRpc);
 
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("todo");
   const [repoFilter, setRepoFilter] = useState<string>("");
@@ -150,6 +158,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [formGen, setFormGen] = useState(0);
   const [holdTip, setHoldTip] = useState(false);
   const holdTipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [arb, setArb] = useState<{
+    id: string;
+    title: string;
+    judge: AgentRef;
+  } | null>(null);
+  const arbPromptRef = useRef("");
+  const [arbPromptReady, setArbPromptReady] = useState(false);
 
   const triggerHoldTip = useCallback(() => {
     if (holdTipTimer.current) clearTimeout(holdTipTimer.current);
@@ -227,11 +242,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   });
 
   const pickerProvider =
-    picker?.kind === "agent" && picker.step === "model" ? picker.provider : "";
+    picker &&
+    (picker.kind === "agent" || picker.kind === "judge") &&
+    picker.step === "model"
+      ? picker.provider
+      : "";
   const modelsQ = useQuery({
     queryKey: ["todo-models", pickerProvider],
     queryFn: () => listModels({ provider: pickerProvider }),
-    enabled: !!run && !!pickerProvider,
+    enabled: (!!run || !!arb) && !!pickerProvider,
   });
 
   const addM = useMutation({
@@ -383,6 +402,68 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const preferences: TodoPreferences | undefined = todosQ.data?.preferences;
 
   const todos: Todo[] = todosQ.data?.todos ?? [];
+  const arbTodo: Todo | undefined = arb
+    ? todos.find((t) => t.id === arb.id)
+    : undefined;
+  const arbDirsQ = useQuery({
+    queryKey: ["todo-arb-dirs", arb?.id],
+    queryFn: () => arbitrationDirs({ id: arb!.id }),
+    enabled: !!arb,
+  });
+  const arbLiveCount = (arbDirsQ.data?.candidates ?? []).filter(
+    (c) => c.exists,
+  ).length;
+  // ≥2 个活候选走仲裁，否则走审核（单马/本地直跑）
+  const arbMode: "arbitrate" | "review" =
+    arbLiveCount >= 2 ? "arbitrate" : "review";
+  const arbCanStart =
+    arbMode === "arbitrate"
+      ? arbLiveCount >= 2 && !arbDirsQ.isLoading
+      : (arbLiveCount >= 1 || !!arbDirsQ.data?.reviewDir) &&
+        !arbDirsQ.isLoading;
+  const arbSendM = useMutation({
+    mutationFn: (id: string) => arbitrationSend({ id }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.show(`已发给${res.target ?? "会话"}继续改`, {
+          variant: "success",
+        });
+      } else {
+        toast.error(res.error || "发送失败");
+      }
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "发送失败"),
+  });
+  const arbVerdictQ = useQuery({
+    queryKey: ["todo-arb-verdict", arb?.id],
+    queryFn: async () => {
+      const res = await arbitrationVerdict({ id: arb!.id });
+      // 服务端可能刚把 running 翻成 done/failed（agy 判官靠轮询翻转）
+      if (res.verdict || res.error) invalidate();
+      return res;
+    },
+    enabled: !!arb && !!arbTodo?.arbitration,
+    refetchInterval:
+      arbTodo?.arbitration?.status === "running" ? 4000 : false,
+  });
+  const arbStartM = useMutation({
+    mutationFn: (vars: {
+      id: string;
+      kind: "arbitrate" | "review";
+      prompt: string;
+      judge: AgentRef;
+    }) => arbitrationStart(vars),
+    onSuccess: (res) => {
+      if (res.ok) {
+        toast.show("已开庭 ⚖", { variant: "success" });
+      } else {
+        toast.error(res.error || "开庭失败");
+      }
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "开庭失败"),
+  });
   const allIssues: LiveIssue[] = issuesQ.data?.issues ?? [];
   const repos = issuesQ.data?.repos ?? [];
 
@@ -472,6 +553,22 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   function openEdit(t: Todo) {
     openDetail(t);
+  }
+
+  function openArbitration(t: Todo) {
+    setPicker(null);
+    arbPromptRef.current = t.arbitration?.prompt ?? "";
+    setArbPromptReady(Boolean(t.arbitration?.prompt?.trim()));
+    setArb({
+      id: t.id,
+      title: t.title,
+      judge:
+        t.arbitration?.judge?.provider
+          ? t.arbitration.judge
+          : preferences?.lastProvider
+            ? { provider: preferences.lastProvider, model: preferences.lastModel }
+            : { provider: "", model: "" },
+    });
   }
 
   function openRun(t: Todo) {
@@ -774,6 +871,36 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 }}
               >
                 ↗
+              </Text>
+            </Pressable>
+          ) : null}
+          {(t.worktrees?.length ?? 0) >= 1 ||
+          t.status !== "pending" ||
+          t.arbitration ? (
+            <Pressable
+              accessibilityRole="button"
+              style={{
+                width: 28,
+                height: 28,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={(e) => {
+                e.stopPropagation();
+                openArbitration(t);
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: t.arbitration?.status === "running"
+                    ? theme.colors.accent
+                    : theme.colors.foregroundMuted,
+                  fontWeight: "700",
+                  lineHeight: 14,
+                }}
+              >
+                ⚖
               </Text>
             </Pressable>
           ) : null}
@@ -1544,6 +1671,341 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 )
               )}
             </View>
+          ) : null}
+        </Modal.Content>
+      </Modal>
+
+      <Modal
+        title={
+          arb
+            ? arbMode === "review"
+              ? `🔍 审核《${arb.title}》`
+              : `⚖ 仲裁《${arb.title}》`
+            : ""
+        }
+        icon={<Icon name="Bot" size={18} color={theme.colors.foreground} />}
+        open={Boolean(arb)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setArb(null);
+            setPicker(null);
+            setSearch("");
+          }
+        }}
+      >
+        <Modal.Content scrollable={false} style={{ flex: 1 }}>
+          {arb && arbTodo ? (
+            <SheetScrollView
+              style={{ flex: 1 }}
+              contentContainerStyle={[
+                s.scrollBody,
+                { padding: layout.compact ? 16 : 24, paddingBottom: 40 },
+              ]}
+              keyboardShouldPersistTaps="handled"
+            >
+              {arbTodo.arbitration ? (
+                <View style={s.formSection}>
+                  <Text style={s.formSectionTitle}>
+                    状态：{" "}
+                    {arbTodo.arbitration.status === "running"
+                      ? arbTodo.arbitration.kind === "review"
+                        ? "审核中…"
+                        : "开庭中…"
+                      : arbTodo.arbitration.status === "done"
+                        ? arbTodo.arbitration.kind === "review"
+                          ? "已审核"
+                          : "已裁决"
+                        : "失败"}
+                    {arbTodo.arbitration.agentId
+                      ? `  ·  判官 ${arbTodo.arbitration.judge.provider}${
+                          arbTodo.arbitration.judge.model
+                            ? ` / ${arbTodo.arbitration.judge.model}`
+                            : ""
+                        }`
+                      : ""}
+                  </Text>
+                  {arbTodo.arbitration.error ? (
+                    <Text style={s.err}>❌ {arbTodo.arbitration.error}</Text>
+                  ) : null}
+                </View>
+              ) : null}
+
+              <View style={s.formSection}>
+                <Text style={s.label}>判定标准（你写）</Text>
+                <StableInput
+                  key={`arb-prompt-${arb.id}`}
+                  style={s.inputMulti}
+                  initial={arbPromptRef.current}
+                  onValue={(v) => {
+                    arbPromptRef.current = v;
+                    setArbPromptReady(Boolean(v.trim()));
+                  }}
+                  placeholder="例：从正确性、代码简洁、是否覆盖边界情况来判…"
+                  placeholderTextColor={theme.colors.foregroundMuted}
+                  multiline
+                />
+              </View>
+
+              <View style={s.formSection}>
+                <Text style={s.label}>判官马</Text>
+                <Pressable
+                  style={s.chip}
+                  onPress={() =>
+                    setPicker(
+                      picker?.kind === "judge"
+                        ? null
+                        : { kind: "judge", step: "provider", provider: "" },
+                    )
+                  }
+                >
+                  <Text
+                    style={arb.judge.provider ? s.chipText : s.chipMuted}
+                    numberOfLines={1}
+                  >
+                    {agentLabel(arb.judge)}
+                  </Text>
+                  <Text style={s.chipMuted}>
+                    {picker?.kind === "judge" ? "▲" : "▼"}
+                  </Text>
+                </Pressable>
+                {picker?.kind === "judge" ? (
+                  <View style={s.inlinePicker}>
+                    {picker.step === "model" ? (
+                      <Pressable
+                        style={s.pickBack}
+                        onPress={() => {
+                          setSearch("");
+                          setPicker({
+                            kind: "judge",
+                            step: "provider",
+                            provider: "",
+                          });
+                        }}
+                      >
+                        <Text style={s.pickBackText}>← 返回重新选 Provider</Text>
+                      </Pressable>
+                    ) : null}
+                    <StableInput
+                      key={`picker-judge-${picker.step}`}
+                      style={s.input}
+                      initial=""
+                      onValue={onSearch}
+                      placeholder={
+                        picker.step === "provider"
+                          ? "搜索 Provider…"
+                          : "搜索 Model…"
+                      }
+                      placeholderTextColor={theme.colors.foregroundMuted}
+                      autoCapitalize="none"
+                      autoCorrect={false}
+                    />
+                    {picker.step === "provider"
+                      ? renderPickList(
+                          (providersQ.data?.providers ?? []).map((p) => ({
+                            id: p.id,
+                            label: p.id,
+                            selected: arb.judge.provider === p.id,
+                          })),
+                          (item) => {
+                            setSearch("");
+                            setPicker({
+                              kind: "judge",
+                              step: "model",
+                              provider: item.id,
+                            });
+                          },
+                        )
+                      : renderPickList(
+                          [
+                            {
+                              id: "",
+                              label: "（默认 Model）",
+                              sub: "使用 Provider 默认模型",
+                              selected: !arb.judge.model,
+                            },
+                            ...((modelsQ.data?.models ?? []) as Array<{
+                              id: string;
+                              label: string;
+                            }>).map((m) => ({
+                              id: m.id,
+                              label: m.label || m.id,
+                              sub:
+                                m.label && m.label !== m.id ? m.id : undefined,
+                              selected: arb.judge.model === m.id,
+                            })),
+                          ],
+                          (item) => {
+                            setArb((d) =>
+                              d
+                                ? {
+                                    ...d,
+                                    judge: {
+                                      provider: picker.provider,
+                                      model: item.id,
+                                    },
+                                  }
+                                : d,
+                            );
+                            setSearch("");
+                            setPicker(null);
+                          },
+                        )}
+                  </View>
+                ) : null}
+              </View>
+
+              <View style={s.formSection}>
+                <Text style={s.formSectionTitle}>
+                  {arbMode === "review" ? "审核目标" : "候选 worktree（自动找到）"}
+                </Text>
+                {arbDirsQ.isLoading ? (
+                  <Text style={s.empty}>找目录中…</Text>
+                ) : arbDirsQ.data?.error ? (
+                  <Text style={s.err}>⚠ {arbDirsQ.data.error}</Text>
+                ) : arbMode === "arbitrate" && arbLiveCount < 2 ? (
+                  <Text style={s.err}>
+                    ⚠ 有效候选只有 {arbLiveCount} 个（需 ≥2），可能已被归档
+                  </Text>
+                ) : arbMode === "review" &&
+                  arbLiveCount < 1 &&
+                  !arbDirsQ.data?.reviewDir ? (
+                  <Text style={s.err}>⚠ 找不到可审核的目录</Text>
+                ) : (arbDirsQ.data?.candidates ?? []).length === 0 ? (
+                  arbDirsQ.data?.reviewDir ? (
+                    <View style={{ gap: 2, paddingVertical: 4 }}>
+                      <Text style={s.chipText}>本地目录</Text>
+                      <Text style={s.pathText} numberOfLines={2}>
+                        {arbDirsQ.data.reviewDir}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={s.empty}>没有候选 worktree</Text>
+                  )
+                ) : (
+                  (arbDirsQ.data?.candidates ?? []).map((c) => (
+                    <View
+                      key={c.workspaceId}
+                      style={{ gap: 2, paddingVertical: 4 }}
+                    >
+                      <Text style={s.chipText}>
+                        {c.label}
+                        {c.exists ? "" : "  ·  目录已失效"}
+                      </Text>
+                      <Text
+                        style={[
+                          s.pathText,
+                          !c.exists && { color: theme.colors.statusDanger },
+                        ]}
+                        numberOfLines={2}
+                      >
+                        {c.branch}  ·  {c.dir || "未知目录"}
+                      </Text>
+                    </View>
+                  ))
+                )}
+              </View>
+
+              {arbTodo.arbitration?.status === "done" &&
+              arbVerdictQ.data?.verdict ? (
+                <View style={s.formSection}>
+                  <Text style={s.formSectionTitle}>
+                    {arbTodo.arbitration?.kind === "review" ? "🔍 结论" : "⚖ 结论"}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.colors.foreground,
+                      fontSize: 13,
+                      lineHeight: 20,
+                    }}
+                  >
+                    {arbVerdictQ.data.verdict}
+                  </Text>
+                  <Pressable
+                    style={[
+                      s.btn,
+                      { alignSelf: "flex-start", marginTop: 8 },
+                      arbSendM.isPending && { opacity: 0.5 },
+                    ]}
+                    disabled={arbSendM.isPending}
+                    onPress={() => arbSendM.mutate(arb.id)}
+                  >
+                    <Text style={s.btnText}>
+                      {arbSendM.isPending
+                        ? "发送中…"
+                        : arbTodo.arbitration?.kind === "review"
+                          ? "发给它继续改 ↩"
+                          : "发给胜者继续改 ↩"}
+                    </Text>
+                  </Pressable>
+                </View>
+              ) : null}
+
+              <View style={{ flexDirection: "row", gap: 10 }}>
+                <Pressable
+                  style={[
+                    s.saveBtn,
+                    { flex: 1 },
+                    (arbStartM.isPending ||
+                      arbTodo.arbitration?.status === "running" ||
+                      !arb.judge.provider ||
+                      !arbPromptReady ||
+                      !arbCanStart) && { opacity: 0.5 },
+                  ]}
+                  disabled={
+                    arbStartM.isPending ||
+                    arbTodo.arbitration?.status === "running" ||
+                    !arb.judge.provider ||
+                    !arbPromptReady ||
+                    !arbCanStart
+                  }
+                  onPress={() =>
+                    arbStartM.mutate({
+                      id: arb.id,
+                      kind: arbMode,
+                      prompt: arbPromptRef.current.trim(),
+                      judge: arb.judge,
+                    })
+                  }
+                >
+                  <Text style={s.saveText}>
+                    {arbStartM.isPending
+                      ? arbMode === "review"
+                        ? "审核中…"
+                        : "开庭中…"
+                      : arbTodo.arbitration?.status === "running"
+                        ? arbMode === "review"
+                          ? "审核中…"
+                          : "开庭中…"
+                        : arbTodo.arbitration
+                          ? arbMode === "review"
+                            ? "重新审核"
+                            : "重新开庭"
+                          : arbMode === "review"
+                            ? "开始审核 🔍"
+                            : "开庭 ⚖"}
+                  </Text>
+                </Pressable>
+                {navigation &&
+                (arbTodo.arbitration?.agentId ||
+                  arbTodo.arbitration?.workspaceId) ? (
+                  <Pressable
+                    style={[s.btn, { justifyContent: "center" }]}
+                    onPress={() => {
+                      if (arbTodo.arbitration?.agentId)
+                        navigation.openAgent({
+                          agentId: arbTodo.arbitration.agentId,
+                        });
+                      else if (arbTodo.arbitration?.workspaceId)
+                        navigation.openWorkspace({
+                          workspaceId: arbTodo.arbitration.workspaceId,
+                        });
+                    }}
+                  >
+                    <Text style={s.btnText}>跳判官 ↗</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            </SheetScrollView>
           ) : null}
         </Modal.Content>
       </Modal>

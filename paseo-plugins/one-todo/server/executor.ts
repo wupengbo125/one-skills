@@ -12,7 +12,7 @@ import { savePreferences } from "./preferences";
 import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
 
-async function resolveProviderField(
+export async function resolveProviderField(
   paseo: PluginHandlerContext["paseo"],
   provider: string,
   model?: string,
@@ -38,8 +38,42 @@ async function resolveProviderField(
   throw new Error(`Provider ${provider} 没有可用默认模型，请选一个模型`);
 }
 
-function todoAgents(todo: Todo): AgentRef[] {
+export function todoAgents(todo: Todo): AgentRef[] {
   return (todo.agents ?? []).filter((a) => a.provider);
+}
+
+export function isAgy(provider: string): boolean {
+  const p = provider.trim().toLowerCase();
+  return p === "antigravity cli" || p === "agy";
+}
+
+export async function launchAgentOrTerminal(
+  paseo: PluginHandlerContext["paseo"],
+  ws: ReturnType<PluginHandlerContext["paseo"]["workspaces"]["ref"]>,
+  ref: AgentRef,
+  title: string,
+  prompt: string,
+): Promise<{ agentId?: string; terminalId?: string }> {
+  if (isAgy(ref.provider)) {
+    const args = ["--dangerously-skip-permissions"];
+    if (ref.model) {
+      args.push("--model", ref.model);
+    }
+    args.push("-i", prompt);
+    const term = await ws.terminals.create({
+      name: title,
+      command: "agy",
+      args,
+    });
+    return { terminalId: term.id };
+  }
+  const config = await resolveProviderField(paseo, ref.provider, ref.model);
+  const handle = await ws.agents.create({
+    config: { provider: config },
+    title,
+    prompt,
+  });
+  return { agentId: handle.id };
 }
 
 async function workspaceIsActive(
@@ -137,47 +171,13 @@ export async function handleStartTodo(
   const multi = refs.length > 1;
 
   try {
-function isAgy(provider: string): boolean {
-  const p = provider.trim().toLowerCase();
-  return p === "antigravity cli" || p === "agy";
-}
-
-async function launchAgentOrTerminal(
-  paseo: PluginHandlerContext["paseo"],
-  ws: ReturnType<PluginHandlerContext["paseo"]["workspaces"]["ref"]>,
-  ref: AgentRef,
-  title: string,
-  prompt: string,
-): Promise<{ agentId?: string; terminalId?: string }> {
-  if (isAgy(ref.provider)) {
-    const args = ["--dangerously-skip-permissions"];
-    if (ref.model) {
-      args.push("--model", ref.model);
-    }
-    args.push("-i", prompt);
-    const term = await ws.terminals.create({
-      name: title,
-      command: "agy",
-      args,
-    });
-    return { terminalId: term.id };
-  }
-  const config = await resolveProviderField(paseo, ref.provider, ref.model);
-  const handle = await ws.agents.create({
-    config: { provider: config },
-    title,
-    prompt,
-  });
-  return { agentId: handle.id };
-}
-
     let workspaceId = todo.workspaceId;
     let workspaceName = todo.workspaceName;
     let projectPath = todo.projectPath;
     let projectId = todo.projectId;
     const agentIds: string[] = [];
     const terminalIds: string[] = [];
-    const wtWorkspaces: Array<{ workspaceId: string; branch: string }> = [];
+    const wtWorkspaces: Array<{ workspaceId: string; branch: string; dir?: string }> = [];
     let wtRepo: string | undefined;
 
     let staleWorkspace = false;
@@ -235,7 +235,11 @@ async function launchAgentOrTerminal(
             },
             title: multi ? `${title} #${i + 1}` : title,
           });
-          wtWorkspaces.push({ workspaceId: ws.id, branch: branchName });
+          wtWorkspaces.push({
+            workspaceId: ws.id,
+            branch: branchName,
+            dir: ws.directory || undefined,
+          });
           if (i === 0) {
             workspaceId = ws.id;
             workspaceName = ws.name || title;
@@ -273,7 +277,11 @@ async function launchAgentOrTerminal(
 
         const ws = await paseo.workspaces.create({ source, title });
         if (makeWorktree) {
-          wtWorkspaces.push({ workspaceId: ws.id, branch: singleBranch });
+          wtWorkspaces.push({
+            workspaceId: ws.id,
+            branch: singleBranch,
+            dir: ws.directory || undefined,
+          });
         }
         workspaceId = ws.id;
         workspaceName = ws.name ?? title;
@@ -323,6 +331,7 @@ async function launchAgentOrTerminal(
         wtWorkspaces.push({
           workspaceId: ws.id,
           branch: todo.newBranch!.trim(),
+          dir: ws.directory || undefined,
         });
       }
       for (let i = 0; i < refs.length; i++) {

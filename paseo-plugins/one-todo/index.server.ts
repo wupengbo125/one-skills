@@ -1,6 +1,10 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
 import {
   addTodoRpc,
+  arbitrationDirsRpc,
+  arbitrationSendRpc,
+  arbitrationStartRpc,
+  arbitrationVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
   handleAddTodo,
@@ -31,6 +35,14 @@ import {
   stashWorkspaceProject,
 } from "./server/executor";
 import {
+  cleanupArbitrationBranch,
+  completeArbitration,
+  handleArbitrationDirs,
+  handleArbitrationSend,
+  handleArbitrationStart,
+  handleArbitrationVerdict,
+} from "./server/arbitration";
+import {
   handleCreateIssue,
   handleFetchIssue,
   handleListIssues,
@@ -50,19 +62,38 @@ export default function contribute(server: PluginServerContext) {
   server.handle(fetchIssueRpc, (input) => handleFetchIssue(input));
   server.handle(createIssueRpc, (input) => handleCreateIssue(input));
   server.handle(listSkillsRpc, () => handleListSkills());
+  server.handle(arbitrationDirsRpc, (input, ctx) =>
+    handleArbitrationDirs(input, ctx),
+  );
+  server.handle(arbitrationStartRpc, (input, ctx) =>
+    handleArbitrationStart(input, ctx),
+  );
+  server.handle(arbitrationVerdictRpc, (input, ctx) =>
+    handleArbitrationVerdict(input, ctx),
+  );
+  server.handle(arbitrationSendRpc, (input, ctx) =>
+    handleArbitrationSend(input, ctx),
+  );
 
   server.on("agent.turn_ended", (event) => {
-    if (event.outcome.kind === "completed") return;
-    const outcome =
-      event.outcome.kind === "failed" ? "failed" : "canceled";
     const errMsg =
       event.outcome.kind === "failed" ? event.outcome.error.message : undefined;
+    const outcome =
+      event.outcome.kind === "failed"
+        ? "failed"
+        : event.outcome.kind === "canceled"
+          ? "canceled"
+          : "completed";
+    // 判官只翻仲裁状态，不碰待办本身
+    if (completeArbitration(event.agent.id, outcome, errMsg)) return;
+    if (event.outcome.kind === "completed") return;
     completeByAgentId(event.agent.id, outcome, errMsg);
   });
 
   server.on("workspace.archived", (event) => {
     stashWorkspaceProject(event.workspace.id, event.workspace.projectId);
     cleanupWorkspaceBranches(event.workspace.id);
+    void cleanupArbitrationBranch(event.workspace.id);
     completeByWorkspaceId(
       event.workspace.id,
       event.workspace.archivedAt ?? undefined,

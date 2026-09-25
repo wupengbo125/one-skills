@@ -46,7 +46,29 @@ export const todoSchema = z.object({
   pendingAgentIds: z.array(z.string()).optional(),
   worktreeRepo: z.string().optional(),
   worktrees: z
-    .array(z.object({ workspaceId: z.string(), branch: z.string() }))
+    .array(
+      z.object({
+        workspaceId: z.string(),
+        branch: z.string(),
+        dir: z.string().optional(),
+      }),
+    )
+    .optional(),
+  arbitration: z
+    .object({
+      kind: z.enum(["arbitrate", "review"]).optional(),
+      prompt: z.string(),
+      judge: agentRefSchema,
+      agentId: z.string().optional(),
+      terminalId: z.string().optional(),
+      terminalCheckFails: z.number().optional(),
+      workspaceId: z.string().optional(),
+      branch: z.string().optional(),
+      status: z.enum(["running", "done", "failed"]),
+      error: z.string().optional(),
+      startedAt: z.string(),
+      finishedAt: z.string().optional(),
+    })
     .optional(),
     createdAt: z.string(),
     startedAt: z.string().optional(),
@@ -253,6 +275,60 @@ export const fetchIssueRpc = defineRpc({
     number: z.number(),
     repo: z.string(),
     url: z.string(),
+  }),
+});
+
+export const arbitrationDirsRpc = defineRpc({
+  name: "todo.arbitration_dirs",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    repo: z.string().optional(),
+    baseBranch: z.string().optional(),
+    candidates: z.array(
+      z.object({
+        workspaceId: z.string(),
+        branch: z.string(),
+        dir: z.string().optional(),
+        exists: z.boolean(),
+        label: z.string(),
+      }),
+    ),
+    reviewDir: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+
+export const arbitrationStartRpc = defineRpc({
+  name: "todo.arbitration_start",
+  input: z.object({
+    id: z.string(),
+    kind: z.enum(["arbitrate", "review"]),
+    prompt: z.string().min(1),
+    judge: agentRefSchema,
+  }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
+    error: z.string().optional(),
+  }),
+});
+
+export const arbitrationVerdictRpc = defineRpc({
+  name: "todo.arbitration_verdict",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    verdict: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+
+export const arbitrationSendRpc = defineRpc({
+  name: "todo.arbitration_send",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    ok: z.boolean(),
+    target: z.string().optional(),
+    error: z.string().optional(),
   }),
 });
 

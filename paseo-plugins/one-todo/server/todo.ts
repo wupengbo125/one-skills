@@ -6,6 +6,10 @@ import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
 import {
   addTodoRpc,
+  arbitrationDirsRpc,
+  arbitrationSendRpc,
+  arbitrationStartRpc,
+  arbitrationVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
   listIssuesRpc,
@@ -288,6 +292,10 @@ export async function handleListProjects({ paseo }: PluginHandlerContext) {
 
 export {
   addTodoRpc,
+  arbitrationDirsRpc,
+  arbitrationSendRpc,
+  arbitrationStartRpc,
+  arbitrationVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
   listIssuesRpc,

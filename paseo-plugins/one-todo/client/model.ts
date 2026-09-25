@@ -31,7 +31,8 @@ export type Picker =
     }
   | { kind: "project" }
   | { kind: "workspace" }
-  | { kind: "skills" };
+  | { kind: "skills" }
+  | { kind: "judge"; step: "provider" | "model"; provider: string };
 
 export type PickItem = {
   id: string;
