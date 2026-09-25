@@ -1,6 +1,6 @@
 # 校验 (lint)
 
-检查并修复知识层 `lorebloom/` 的质量问题。`raw/` 不参与 lint。
+检查并修复扁平知识层 `lorebloom/` 的质量问题。`raw/` 不参与 lint。
 **本地通道**：读写 `~/onespace/github/lorebloom`，完成后 commit + push。
 
 ## 步骤
@@ -16,7 +16,7 @@
 
 3. **拟定方案**：列出问题与修复建议，征求用户确认后再改。
 
-4. **修复与流水**：精准修复；向 `lorebloom/log.md` 追加 `## [YYYY-MM-DD] lint | <简要说明>`。
+4. **修复与流水**：精准修复；更新 `lorebloom/index.md`；向 `lorebloom/log.md` 追加 `## [YYYY-MM-DD] lint | <简要说明>`。
 
 5. **提交推送**：
    ```bash

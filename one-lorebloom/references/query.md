@@ -1,15 +1,15 @@
 # 查询 (query)
 
-从知识层 `lorebloom/` 回答问题并追溯原文出处。
+从扁平知识层 `lorebloom/` 回答问题并追溯原文出处。
 仓库：`~/onespace/github/lorebloom/`。
 
 ## 手段分流
 
 | 问法 | 手段 |
 | :--- | :--- |
-| 具体词、原话、人名、术语 | 全文检索：`grep -rn "<关键词>" lorebloom/`（本地无 fts 脚本时用 grep） |
-| 某领域有什么、"有没有…相关的" | 从 `lorebloom/index.md` → `lorebloom/<领域>/index.md` 顺双链下钻 |
-| 最近、最新、按时间 | 列 `raw/ingested/` 月份目录与 `lorebloom/log.md` |
+| 具体词、原话、人名、术语 | `grep -rn "<关键词>" lorebloom/` |
+| 都有什么、某主题相关页面 | 从唯一总目录 `lorebloom/index.md` 入手，顺双链下钻 |
+| 最近、最新、按时间 | 看 `raw/ingested/` 月份目录与 `lorebloom/log.md` |
 
 一条路走空就换下一条，回答里说清走了哪几条。
 
