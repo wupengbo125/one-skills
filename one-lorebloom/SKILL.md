@@ -15,7 +15,7 @@ GitHub 远端仓库 `wupengbo125/lorebloom`（私有，分支 main）。
 - `raw/` 根目录：收件箱，原始资料随手丢，不分类、不改写。
 - `raw/ingested/YYYY-MM/`：已摄入原文按月归档。
 - `lorebloom/`：AI 维护的知识层，**按领域分目录**：
-  - 领域：life、mindset、technology、stocks、personal、food、english
+  - 领域：life、study、food、technology、stocks
   - 每个领域下：`concepts/`、`entities/`、`summaries/`、`index.md`
   - `lorebloom/index.md` 总索引；`lorebloom/log.md` 全库流水
   - 页面靠 `[[双链]]` 跨领域关联

@@ -9,7 +9,7 @@
 
 2. **扫描收件箱**：只列 `raw/` 根目录（不递归）下的文件。存在即待摄入，无需标记；收件箱为空则告知用户并结束。
 
-3. **判断领域**：逐份判断归属领域（life / mindset / technology / stocks / personal / food / english），简短列出计划；无匹配领域时先与用户确认，禁止擅自新建领域。
+3. **判断领域**：逐份判断归属领域（life / study / food / technology / stocks），简短列出计划；无匹配领域时先与用户确认，禁止擅自新建领域。
 
 4. **三层编译**：读原文，写入 `lorebloom/<领域>/`：
    - `summaries/<主题>.md`：一对一结构化浓缩，头部写：`> 源文件：[[raw/ingested/YYYY-MM/<文件名>|查看原文]]`
