@@ -10,14 +10,15 @@ GitHub 远端仓库 `wupengbo125/lorebloom`（私有，分支 main）。
 本地克隆路径：`~/onespace/github/lorebloom`。
 **仓库根目录 `AGENTS.md` 是权威操作规则**，与本技能冲突时以 AGENTS.md 为准。
 
-## 结构（Karpathy llm-wiki 原版：两个目录 + 一个规则文件）
+## 结构（Karpathy llm-wiki 模式：raw + wiki + schema）
 
 - `raw/` 根目录：收件箱，原始资料随手丢，不分类、不改写。
 - `raw/ingested/YYYY-MM/`：已摄入原文按月归档。
-- `lorebloom/`：AI 维护的扁平知识层，**不按领域分目录**：
-  - `concepts/`、`entities/`、`summaries/`
-  - `index.md` 唯一总目录；`log.md` 追加式流水
-  - 页面靠 `[[双链]]` 跨主题关联
+- `lorebloom/`：AI 维护的知识层，**按领域分目录**：
+  - 领域：life、mindset、technology、stocks、personal、food、english
+  - 每个领域下：`concepts/`、`entities/`、`summaries/`、`index.md`
+  - `lorebloom/index.md` 总索引；`lorebloom/log.md` 全库流水
+  - 页面靠 `[[双链]]` 跨领域关联
 
 ## 意图分流
 
