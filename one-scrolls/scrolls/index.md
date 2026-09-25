@@ -28,6 +28,9 @@ Scroll Index
   - **核心解决**：手机/浏览器改 Linux 本机文件的自建方案：code-server 安装避坑（release 资产名无 v 前缀）、密码只用 common_password（systemd user 服务须自行 source exports 注入 $PASSWORD）、只监听 127.0.0.1 由 `tailscale serve --https` 出 HTTPS；附选型对比（File Browser 已归档）与 curl 302/200 验证法；第 10 节给出手机场景正确解——自研 fileweb（文件列表+全屏编辑，零依赖）。**code-server 本体已于 2026-09-15 卸载，fileweb 为现役方案。**
 - [PaseoPlugin创作手册](./tech/PaseoPlugin创作手册.md)
   - **核心解决**：从零创建 **Paseo 插件**（非 VS Code）：骨架（`paseo-plugin.json` + 两侧 `contribute` + shared RPC）、zod 双端校验与 `undefined`/`""` patch、数据落 `~/.paseo/plugin-data/<id>/`、RN 表单 StableInput（语音/IME 断字修法）、`paseo plugin reload` 验证闭环与推荐创作顺序。
+- [Paseo终端模式Agent状态感知配置手册](./tech/Paseo终端模式Agent状态感知配置手册.md)
+  - **核心解决**：Paseo 终端模式运行 Agent（如 Anti Gravity CLI）实现“运行中（working）”与“回复完成等待Review（idle+finished 自动触发 attention 徽标）”两态精准感知；涵盖环境变量机制、hooks.json 钩子配置与避坑要点。
+
 
 ---
 
