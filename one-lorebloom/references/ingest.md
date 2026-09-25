@@ -28,7 +28,7 @@
 
 5. **归档原文**：把处理完的文件从 `raw/` 移动到 `raw/ingested/YYYY-MM/`（资料日期无法判定时取当前月）。**内容一字不改，禁止删除**。移动即已摄入标记。
 
-6. **更新目录与流水**：更新 `lorebloom/<领域>/index.md` 与 `lorebloom/index.md`；向 `lorebloom/log.md`（life 域同时向 `lorebloom/life/log.md`）追加 `## [YYYY-MM-DD] ingest | <主题>`；必要时更新 `onememory/timeline.md`。
+6. **更新目录与流水**：更新 `lorebloom/<领域>/index.md` 与 `lorebloom/index.md`；向 `lorebloom/log.md`（life 域同时向 `lorebloom/life/log.md`）追加 `## [YYYY-MM-DD] ingest | <主题>`。
 
 7. **提交推送**：
    ```bash

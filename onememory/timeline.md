@@ -97,3 +97,4 @@
 - 2026-09-25 21:55 [6634f6e4-1746-4ff7-bff7-d5b21b6c5827] wiki改扁平Karpathy原版
 - 2026-09-25 22:10 [e6b3c5b0-27b2-468e-98a2-12393c86e054] wiki按领域分目录
 - 2026-09-25 22:20 [e81dc313-d824-40d8-b536-68e08f8557be] one-lorebloom自带fts脚本
+- 2026-09-25 22:25 [7c91f83e-1efc-44a7-97c7-ec93e02edb92] lorebloom移除onememory
