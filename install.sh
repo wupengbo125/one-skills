@@ -142,7 +142,7 @@ install_memory_hooks() {
         name="$(basename "$repo")"
         # 记录型仓库自身即记忆载体，不装门禁
         case "$name" in
-            one-hippocampus|one-life|one-llmwiki)
+            one-hippocampus|one-life|one-llmwiki|lorebloom)
                 echo "  跳过: $name"
                 continue
                 ;;
