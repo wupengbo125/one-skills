@@ -99,3 +99,4 @@
 - 2026-09-25 22:20 [e81dc313-d824-40d8-b536-68e08f8557be] one-lorebloom自带fts脚本
 - 2026-09-25 22:25 [7c91f83e-1efc-44a7-97c7-ec93e02edb92] lorebloom移除onememory
 - 2026-09-25 22:35 [e02324d0-e706-40a4-a0ea-a43e93cbed1b] 领域收缩为5个
+- 2026-09-25 22:50 [f6157698-f257-474c-a0d3-38a0cfc18397] ingest要求wiki页面完整
