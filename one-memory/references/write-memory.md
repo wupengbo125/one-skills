@@ -24,7 +24,7 @@
 **完成标准**：逐个删摘要里的词，删到再删一个、将来就搜不到这次改动为止。
 流水与案卷均带上完整会话 ID。参考下面获取ID：
 1. 第一优先级（自知）：上下文已注入 ID（如 OMP）→ 直接取用。
-2. 第二优先级（探针）：查 $PASEO_AGENT_ID、$CODEBUDDY_SESSION_ID、$CLAUDE_SESSION_ID → 命中即用。
+2. 第二优先级（探针）：查 $PASEO_AGENT_ID、$CODEBUDDY_SESSION_ID → 命中即用。
 3. 兜底阻断（求助）：仍为空 → 硬中断，自嘲并向用户索取，彻底杜绝 Agent 编造假 ID 或跳过不写。
 
 ### Step 2 项目随身记忆 `<项目根>/onememory/`
