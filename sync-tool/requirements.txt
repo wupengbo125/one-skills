@@ -1,0 +1,3 @@
+wsgidav==4.3.5
+cheroot>=10.0
+watchdog>=3.0
