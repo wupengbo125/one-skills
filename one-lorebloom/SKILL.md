@@ -19,8 +19,7 @@ raw/                  根目录散文件 = 待摄入收件箱
 raw/<领域>/           进了领域目录 = 已摄入归档（life/study/food/technology/stocks）
 lorebloom/<领域>/     知识层，每领域下：
   concepts/           可复用方法论、跨资料出现的思维模型
-  entities/           外部对象：人物、工具、产品、地点、食材
-  projects/           我的项目：Carefree、Paseo插件等，记录状态与进展
+  entities/           外部对象：人物、工具、产品、地点、食材、项目
   summaries/          每份原文一对一完整浓缩
   index.md
 lorebloom/index.md    总索引
