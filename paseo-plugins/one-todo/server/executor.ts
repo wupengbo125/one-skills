@@ -9,6 +9,7 @@ import {
 } from "../shared/todo";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { savePreferences } from "./preferences";
+import { taskDocHint } from "./taskdoc";
 import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
 
@@ -146,10 +147,6 @@ export async function handleStartTodo(
     todo = updated.todo;
   }
 
-  if (todo.status === "running") {
-    return { ok: false, todo, error: "已在运行中" };
-  }
-
   const refs = todoAgents(todo);
   if (refs.length === 0) {
     return { ok: false, todo, error: "先选至少一个 Provider" };
@@ -177,7 +174,17 @@ export async function handleStartTodo(
     let projectId = todo.projectId;
     const agentIds: string[] = [];
     const terminalIds: string[] = [];
-    const wtWorkspaces: Array<{ workspaceId: string; branch: string; dir?: string }> = [];
+    const wtWorkspaces: Array<{
+      workspaceId: string;
+      branch: string;
+      dir?: string;
+      agentId?: string;
+      terminalId?: string;
+      provider?: string;
+      model?: string;
+    }> = [];
+    // 名单越加越长：新马的分支序号接在已有名单后面，不会和老的撞名
+    const seqBase = todo.worktrees?.length ?? 0;
     let wtRepo: string | undefined;
 
     let staleWorkspace = false;
@@ -205,7 +212,7 @@ export async function handleStartTodo(
           ws,
           refs[i],
           multi ? `${title} #${i + 1}` : title,
-          prompt,
+          `${prompt}\n\n${taskDocHint(ws.id)}`,
         );
         if (launched.agentId) agentIds.push(launched.agentId);
         if (launched.terminalId) terminalIds.push(launched.terminalId);
@@ -220,8 +227,8 @@ export async function handleStartTodo(
       if (isWorktree && multi) {
         for (let i = 0; i < refs.length; i++) {
           const branchName = todo.newBranch?.trim()
-            ? `${branchFromTitle(todo.newBranch)}-a${i + 1}`
-            : `${branchFromTitle(title)}-a${i + 1}`;
+            ? `${branchFromTitle(todo.newBranch)}-a${seqBase + i + 1}`
+            : `${branchFromTitle(title)}-a${seqBase + i + 1}`;
           wtRepo = srcRepo;
           const ws = await paseo.workspaces.create({
             source: {
@@ -251,13 +258,22 @@ export async function handleStartTodo(
             ws,
             refs[i],
             multi ? `${title} #${i + 1}` : title,
-            prompt,
+            `${prompt}\n\n${taskDocHint(ws.id)}`,
           );
           if (launched.agentId) agentIds.push(launched.agentId);
           if (launched.terminalId) terminalIds.push(launched.terminalId);
+          const entry = wtWorkspaces[wtWorkspaces.length - 1];
+          entry.agentId = launched.agentId;
+          entry.terminalId = launched.terminalId;
+          entry.provider = refs[i].provider || undefined;
+          entry.model = refs[i].model || undefined;
         }
       } else {
-        const singleBranch = todo.newBranch?.trim() || branchFromTitle(title);
+        // 单马/共享 worktree：首次沿用原分支名，之后再发要加序号避撞
+        const singleBranch =
+          seqBase === 0
+            ? todo.newBranch?.trim() || branchFromTitle(title)
+            : `${branchFromTitle(todo.newBranch?.trim() || title)}-a${seqBase + 1}`;
         if (makeWorktree) {
           wtRepo = srcRepo;
         }
@@ -267,7 +283,7 @@ export async function handleStartTodo(
               cwd: projectPath,
               ...(projectId ? { projectId } : {}),
               branchName: singleBranch,
-              worktreeSlug: branchFromTitle(todo.newBranch?.trim() || title),
+              worktreeSlug: branchFromTitle(singleBranch),
             }
           : {
               kind: "directory" as const,
@@ -294,10 +310,18 @@ export async function handleStartTodo(
             ws,
             refs[i],
             multi ? `${title} #${i + 1}` : title,
-            prompt,
+            `${prompt}\n\n${taskDocHint(ws.id)}`,
           );
           if (launched.agentId) agentIds.push(launched.agentId);
           if (launched.terminalId) terminalIds.push(launched.terminalId);
+          if (makeWorktree) {
+            // 同一 worktree 里多匹马时只记第一个会话（与现有行为一致）
+            const entry = wtWorkspaces[wtWorkspaces.length - 1];
+            entry.agentId = entry.agentId ?? launched.agentId;
+            entry.terminalId = entry.terminalId ?? launched.terminalId;
+            entry.provider = entry.provider ?? (refs[i].provider || undefined);
+            entry.model = entry.model ?? (refs[i].model || undefined);
+          }
         }
       }
     } else {
@@ -308,6 +332,12 @@ export async function handleStartTodo(
           error: "未选项目/Workspace，也未填仓库路径 cwd",
         };
       }
+      // 之后再发要加序号避撞（首次沿用原分支名）
+      const cwdBranch = todo.newBranch
+        ? seqBase === 0
+          ? todo.newBranch.trim()
+          : `${branchFromTitle(todo.newBranch.trim())}-a${seqBase + 1}`
+        : "";
       const isWorktree = (todo.isolation ?? "local") === "worktree";
       const source =
         isWorktree && todo.newBranch && todo.baseBranch
@@ -316,8 +346,8 @@ export async function handleStartTodo(
               cwd: todo.cwd,
               action: "branch-off" as const,
               baseBranch: todo.baseBranch.trim() || "main",
-              branchName: todo.newBranch.trim(),
-              worktreeSlug: branchFromTitle(todo.newBranch.trim()),
+              branchName: cwdBranch,
+              worktreeSlug: branchFromTitle(cwdBranch),
             }
           : {
               kind: "directory" as const,
@@ -330,7 +360,7 @@ export async function handleStartTodo(
         wtRepo = todo.cwd;
         wtWorkspaces.push({
           workspaceId: ws.id,
-          branch: todo.newBranch!.trim(),
+          branch: cwdBranch,
           dir: ws.directory || undefined,
         });
       }
@@ -340,21 +370,32 @@ export async function handleStartTodo(
           ws,
           refs[i],
           multi ? `${title} #${i + 1}` : title,
-          prompt,
+          `${prompt}\n\n${taskDocHint(ws.id)}`,
         );
         if (launched.agentId) agentIds.push(launched.agentId);
         if (launched.terminalId) terminalIds.push(launched.terminalId);
+        if (source.kind === "worktree") {
+          const entry = wtWorkspaces[wtWorkspaces.length - 1];
+          entry.agentId = entry.agentId ?? launched.agentId;
+          entry.terminalId = entry.terminalId ?? launched.terminalId;
+          entry.provider = entry.provider ?? (refs[i].provider || undefined);
+          entry.model = entry.model ?? (refs[i].model || undefined);
+        }
       }
     }
 
+    // 名单只有一份：新马追加进去，谁结束都认（不分批次）
+    const allAgentIds = [...(todo.agentIds ?? []), ...agentIds];
+    const allTerminalIds = [...(todo.terminalIds ?? []), ...terminalIds];
+    const allWorktrees = [...(todo.worktrees ?? []), ...wtWorkspaces];
     const next: Todo = {
       ...todo,
       status: "running",
-      agentIds,
-      terminalIds: terminalIds.length ? terminalIds : undefined,
-      pendingAgentIds: [...agentIds],
+      agentIds: allAgentIds,
+      terminalIds: allTerminalIds.length ? allTerminalIds : undefined,
+      pendingAgentIds: [...(todo.pendingAgentIds ?? []), ...agentIds],
       worktreeRepo: wtRepo,
-      worktrees: wtWorkspaces.length ? wtWorkspaces : undefined,
+      worktrees: allWorktrees.length ? allWorktrees : undefined,
       workspaceId: workspaceId || undefined,
       workspaceName: workspaceName || undefined,
       projectId: projectId || undefined,
@@ -391,19 +432,20 @@ export function completeByAgentId(
   outcome: "completed" | "failed" | "canceled",
   errorMessage?: string,
 ): Todo | null {
-  const todos = listTodos();
-  const todo = todos.find(
-    (t) => t.status === "running" && (t.agentIds ?? []).includes(agentId),
+  const todo = listTodos().find(
+    (t) =>
+      (t.status === "running" || t.status === "failed") &&
+      (t.agentIds ?? []).includes(agentId),
   );
   if (!todo) return null;
   const now = new Date().toISOString();
 
   if (outcome === "failed" || outcome === "canceled") {
+    // 只标记失败，名单里的马原样留着：这个会话再跑起来就能自己恢复
     return saveTodo({
       ...todo,
       status: "failed",
       finishedAt: now,
-      pendingAgentIds: [],
       error:
         errorMessage ||
         (outcome === "canceled" ? "会话已取消" : "agent turn failed"),
@@ -422,7 +464,27 @@ export function completeByAgentId(
       error: undefined,
     });
   }
-  return saveTodo({ ...todo, pendingAgentIds: pool });
+  return saveTodo({
+    ...todo,
+    status: "running",
+    finishedAt: undefined,
+    error: undefined,
+    pendingAgentIds: pool,
+  });
+}
+
+/** 名单里的某个会话又开始跑了：上一次的失败作废，待办恢复进行中。 */
+export function reviveByAgentId(agentId: string): Todo | null {
+  const todo = listTodos().find(
+    (t) => t.status === "failed" && (t.agentIds ?? []).includes(agentId),
+  );
+  if (!todo) return null;
+  return saveTodo({
+    ...todo,
+    status: "running",
+    finishedAt: undefined,
+    error: undefined,
+  });
 }
 
 export function stashWorkspaceProject(
@@ -447,14 +509,37 @@ export async function cleanupWorkspaceBranches(
     const hit = (t.worktrees ?? []).filter((w) => w.workspaceId === workspaceId);
     if (hit.length === 0) continue;
     const repo = t.worktreeRepo;
-    if (!repo) continue;
-    await deleteBranches(
-      repo,
-      hit.map((w) => w.branch),
+    if (repo) {
+      await deleteBranches(
+        repo,
+        hit.map((w) => w.branch),
+      );
+    }
+    // 归档 = 把这匹马从名单里去掉；它的会话号也一并摘掉
+    const gone = new Set(
+      hit.flatMap((w) => [w.agentId, w.terminalId]).filter(Boolean) as string[],
     );
+    const keep = (ids?: string[]) =>
+      (ids ?? []).filter((id) => !gone.has(id));
+    const agentIds = keep(t.agentIds);
+    const terminalIds = keep(t.terminalIds);
+    const pendingAgentIds = keep(t.pendingAgentIds);
     saveTodo({
       ...t,
-      worktrees: (t.worktrees ?? []).filter((w) => w.workspaceId !== workspaceId),
+      worktrees: (t.worktrees ?? []).filter(
+        (w) => w.workspaceId !== workspaceId,
+      ),
+      agentIds,
+      terminalIds: terminalIds.length ? terminalIds : undefined,
+      pendingAgentIds,
+      // 名单里没有还在跑的马了，这个待办才算完成
+      ...(t.status === "running" && pendingAgentIds.length === 0
+        ? {
+            status: "done" as const,
+            finishedAt: new Date().toISOString(),
+            error: undefined,
+          }
+        : {}),
     });
   }
 }
@@ -465,7 +550,12 @@ export function completeByWorkspaceId(
 ): Todo[] {
   const now = archivedAt ?? new Date().toISOString();
   return listTodos()
-    .filter((t) => t.status === "running" && t.workspaceId === workspaceId)
+    .filter(
+      (t) =>
+        t.status === "running" &&
+        t.workspaceId === workspaceId &&
+        (t.pendingAgentIds ?? []).length === 0,
+    )
     .map((t) =>
       saveTodo({
         ...t,

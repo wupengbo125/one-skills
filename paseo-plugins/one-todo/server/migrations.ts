@@ -8,6 +8,24 @@ type LegacyTodo = Todo & {
 
 export function normalizeTodo(raw: Todo): Todo {
   const t = { ...raw } as Todo & { source?: string };
+  // 老记录：评审那块以前叫 arbitration，字段叫 judge，kind 叫 arbitrate/review
+  const legacyReview = (t as unknown as {
+    arbitration?: {
+      kind?: string;
+      judge?: unknown;
+      [k: string]: unknown;
+    };
+  }).arbitration;
+  if (legacyReview && !t.review) {
+    const { kind, judge, ...rest } = legacyReview;
+    t.review = {
+      ...(rest as NonNullable<Todo["review"]>),
+      kind:
+        kind === "arbitrate" ? "multi" : kind === "review" ? "single" : undefined,
+      reviewer: judge as NonNullable<Todo["review"]>["reviewer"],
+    };
+  }
+  delete (t as unknown as { arbitration?: unknown }).arbitration;
   if (t.source === ("manual" as Todo["source"])) t.source = "todo";
   if (!t.source) t.source = "todo";
 

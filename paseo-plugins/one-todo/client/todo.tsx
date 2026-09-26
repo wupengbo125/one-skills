@@ -8,16 +8,19 @@ import {
   copyText,
 } from "@getpaseo/plugin/client/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Animated } from "react-native";
 import {
   addTodoRpc,
-  arbitrationDirsRpc,
-  arbitrationSendRpc,
-  arbitrationStartRpc,
-  arbitrationVerdictRpc,
+  reviewAbortRpc,
+  reviewContinueRpc,
+  reviewDirsRpc,
+  reviewSendRpc,
+  reviewStartRpc,
+  reviewVerdictRpc,
+  reviewTemplateRpc,
   createIssueRpc,
   fetchIssueRpc,
   listIssuesRpc,
@@ -143,10 +146,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const listIssues = useRpc(listIssuesRpc);
   const fetchIssue = useRpc(fetchIssueRpc);
   const createIssue = useRpc(createIssueRpc);
-  const arbitrationDirs = useRpc(arbitrationDirsRpc);
-  const arbitrationStart = useRpc(arbitrationStartRpc);
-  const arbitrationVerdict = useRpc(arbitrationVerdictRpc);
-  const arbitrationSend = useRpc(arbitrationSendRpc);
+  const reviewDirs = useRpc(reviewDirsRpc);
+  const reviewStart = useRpc(reviewStartRpc);
+  const reviewVerdict = useRpc(reviewVerdictRpc);
+  const reviewSend = useRpc(reviewSendRpc);
+  const reviewAbort = useRpc(reviewAbortRpc);
+  const reviewContinue = useRpc(reviewContinueRpc);
+  const reviewTemplate = useRpc(reviewTemplateRpc);
 
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("todo");
   const [repoFilter, setRepoFilter] = useState<string>("");
@@ -158,13 +164,69 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [formGen, setFormGen] = useState(0);
   const [holdTip, setHoldTip] = useState(false);
   const holdTipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [needTaskTip, setNeedTaskTip] = useState(false);
+  const needTaskTipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [arb, setArb] = useState<{
     id: string;
     title: string;
-    judge: AgentRef;
+    reviewer: AgentRef;
   } | null>(null);
-  const arbPromptRef = useRef("");
-  const [arbPromptReady, setArbPromptReady] = useState(false);
+  const [sendSeed, setSendSeed] = useState("");
+  const [sendView, setSendView] = useState<"collapsed" | "preview" | "edit">(
+    "collapsed",
+  );
+  const [sendDirty, setSendDirty] = useState(false);
+  const [sendLoaded, setSendLoaded] = useState(false);
+  const sendRef = useRef("");
+  const sendSavedRef = useRef("");
+  const [tplSeed, setTplSeed] = useState("");
+  const tplRef = useRef("");
+  const tplSavedRef = useRef("");
+  const [tplDirty, setTplDirty] = useState(false);
+  const tplLoadedKey = useRef<string | null>(null);
+  // 模板区三态：collapsed 收起 / preview 预览 / edit 编辑
+  const [tplView, setTplView] = useState<"collapsed" | "preview" | "edit">(
+    "collapsed",
+  );
+  // 需求框：预填目标马的需求文件内容，没有就预填待办内容；用户可整段删掉
+  const [taskView, setTaskView] = useState<"collapsed" | "preview" | "edit">(
+    "collapsed",
+  );
+  const [verdictOpen, setVerdictOpen] = useState(true);
+  // 评审弹层分两页：0 = 评审官，1 = 干活的马
+  const [page, setPage] = useState(0);
+  const [pageW, setPageW] = useState(0);
+  const pagerRef = useRef<ScrollView | null>(null);
+  const [arbMsg, setArbMsg] = useState<{
+    text: string;
+    bad?: boolean;
+  } | null>(null);
+  const arbMsgTimer = useRef<any>(undefined);
+  const showArbMsg = useCallback(
+    (msg: { text: string; bad?: boolean } | null) => {
+      setArbMsg(msg);
+      clearTimeout(arbMsgTimer.current);
+      if (msg) {
+        arbMsgTimer.current = setTimeout(() => setArbMsg(null), 2500);
+      }
+    },
+    [],
+  );
+  const [copyTip, setCopyTip] = useState(false);
+  const copyTipTimer = useRef<any>(undefined);
+  const [arbTaskSeed, setArbTaskSeed] = useState("");
+  const [arbTaskVer, setArbTaskVer] = useState(0);
+  const arbTaskRef = useRef("");
+  // 评审方式由你手动定（多匹马/一匹马），不传就按马匹数自动选
+  const [arbKindPick, setReviewKindPick] = useState<
+    "multi" | "single" | null
+  >(null);
+  // 一匹马时指定评审哪一匹（候选名单里的位置）
+  const [arbTarget, setArbTarget] = useState<number | null>(null);
+  const onTplValue = useCallback((v: string) => {
+    tplRef.current = v;
+    setTplDirty(v !== tplSavedRef.current);
+  }, []);
 
   const triggerHoldTip = useCallback(() => {
     if (holdTipTimer.current) clearTimeout(holdTipTimer.current);
@@ -243,7 +305,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   const pickerProvider =
     picker &&
-    (picker.kind === "agent" || picker.kind === "judge") &&
+    (picker.kind === "agent" || picker.kind === "reviewer") &&
     picker.step === "model"
       ? picker.provider
       : "";
@@ -405,64 +467,189 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const arbTodo: Todo | undefined = arb
     ? todos.find((t) => t.id === arb.id)
     : undefined;
+  const auto = arbTodo?.autoReview;
+  const setAuto = (patch: Partial<NonNullable<Todo["autoReview"]>>) => {
+    if (!arbTodo) return;
+    const base = arbTodo.autoReview ?? { maxRounds: 0, roundsUsed: 0 };
+    editM.mutate({
+      id: arbTodo.id,
+      patch: { autoReview: { ...base, ...patch } },
+    });
+  };
   const arbDirsQ = useQuery({
     queryKey: ["todo-arb-dirs", arb?.id],
-    queryFn: () => arbitrationDirs({ id: arb!.id }),
+    queryFn: () => reviewDirs({ id: arb!.id }),
     enabled: !!arb,
   });
   const arbLiveCount = (arbDirsQ.data?.candidates ?? []).filter(
     (c) => c.exists,
   ).length;
-  // ≥2 个活候选走仲裁，否则走审核（单马/本地直跑）
-  const arbMode: "arbitrate" | "review" =
-    arbLiveCount >= 2 ? "arbitrate" : "review";
+  // ≥2 个活候选：多匹马评审；否则一匹马评审；你手动选了就以你选的为准
+  const arbMode: "multi" | "single" =
+    arbLiveCount >= 2 ? "multi" : "single";
+  // 手动选了多匹马但活着的马不足 2 匹时，回落到一匹马评审（马被删/归档后自动切换）
+  const arbKind: "multi" | "single" =
+    arbKindPick === "multi" && arbLiveCount >= 2
+      ? "multi"
+      : arbKindPick === "single"
+        ? "single"
+        : arbMode;
   const arbCanStart =
-    arbMode === "arbitrate"
+    arbKind === "multi"
       ? arbLiveCount >= 2 && !arbDirsQ.isLoading
       : (arbLiveCount >= 1 || !!arbDirsQ.data?.reviewDir) &&
         !arbDirsQ.isLoading;
+  // 需求框两个按钮：点哪个，框里就装哪个来源的内容
+  const arbTaskDocIdx = (() => {
+    const cands = arbDirsQ.data?.candidates ?? [];
+    return arbKind === "single" && arbTarget !== null
+      ? arbTarget
+      : cands.findIndex((c) => c.exists);
+  })();
+  const loadArbTask = (src: "todo" | "doc") => {
+    const cands = arbDirsQ.data?.candidates ?? [];
+    const seed =
+      src === "todo"
+        ? [arbTodo?.title.trim(), arbTodo?.prompt?.trim()]
+            .filter(Boolean)
+            .join("\n")
+        : (cands[arbTaskDocIdx]?.taskDoc ??
+           arbDirsQ.data?.reviewTaskDoc ?? "");
+    if (!seed.trim()) {
+      toast.show(
+        src === "todo" ? "待办里没写内容" : "没找到需求文件",
+        { variant: "info" },
+      );
+      return;
+    }
+    arbTaskRef.current = seed;
+    setArbTaskSeed(seed);
+    setTaskView("collapsed");
+    setArbTaskVer((v) => v + 1);
+  };
   const arbSendM = useMutation({
-    mutationFn: (id: string) => arbitrationSend({ id }),
+    mutationFn: (id: string) => reviewSend({ id }),
     onSuccess: (res) => {
       if (res.ok) {
-        toast.show(`已发给${res.target ?? "会话"}继续改`, {
-          variant: "success",
-        });
+        showArbMsg({ text: `已下发改进意见至 ${res.target ?? "会话"}` });
       } else {
-        toast.error(res.error || "发送失败");
+        showArbMsg({ text: res.error || "发送失败", bad: true });
       }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "发送失败"),
+    onError: (e: Error) => showArbMsg({ text: e.message || "发送失败", bad: true }),
+  });
+  const arbContM = useMutation({
+    mutationFn: (vars: { id: string; task: string }) =>
+      reviewContinue(vars),
+    onSuccess: (res) => {
+      if (res.ok) {
+        showArbMsg({ text: "已发起增量复审" });
+      } else {
+        showArbMsg({ text: res.error || "发起失败", bad: true });
+      }
+      invalidate();
+    },
+    onError: (e: Error) => showArbMsg({ text: e.message || "发起失败", bad: true }),
+  });
+  const arbAbortM = useMutation({
+    mutationFn: (id: string) => reviewAbort({ id }),
+    onSuccess: (res) => {
+      if (res.ok) {
+        showArbMsg({ text: "已中止" });
+      } else {
+        showArbMsg({ text: res.error || "中止失败", bad: true });
+      }
+      invalidate();
+    },
+    onError: (e: Error) => showArbMsg({ text: e.message || "中止失败", bad: true }),
+  });
+  const tplKind: "multi" | "single" = arbKind === "multi" ? "multi" : "single";
+  const tplQ = useQuery({
+    queryKey: ["todo-tpl", arb?.id, tplKind],
+    queryFn: () => reviewTemplate({ kind: tplKind }),
+    enabled: !!arb,
+  });
+  useEffect(() => {
+    if (arb && tplQ.data?.text !== undefined && tplLoadedKey.current !== `${arb.id}-${tplKind}`) {
+      tplLoadedKey.current = `${arb.id}-${tplKind}`;
+      tplRef.current = tplQ.data.text;
+      tplSavedRef.current = tplQ.data.text;
+      setTplSeed(tplQ.data.text);
+      setTplDirty(false);
+    }
+  }, [arb, tplKind, tplQ.data]);
+  const sendQ = useQuery({
+    queryKey: ["todo-send-prompt", arb?.id],
+    queryFn: () => reviewTemplate({ kind: "send" }),
+    enabled: !!arb,
+  });
+  useEffect(() => {
+    if (sendQ.data?.text !== undefined && !sendLoaded) {
+      setSendLoaded(true);
+      sendRef.current = sendQ.data.text;
+      sendSavedRef.current = sendQ.data.text;
+      setSendSeed(sendQ.data.text);
+    }
+  }, [sendQ.data, sendLoaded]);
+  const sendSaveM = useMutation({
+    mutationFn: (text: string) => reviewTemplate({ kind: "send", text }),
+    onSuccess: (res) => {
+      if (res.error || res.text === undefined) {
+        showArbMsg({ text: res.error || "保存失败", bad: true });
+        return;
+      }
+      sendSavedRef.current = res.text;
+      setSendSeed(res.text);
+      setSendDirty(false);
+      showArbMsg({ text: "下发前导提示已保存" });
+    },
+    onError: (e: Error) =>
+      showArbMsg({ text: e.message || "保存失败", bad: true }),
+  });
+  const tplSaveM = useMutation({
+    mutationFn: (text: string) => reviewTemplate({ kind: tplKind, text }),
+    onSuccess: (res) => {
+      if (res.error || res.text === undefined) {
+        showArbMsg({ text: res.error || "保存失败", bad: true });
+        return;
+      }
+      tplSavedRef.current = res.text;
+      setTplSeed(res.text);
+      setTplDirty(false);
+      showArbMsg({ text: "评审提示词已保存" });
+    },
+    onError: (e: Error) =>
+      showArbMsg({ text: e.message || "保存失败", bad: true }),
   });
   const arbVerdictQ = useQuery({
     queryKey: ["todo-arb-verdict", arb?.id],
     queryFn: async () => {
-      const res = await arbitrationVerdict({ id: arb!.id });
-      // 服务端可能刚把 running 翻成 done/failed（agy 判官靠轮询翻转）
+      const res = await reviewVerdict({ id: arb!.id });
+      // 服务端可能刚把 running 翻成 done/failed（agy 评审员靠轮询翻转）
       if (res.verdict || res.error) invalidate();
       return res;
     },
-    enabled: !!arb && !!arbTodo?.arbitration,
+    enabled: !!arb && !!arbTodo?.review,
     refetchInterval:
-      arbTodo?.arbitration?.status === "running" ? 4000 : false,
+      arbTodo?.review?.status === "running" ? 4000 : false,
   });
   const arbStartM = useMutation({
     mutationFn: (vars: {
       id: string;
-      kind: "arbitrate" | "review";
-      prompt: string;
-      judge: AgentRef;
-    }) => arbitrationStart(vars),
+      kind: "multi" | "single";
+      task?: string;
+      reviewer: AgentRef;
+    }) => reviewStart(vars),
     onSuccess: (res) => {
       if (res.ok) {
-        toast.show("已开庭 ⚖", { variant: "success" });
+        showArbMsg({ text: "已发起评审" });
       } else {
-        toast.error(res.error || "开庭失败");
+        showArbMsg({ text: res.error || "发起评审失败", bad: true });
       }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "开庭失败"),
+    onError: (e: Error) => showArbMsg({ text: e.message || "发起评审失败", bad: true }),
   });
   const allIssues: LiveIssue[] = issuesQ.data?.issues ?? [];
   const repos = issuesQ.data?.repos ?? [];
@@ -491,6 +678,24 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           editM.isPending,
       ),
     [theme, layout.compact],
+  );
+
+  // 折叠区标题行：四处统一成同一个样子
+  const collapseRow = (
+    text: string,
+    open: boolean,
+    onPress: () => void,
+    right?: React.ReactNode,
+  ) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      <Pressable style={[s.chip, { flex: 1 }]} onPress={onPress}>
+        <Text style={s.chipText} numberOfLines={1}>
+          {text}
+          {open ? "  ▲" : "  ▼"}
+        </Text>
+      </Pressable>
+      {right}
+    </View>
   );
 
   function openDetail(t?: Todo, issue?: LiveIssue) {
@@ -557,14 +762,18 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   function openArbitration(t: Todo) {
     setPicker(null);
-    arbPromptRef.current = t.arbitration?.prompt ?? "";
-    setArbPromptReady(Boolean(t.arbitration?.prompt?.trim()));
+    setArbMsg(null);
+    setSendLoaded(false);
+    setSendView("collapsed");
+    setTaskView("collapsed");
+    setVerdictOpen(false);
+    setSendDirty(false);
     setArb({
       id: t.id,
       title: t.title,
-      judge:
-        t.arbitration?.judge?.provider
-          ? t.arbitration.judge
+      reviewer:
+        t.review?.reviewer?.provider
+          ? t.review.reviewer
           : preferences?.lastProvider
             ? { provider: preferences.lastProvider, model: preferences.lastModel }
             : { provider: "", model: "" },
@@ -876,7 +1085,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           ) : null}
           {(t.worktrees?.length ?? 0) >= 1 ||
           t.status !== "pending" ||
-          t.arbitration ? (
+          t.review ? (
             <Pressable
               accessibilityRole="button"
               style={{
@@ -893,7 +1102,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Text
                 style={{
                   fontSize: 13,
-                  color: t.arbitration?.status === "running"
+                  color: t.review?.status === "running"
                     ? theme.colors.accent
                     : theme.colors.foregroundMuted,
                   fontWeight: "700",
@@ -1676,13 +1885,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       </Modal>
 
       <Modal
-        title={
-          arb
-            ? arbMode === "review"
-              ? `🔍 审核《${arb.title}》`
-              : `⚖ 仲裁《${arb.title}》`
-            : ""
-        }
+        title={arb ? `方案评审 · ${arb.title}` : ""}
         icon={<Icon name="Bot" size={18} color={theme.colors.foreground} />}
         open={Boolean(arb)}
         onOpenChange={(open) => {
@@ -1690,85 +1893,351 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             setArb(null);
             setPicker(null);
             setSearch("");
+            tplLoadedKey.current = null;
+            tplRef.current = "";
+            tplSavedRef.current = "";
+            setTplSeed("");
+            setTplDirty(false);
+            setTplView("collapsed");
+            setArbTarget(null);
+            setTaskView("collapsed");
+            setVerdictOpen(true);
+            setPage(0);
+            setArbTaskSeed("");
+            setArbTaskVer(0);
+            arbTaskRef.current = "";
           }
         }}
       >
         <Modal.Content scrollable={false} style={{ flex: 1 }}>
-          {arb && arbTodo ? (
-            <SheetScrollView
-              style={{ flex: 1 }}
-              contentContainerStyle={[
-                s.scrollBody,
-                { padding: layout.compact ? 16 : 24, paddingBottom: 40 },
-              ]}
-              keyboardShouldPersistTaps="handled"
+          {arbMsg ? (
+            <Text
+              style={{
+                paddingHorizontal: layout.compact ? 16 : 24,
+                paddingTop: 8,
+                fontSize: 12,
+                color: arbMsg.bad
+                  ? theme.colors.statusDanger
+                  : theme.colors.foregroundMuted,
+              }}
             >
-              {arbTodo.arbitration ? (
+              {arbMsg.text}
+            </Text>
+          ) : null}
+          {arb && arbTodo ? (
+              <View style={{ flex: 1 }} onLayout={(e) => setPageW(e.nativeEvent.layout.width)}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 8,
+                    paddingHorizontal: layout.compact ? 16 : 24,
+                    paddingTop: 6,
+                  }}
+                >
+                  {["审阅配置", "意见回传"].map((label, i) => (
+                    <Pressable
+                      key={label}
+                      style={[
+                        s.segBtn,
+                        { flexShrink: 0, minWidth: 100, paddingHorizontal: 16, paddingVertical: 6 },
+                        page === i && s.segOn,
+                      ]}
+                      onPress={() => {
+                        setPage(i);
+                        pagerRef.current?.scrollTo({ x: i * pageW, animated: true });
+                      }}
+                    >
+                      <Text style={page === i ? s.segTextOn : s.segText}>{label}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  ref={pagerRef}
+                  style={{ flex: 1 }}
+                  scrollEventThrottle={16}
+                  onScroll={(e) => {
+                    const newPage = Math.round(
+                      e.nativeEvent.contentOffset.x / Math.max(pageW, 1),
+                    );
+                    if (newPage !== page) setPage(newPage);
+                  }}
+                  onMomentumScrollEnd={(e) =>
+                    setPage(
+                      Math.round(e.nativeEvent.contentOffset.x / Math.max(pageW, 1)),
+                    )
+                  }
+                >
+                <View style={{ width: pageW || undefined, flex: 1 }}>
+              <SheetScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={[
+                  s.scrollBody,
+                  { padding: layout.compact ? 16 : 24, paddingBottom: 40 },
+                ]}
+                keyboardShouldPersistTaps="handled"
+              >
+              {arbTodo.review ? (
                 <View style={s.formSection}>
-                  <Text style={s.formSectionTitle}>
-                    状态：{" "}
-                    {arbTodo.arbitration.status === "running"
-                      ? arbTodo.arbitration.kind === "review"
-                        ? "审核中…"
-                        : "开庭中…"
-                      : arbTodo.arbitration.status === "done"
-                        ? arbTodo.arbitration.kind === "review"
-                          ? "已审核"
-                          : "已裁决"
-                        : "失败"}
-                    {arbTodo.arbitration.agentId
-                      ? `  ·  判官 ${arbTodo.arbitration.judge.provider}${
-                          arbTodo.arbitration.judge.model
-                            ? ` / ${arbTodo.arbitration.judge.model}`
-                            : ""
-                        }`
-                      : ""}
-                  </Text>
-                  {arbTodo.arbitration.error ? (
-                    <Text style={s.err}>❌ {arbTodo.arbitration.error}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                    }}
+                  >
+                    <Text style={[s.formSectionTitle, { flex: 1 }]}>
+                      状态：{" "}
+                      {arbTodo.review.status === "running"
+                        ? "评审中…"
+                        : arbTodo.review.status === "done"
+                          ? "评审完成"
+                          : "失败"}
+                      {arbTodo.review.agentId
+                        ? `  ·  评审员 ${arbTodo.review.reviewer.provider}${
+                            arbTodo.review.reviewer.model
+                              ? ` / ${arbTodo.review.reviewer.model}`
+                              : ""
+                          }`
+                        : ""}
+                    </Text>
+                    {arbTodo.review.status === "running" ? (
+                      <Pressable
+                        style={[
+                          s.outlineBtn,
+                          { paddingVertical: 4, paddingHorizontal: 10 },
+                          arbAbortM.isPending && { opacity: 0.5 },
+                        ]}
+                        disabled={arbAbortM.isPending}
+                        onPress={() => arbAbortM.mutate(arb.id)}
+                      >
+                        <Text style={[s.outlineText, { fontSize: 12 }]}>
+                          {arbAbortM.isPending ? "中止中…" : "中止"}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                    {arbTodo.review.status === "done" ? (
+                      <Pressable
+                        style={[
+                          s.outlineBtn,
+                          { paddingVertical: 4, paddingHorizontal: 10 },
+                        ]}
+                        onPress={() => {
+                          setPage(1);
+                          pagerRef.current?.scrollTo({ x: pageW, animated: true });
+                        }}
+                      >
+                        <Text style={[s.outlineText, { fontSize: 12 }]}>
+                          前往下发意见 →
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                  {arbTodo.review.error ? (
+                    <Text style={s.err}>{arbTodo.review.error}</Text>
                   ) : null}
                 </View>
               ) : null}
 
               <View style={s.formSection}>
-                <Text style={s.label}>判定标准（你写）</Text>
-                <StableInput
-                  key={`arb-prompt-${arb.id}`}
-                  style={s.inputMulti}
-                  initial={arbPromptRef.current}
-                  onValue={(v) => {
-                    arbPromptRef.current = v;
-                    setArbPromptReady(Boolean(v.trim()));
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
                   }}
-                  placeholder="例：从正确性、代码简洁、是否覆盖边界情况来判…"
-                  placeholderTextColor={theme.colors.foregroundMuted}
-                  multiline
-                />
+                >
+                  <Text style={s.pathText}>自动评审轮数</Text>
+                  {[0, 1, 2, 3, -1].map((n) => (
+                    <Pressable
+                      key={n}
+                      style={[
+                        s.segBtn,
+                        { flexShrink: 0, minWidth: 36, paddingHorizontal: 8, paddingVertical: 4 },
+                        (auto?.maxRounds ?? 0) === n && s.segOn,
+                      ]}
+                      onPress={() =>
+                        setAuto({
+                          maxRounds: n,
+                          roundsUsed: 0,
+                          phase: "horse",
+                          note: undefined,
+                        })
+                      }
+                    >
+                      <Text
+                        style={
+                          (auto?.maxRounds ?? 0) === n
+                            ? s.segTextOn
+                            : s.segText
+                        }
+                      >
+                        {n === -1 ? "不限" : n}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                {auto?.note ? (
+                  <Text style={s.pathText}>{auto.note}</Text>
+                ) : null}
               </View>
 
               <View style={s.formSection}>
-                <Text style={s.label}>判官马</Text>
+                {collapseRow(
+                  `评审基准${
+                    arbTaskSeed.trim()
+                      ? ` · ${arbTaskSeed.trim().split("\n").length} 行`
+                      : " · 未载入"
+                  }`,
+                  taskView !== "collapsed",
+                  () =>
+                    setTaskView(
+                      taskView === "collapsed" ? "preview" : "collapsed",
+                    ),
+                  <>
+                    <Pressable
+                      style={[s.btn, { paddingHorizontal: 10, paddingVertical: 4 }]}
+                      onPress={() => loadArbTask("todo")}
+                    >
+                      <Text style={s.btnText}>导入待办</Text>
+                    </Pressable>
+                    <Pressable
+                      style={[s.btn, { paddingHorizontal: 10, paddingVertical: 4 }]}
+                      onPress={() => loadArbTask("doc")}
+                    >
+                      <Text style={s.btnText}>导入清单</Text>
+                    </Pressable>
+                  </>,
+                )}
+                {taskView === "preview" ? (
+                  <>
+                    <Text style={s.tplPreview}>
+                      {arbTaskSeed.trim() || "（未载入）"}
+                    </Text>
+                    <Pressable
+                      style={[
+                        s.btn,
+                        { alignSelf: "flex-start", marginTop: 6 },
+                      ]}
+                      onPress={() => setTaskView("edit")}
+                    >
+                      <Text style={s.btnText}>编辑</Text>
+                    </Pressable>
+                  </>
+                ) : null}
+                {taskView === "edit" ? (
+                  <>
+                    <StableInput
+                      key={`arb-task-${arb.id}-${arbTaskVer}`}
+                      style={s.inputLine}
+                      initial={arbTaskSeed}
+                      onValue={(v) => {
+                        arbTaskRef.current = v;
+                        setArbTaskSeed(v);
+                      }}
+                      placeholderTextColor={theme.colors.foregroundMuted}
+                      multiline
+                    />
+                    <Pressable
+                      style={[
+                        s.btn,
+                        { alignSelf: "flex-start", marginTop: 6 },
+                      ]}
+                      onPress={() => setTaskView("preview")}
+                    >
+                      <Text style={s.btnText}>完成</Text>
+                    </Pressable>
+                  </>
+                ) : null}
+              </View>
+
+              <View style={s.formSection}>
+                {collapseRow(
+                  `评审提示词模板（${tplKind === "multi" ? "多匹马" : "一匹马"}）${
+                    tplDirty
+                      ? "（已修改未保存）"
+                      : tplSeed
+                        ? ` · 共 ${tplSeed.split("\n").length} 行`
+                        : ""
+                  }`,
+                  tplView !== "collapsed",
+                  () =>
+                    setTplView(tplView === "collapsed" ? "preview" : "collapsed"),
+                )}
+                {tplView !== "collapsed" ? (
+                  <>
+                    <Text style={s.pathText}>
+                      空位：{"{{task}}"}需求 {"{{targets}}"}候选 {"{{base}}"}基线 {"{{verdictFile}}"}结果路径
+                    </Text>
+                    {tplQ.isLoading ? (
+                      <Text style={s.empty}>读模板中…</Text>
+                    ) : tplQ.data?.error ? (
+                      <Text style={s.err}>{tplQ.data.error}</Text>
+                    ) : tplView === "preview" ? (
+                      <>
+                        <Text style={s.tplPreview}>{tplSeed || "（空）"}</Text>
+                        <Pressable
+                          style={[s.btn, { alignSelf: "flex-start", marginTop: 8 }]}
+                          onPress={() => setTplView("edit")}
+                        >
+                          <Text style={s.btnText}>编辑</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <>
+                        <StableInput
+                          key={`arb-tpl-${arb.id}`}
+                          style={s.inputMulti}
+                          initial={tplSeed}
+                          onValue={onTplValue}
+                          placeholderTextColor={theme.colors.foregroundMuted}
+                          multiline
+                        />
+                        <Pressable
+                          style={[
+                            s.btn,
+                            { alignSelf: "flex-start", marginTop: 8 },
+                            (tplSaveM.isPending || !tplDirty) && { opacity: 0.5 },
+                          ]}
+                          disabled={tplSaveM.isPending || !tplDirty}
+                          onPress={() => tplSaveM.mutate(tplRef.current)}
+                        >
+                          <Text style={s.btnText}>
+                            {tplSaveM.isPending ? "保存中…" : "保存模板"}
+                          </Text>
+                        </Pressable>
+                      </>
+                    )}
+                  </>
+                ) : null}
+              </View>
+
+              <View style={s.formSection}>
+                <Text style={s.label}>评审员</Text>
                 <Pressable
                   style={s.chip}
                   onPress={() =>
                     setPicker(
-                      picker?.kind === "judge"
+                      picker?.kind === "reviewer"
                         ? null
-                        : { kind: "judge", step: "provider", provider: "" },
+                        : { kind: "reviewer", step: "provider", provider: "" },
                     )
                   }
                 >
                   <Text
-                    style={arb.judge.provider ? s.chipText : s.chipMuted}
+                    style={arb.reviewer.provider ? s.chipText : s.chipMuted}
                     numberOfLines={1}
                   >
-                    {agentLabel(arb.judge)}
+                    {agentLabel(arb.reviewer)}
                   </Text>
                   <Text style={s.chipMuted}>
-                    {picker?.kind === "judge" ? "▲" : "▼"}
+                    {picker?.kind === "reviewer" ? "▲" : "▼"}
                   </Text>
                 </Pressable>
-                {picker?.kind === "judge" ? (
+                {picker?.kind === "reviewer" ? (
                   <View style={s.inlinePicker}>
                     {picker.step === "model" ? (
                       <Pressable
@@ -1776,7 +2245,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         onPress={() => {
                           setSearch("");
                           setPicker({
-                            kind: "judge",
+                            kind: "reviewer",
                             step: "provider",
                             provider: "",
                           });
@@ -1786,7 +2255,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       </Pressable>
                     ) : null}
                     <StableInput
-                      key={`picker-judge-${picker.step}`}
+                      key={`picker-reviewer-${picker.step}`}
                       style={s.input}
                       initial=""
                       onValue={onSearch}
@@ -1804,12 +2273,12 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                           (providersQ.data?.providers ?? []).map((p) => ({
                             id: p.id,
                             label: p.id,
-                            selected: arb.judge.provider === p.id,
+                            selected: arb.reviewer.provider === p.id,
                           })),
                           (item) => {
                             setSearch("");
                             setPicker({
-                              kind: "judge",
+                              kind: "reviewer",
                               step: "model",
                               provider: item.id,
                             });
@@ -1821,7 +2290,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                               id: "",
                               label: "（默认 Model）",
                               sub: "使用 Provider 默认模型",
-                              selected: !arb.judge.model,
+                              selected: !arb.reviewer.model,
                             },
                             ...((modelsQ.data?.models ?? []) as Array<{
                               id: string;
@@ -1831,7 +2300,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                               label: m.label || m.id,
                               sub:
                                 m.label && m.label !== m.id ? m.id : undefined,
-                              selected: arb.judge.model === m.id,
+                              selected: arb.reviewer.model === m.id,
                             })),
                           ],
                           (item) => {
@@ -1839,7 +2308,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                               d
                                 ? {
                                     ...d,
-                                    judge: {
+                                    reviewer: {
                                       provider: picker.provider,
                                       model: item.id,
                                     },
@@ -1856,20 +2325,22 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
               <View style={s.formSection}>
                 <Text style={s.formSectionTitle}>
-                  {arbMode === "review" ? "审核目标" : "候选 worktree（自动找到）"}
+                  {arbKind === "single"
+                    ? "目标工作区"
+                    : "候选工作区"}
                 </Text>
                 {arbDirsQ.isLoading ? (
                   <Text style={s.empty}>找目录中…</Text>
                 ) : arbDirsQ.data?.error ? (
-                  <Text style={s.err}>⚠ {arbDirsQ.data.error}</Text>
-                ) : arbMode === "arbitrate" && arbLiveCount < 2 ? (
+                  <Text style={s.err}>{arbDirsQ.data.error}</Text>
+                ) : arbKind === "multi" && arbLiveCount < 2 ? (
                   <Text style={s.err}>
-                    ⚠ 有效候选只有 {arbLiveCount} 个（需 ≥2），可能已被归档
+                    有效候选只有 {arbLiveCount} 个（需 ≥2），可能已被归档
                   </Text>
-                ) : arbMode === "review" &&
+                ) : arbKind === "single" &&
                   arbLiveCount < 1 &&
                   !arbDirsQ.data?.reviewDir ? (
-                  <Text style={s.err}>⚠ 找不到可审核的目录</Text>
+                  <Text style={s.err}>找不到可评审的目录</Text>
                 ) : (arbDirsQ.data?.candidates ?? []).length === 0 ? (
                   arbDirsQ.data?.reviewDir ? (
                     <View style={{ gap: 2, paddingVertical: 4 }}>
@@ -1882,130 +2353,385 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     <Text style={s.empty}>没有候选 worktree</Text>
                   )
                 ) : (
-                  (arbDirsQ.data?.candidates ?? []).map((c) => (
-                    <View
-                      key={c.workspaceId}
-                      style={{ gap: 2, paddingVertical: 4 }}
-                    >
-                      <Text style={s.chipText}>
-                        {c.label}
-                        {c.exists ? "" : "  ·  目录已失效"}
-                      </Text>
-                      <Text
+                  (arbDirsQ.data?.candidates ?? []).map((c, idx) => {
+                    const pickable = arbKind === "single" && c.exists;
+                    const picked =
+                      pickable &&
+                      (arbTarget !== null
+                        ? arbTarget === idx
+                        : idx ===
+                          (arbDirsQ.data?.candidates ?? []).findIndex(
+                            (x) => x.exists,
+                          ));
+                    const body = (
+                      <>
+                        <Text style={s.chipText}>
+                          {c.label}
+                          {c.exists ? "" : "  ·  目录已失效"}
+                          {picked ? "  ·  已选定" : ""}
+                        </Text>
+                        <Text
+                          style={[
+                            s.pathText,
+                            !c.exists && { color: theme.colors.statusDanger },
+                          ]}
+                          numberOfLines={2}
+                        >
+                          {c.branch}  ·  {c.dir || "未知目录"}
+                        </Text>
+                      </>
+                    );
+                    return pickable ? (
+                      <Pressable
+                        key={c.workspaceId}
                         style={[
-                          s.pathText,
-                          !c.exists && { color: theme.colors.statusDanger },
+                          { gap: 2, paddingVertical: 4 },
+                          picked && s.segOn,
                         ]}
-                        numberOfLines={2}
+                        onPress={() => setArbTarget(idx)}
                       >
-                        {c.branch}  ·  {c.dir || "未知目录"}
-                      </Text>
-                    </View>
-                  ))
+                        {body}
+                      </Pressable>
+                    ) : (
+                      <View
+                        key={c.workspaceId}
+                        style={{ gap: 2, paddingVertical: 4 }}
+                      >
+                        {body}
+                      </View>
+                    );
+                  })
                 )}
               </View>
 
-              {arbTodo.arbitration?.status === "done" &&
-              arbVerdictQ.data?.verdict ? (
-                <View style={s.formSection}>
-                  <Text style={s.formSectionTitle}>
-                    {arbTodo.arbitration?.kind === "review" ? "🔍 结论" : "⚖ 结论"}
-                  </Text>
-                  <Text
-                    style={{
-                      color: theme.colors.foreground,
-                      fontSize: 13,
-                      lineHeight: 20,
-                    }}
-                  >
-                    {arbVerdictQ.data.verdict}
-                  </Text>
-                  <Pressable
-                    style={[
-                      s.btn,
-                      { alignSelf: "flex-start", marginTop: 8 },
-                      arbSendM.isPending && { opacity: 0.5 },
-                    ]}
-                    disabled={arbSendM.isPending}
-                    onPress={() => arbSendM.mutate(arb.id)}
-                  >
-                    <Text style={s.btnText}>
-                      {arbSendM.isPending
-                        ? "发送中…"
-                        : arbTodo.arbitration?.kind === "review"
-                          ? "发给它继续改 ↩"
-                          : "发给胜者继续改 ↩"}
-                    </Text>
-                  </Pressable>
-                </View>
-              ) : null}
-
               <View style={{ flexDirection: "row", gap: 10 }}>
+                <View style={{ flex: 1, position: "relative" }}>
+                  {needTaskTip ? (
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        position: "absolute",
+                        bottom: "100%",
+                        marginBottom: 8,
+                        left: 0,
+                        right: 0,
+                        alignItems: "center",
+                        zIndex: 9999,
+                      }}
+                    >
+                      <View
+                        style={{
+                          backgroundColor: "rgba(20, 20, 25, 0.94)",
+                          borderColor: "rgba(255, 255, 255, 0.16)",
+                          borderWidth: 1,
+                          borderRadius: 8,
+                          paddingVertical: 7,
+                          paddingHorizontal: 14,
+                          shadowColor: "#000",
+                          shadowOffset: { width: 0, height: 3 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 6,
+                          elevation: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: "#ffffff",
+                            fontSize: 13,
+                            fontWeight: "600",
+                          }}
+                        >
+                          请先指定评审基准
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
                 <Pressable
                   style={[
                     s.saveBtn,
                     { flex: 1 },
                     (arbStartM.isPending ||
-                      arbTodo.arbitration?.status === "running" ||
-                      !arb.judge.provider ||
-                      !arbPromptReady ||
+                      arbTodo.review?.status === "running" ||
+                      !arb.reviewer.provider ||
                       !arbCanStart) && { opacity: 0.5 },
                   ]}
                   disabled={
                     arbStartM.isPending ||
-                    arbTodo.arbitration?.status === "running" ||
-                    !arb.judge.provider ||
-                    !arbPromptReady ||
+                    arbTodo.review?.status === "running" ||
+                    !arb.reviewer.provider ||
                     !arbCanStart
                   }
-                  onPress={() =>
+                  onPress={() => {
+                    if (tplDirty) {
+                      setArbMsg({ text: "提示词改了还没保存，先点保存模板", bad: true });
+                      return;
+                    }
+                    if (!arbTaskRef.current.trim()) {
+                      setNeedTaskTip(true);
+                      if (needTaskTipTimer.current)
+                        clearTimeout(needTaskTipTimer.current);
+                      needTaskTipTimer.current = setTimeout(
+                        () => setNeedTaskTip(false),
+                        2000,
+                      );
+                      return;
+                    }
                     arbStartM.mutate({
                       id: arb.id,
-                      kind: arbMode,
-                      prompt: arbPromptRef.current.trim(),
-                      judge: arb.judge,
-                    })
-                  }
+                      kind: arbKind,
+                      task: arbTaskRef.current,
+                      reviewer: arb.reviewer,
+                      ...(arbKind === "single" && arbTarget !== null
+                        ? { targetIndex: arbTarget }
+                        : {}),
+                    });
+                  }}
                 >
                   <Text style={s.saveText}>
-                    {arbStartM.isPending
-                      ? arbMode === "review"
-                        ? "审核中…"
-                        : "开庭中…"
-                      : arbTodo.arbitration?.status === "running"
-                        ? arbMode === "review"
-                          ? "审核中…"
-                          : "开庭中…"
-                        : arbTodo.arbitration
-                          ? arbMode === "review"
-                            ? "重新审核"
-                            : "重新开庭"
-                          : arbMode === "review"
-                            ? "开始审核 🔍"
-                            : "开庭 ⚖"}
+                    {arbStartM.isPending ||
+                    arbTodo.review?.status === "running"
+                      ? "评审中…"
+                      : "评审"}
                   </Text>
                 </Pressable>
+                </View>
                 {navigation &&
-                (arbTodo.arbitration?.agentId ||
-                  arbTodo.arbitration?.workspaceId) ? (
+                (arbTodo.review?.agentId ||
+                  arbTodo.review?.workspaceId) ? (
                   <Pressable
-                    style={[s.btn, { justifyContent: "center" }]}
+                    style={[s.outlineBtn, { justifyContent: "center" }]}
                     onPress={() => {
-                      if (arbTodo.arbitration?.agentId)
+                      if (arbTodo.review?.agentId)
                         navigation.openAgent({
-                          agentId: arbTodo.arbitration.agentId,
+                          agentId: arbTodo.review.agentId,
                         });
-                      else if (arbTodo.arbitration?.workspaceId)
+                      else if (arbTodo.review?.workspaceId)
                         navigation.openWorkspace({
-                          workspaceId: arbTodo.arbitration.workspaceId,
+                          workspaceId: arbTodo.review.workspaceId,
                         });
                     }}
                   >
-                    <Text style={s.btnText}>跳判官 ↗</Text>
+                    <Text style={s.outlineText}>查看评审会话 ↗</Text>
                   </Pressable>
                 ) : null}
               </View>
-            </SheetScrollView>
+                </SheetScrollView>
+                </View>
+                <View style={{ width: pageW || undefined, flex: 1 }}>
+              <SheetScrollView
+                style={{ flex: 1 }}
+                contentContainerStyle={[
+                  s.scrollBody,
+                  { padding: layout.compact ? 16 : 24, paddingBottom: 40 },
+                ]}
+                keyboardShouldPersistTaps="handled"
+              >
+                {arbVerdictQ.data?.verdict ? (
+                  <View style={s.formSection}>
+                    {collapseRow(
+                      `评审结论 · ${(
+                      arbVerdictQ.data.verdict.split("\n", 1)[0] ?? ""
+                    ).trim()}`,
+                    verdictOpen,
+                    () => setVerdictOpen(!verdictOpen),
+                  )}
+                  {verdictOpen ? (
+                    <View
+                      style={{
+                        marginTop: 8,
+                        padding: 12,
+                        borderRadius: 8,
+                        backgroundColor: theme.colors.surface2,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: theme.colors.foreground,
+                          fontSize: 13,
+                          lineHeight: 20,
+                        }}
+                      >
+                        {arbVerdictQ.data.verdict}
+                      </Text>
+                    </View>
+                  ) : null}
+                </View>
+              ) : arbTodo.review?.status === "running" ? (
+                <View style={s.formSection}>
+                  <Text style={s.pathText}>评审员正在审阅中，生成结论后可在此展开查看并下发…</Text>
+                </View>
+              ) : (
+                <View style={s.formSection}>
+                  <Text style={s.pathText}>暂无评审结论，请先在「审阅配置」页发起评审。</Text>
+                </View>
+              )}
+
+              <View style={s.formSection}>
+                {collapseRow(
+                  `下发前导提示${sendDirty ? "（已修改未保存）" : ""}`,
+                  sendView !== "collapsed",
+                  () =>
+                    setSendView(sendView === "collapsed" ? "preview" : "collapsed"),
+                )}
+                {sendView !== "collapsed" ? (
+                  <>
+                    {sendQ.isLoading ? (
+                      <Text style={s.empty}>读取中…</Text>
+                    ) : sendQ.data?.error ? (
+                      <Text style={s.err}>{sendQ.data.error}</Text>
+                    ) : sendView === "preview" ? (
+                      <>
+                        <Text style={s.tplPreview}>
+                          {sendSeed || "（空）"}
+                        </Text>
+                        <Pressable
+                          style={[
+                            s.btn,
+                            { alignSelf: "flex-start", marginTop: 6 },
+                          ]}
+                          onPress={() => setSendView("edit")}
+                        >
+                          <Text style={s.btnText}>编辑</Text>
+                        </Pressable>
+                      </>
+                    ) : (
+                      <>
+                        <StableInput
+                          style={s.inputMulti}
+                          initial={sendSeed}
+                          onValue={(v) => {
+                            sendRef.current = v;
+                            setSendDirty(v !== sendSavedRef.current);
+                          }}
+                          multiline
+                        />
+                        <View style={{ flexDirection: "row", gap: 8 }}>
+                          <Pressable
+                            style={[
+                              s.btn,
+                              (sendSaveM.isPending || !sendDirty) && {
+                                opacity: 0.5,
+                              },
+                            ]}
+                            disabled={sendSaveM.isPending || !sendDirty}
+                            onPress={() => sendSaveM.mutate(sendRef.current)}
+                          >
+                            <Text style={s.btnText}>
+                              {sendSaveM.isPending ? "保存中…" : "保存"}
+                            </Text>
+                          </Pressable>
+                          <Pressable
+                            style={[s.btn, { backgroundColor: theme.colors.surface2 }]}
+                            onPress={() => setSendView("preview")}
+                          >
+                            <Text style={[s.btnText, { color: theme.colors.foreground }]}>
+                              预览
+                            </Text>
+                          </Pressable>
+                        </View>
+                      </>
+                    )}
+                  </>
+                ) : null}
+              </View>
+
+                <View
+                  style={{
+                    flexDirection: "row",
+                    gap: 10,
+                    marginTop: 12,
+                  }}
+                >
+                    <Pressable
+                      style={[
+                        s.saveBtn,
+                        { flex: 1 },
+                        (arbSendM.isPending ||
+                          !arbVerdictQ.data?.verdict ||
+                          arbTodo.review?.status === "running") && {
+                          opacity: 0.5,
+                        },
+                      ]}
+                      disabled={
+                        arbSendM.isPending ||
+                        !arbVerdictQ.data?.verdict ||
+                        arbTodo.review?.status === "running"
+                      }
+                      onPress={() => arbSendM.mutate(arb.id)}
+                    >
+                      <Text style={s.saveText}>
+                        {arbSendM.isPending ? "下发中…" : "下发改进意见 ↩"}
+                      </Text>
+                    </Pressable>
+                    <View style={{ position: "relative" }}>
+                      {copyTip ? (
+                        <View
+                          pointerEvents="none"
+                          style={{
+                            position: "absolute",
+                            bottom: "100%",
+                            marginBottom: 8,
+                            left: 0,
+                            right: 0,
+                            alignItems: "center",
+                            zIndex: 9999,
+                          }}
+                        >
+                          <View
+                            style={{
+                              backgroundColor: "rgba(20, 20, 25, 0.94)",
+                              borderColor: "rgba(255, 255, 255, 0.16)",
+                              borderWidth: 1,
+                              borderRadius: 8,
+                              paddingVertical: 6,
+                              paddingHorizontal: 12,
+                              shadowColor: "#000",
+                              shadowOffset: { width: 0, height: 2 },
+                              shadowOpacity: 0.25,
+                              shadowRadius: 4,
+                              elevation: 4,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                color: "#ffffff",
+                                fontSize: 12,
+                                fontWeight: "600",
+                              }}
+                            >
+                              已复制
+                            </Text>
+                          </View>
+                        </View>
+                      ) : null}
+                      <Pressable
+                        style={[
+                          s.outlineBtn,
+                          !arbVerdictQ.data?.verdict && { opacity: 0.5 },
+                        ]}
+                        disabled={!arbVerdictQ.data?.verdict}
+                        onPress={() => {
+                          void copyText(arbVerdictQ.data?.verdict ?? "").then(
+                            () => {
+                              setCopyTip(true);
+                              clearTimeout(copyTipTimer.current);
+                              copyTipTimer.current = setTimeout(
+                                () => setCopyTip(false),
+                                1500,
+                              );
+                            },
+                            () => showArbMsg({ text: "复制失败", bad: true }),
+                          );
+                        }}
+                      >
+                        <Text style={s.outlineText}>复制意见</Text>
+                      </Pressable>
+                    </View>
+                </View>
+                </SheetScrollView>
+                </View>
+                </ScrollView>
+              </View>
           ) : null}
         </Modal.Content>
       </Modal>

@@ -3,7 +3,7 @@
 ## 引路
 - **生活日记**：→ 调用 skill: one-life，必要时用，比如要了解这个人先读其 `INDEX.md` 与最近月摘要。
 - **今日记忆**：平时勿读；仅当用户询问今日相关事项时，按需读取 `~/onespace/github/one-hippocampus/memory/<YYYY-MM>/<YYYY-MM-DD>.md`。
-- **项目上下文**：进入项目仓库时必读 `one-context.md`。
+- **项目上下文**：必需读 `one-context.md`。
 - **项目规则记忆**：进入项目先读 `<项目根>/onememory/rules.md`（若存在）；Agent 发现项目运维/构建/排障知识时写入该文件。
 - **全局规则**：每次会话先读 `~/onespace/github/one-hippocampus/rules.md`（若存在）；用户教导或指责 AI 时按 one-memory 分流写入。
 - `BLUEPRINT.md` - **项目全局业务活蓝图**（必要时读，项目唯一全景功能地图与业务真理之源，随聊随更，指导实现与核对）

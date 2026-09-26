@@ -21,6 +21,18 @@ export const agentRefSchema = z.object({
 });
 export type AgentRef = z.infer<typeof agentRefSchema>;
 
+export const autoReviewSchema = z.object({
+  // 0 = 不限轮数
+  maxRounds: z.number().int().min(-1),
+  roundsUsed: z.number().int().min(0),
+  // 停下来时给用户看的一句原因
+  note: z.string().optional(),
+  // 现在卡在哪一步：reviewing 等评审结果 / horse 等马改完
+  phase: z.enum(["reviewing", "horse"]).optional(),
+});
+
+export type AutoReview = z.infer<typeof autoReviewSchema>;
+
 export const todoSchema = z.object({
   id: z.string(),
   seq: z.number().optional(),
@@ -51,23 +63,29 @@ export const todoSchema = z.object({
         workspaceId: z.string(),
         branch: z.string(),
         dir: z.string().optional(),
+        // 这匹马自己的会话号：发回会话直接用，不靠下标对号
+        agentId: z.string().optional(),
+        terminalId: z.string().optional(),
+        provider: z.string().optional(),
+        model: z.string().optional(),
       }),
     )
     .optional(),
-  arbitration: z
+  review: z
     .object({
-      kind: z.enum(["arbitrate", "review"]).optional(),
-      prompt: z.string(),
-      judge: agentRefSchema,
+      kind: z.enum(["multi", "single"]).optional(),
+      reviewer: agentRefSchema,
       agentId: z.string().optional(),
       terminalId: z.string().optional(),
       terminalCheckFails: z.number().optional(),
       workspaceId: z.string().optional(),
-      branch: z.string().optional(),
       status: z.enum(["running", "done", "failed"]),
       error: z.string().optional(),
       startedAt: z.string(),
       finishedAt: z.string().optional(),
+      targetIndex: z.number().int().optional(),
+      // 评审结果文件名（标题+评审），记在待办数据里
+      verdictFile: z.string().optional(),
     })
     .optional(),
     createdAt: z.string(),
@@ -75,6 +93,7 @@ export const todoSchema = z.object({
     finishedAt: z.string().optional(),
     skills: z.array(z.string()).optional(),
     pinned: z.boolean().optional(),
+    autoReview: autoReviewSchema.optional(),
   });
   export const preferencesSchema = z.object({
     lastProvider: z.string().optional(),
@@ -151,6 +170,7 @@ export const updateTodoRpc = defineRpc({
       ...todoPlacementFields,
       status: todoStatusSchema.optional(),
       pinned: z.boolean().optional(),
+      autoReview: autoReviewSchema.optional(),
     }),
   }),
   output: z.object({
@@ -278,8 +298,8 @@ export const fetchIssueRpc = defineRpc({
   }),
 });
 
-export const arbitrationDirsRpc = defineRpc({
-  name: "todo.arbitration_dirs",
+export const reviewDirsRpc = defineRpc({
+  name: "todo.review_dirs",
   input: z.object({ id: z.string() }),
   output: z.object({
     repo: z.string().optional(),
@@ -291,20 +311,27 @@ export const arbitrationDirsRpc = defineRpc({
         dir: z.string().optional(),
         exists: z.boolean(),
         label: z.string(),
+        // 这匹马目录里的需求文件内容，弹层里显示出来供用户删改
+        taskDoc: z.string().optional(),
       }),
     ),
     reviewDir: z.string().optional(),
+    // 本地目录（无 worktree）那份需求文件的内容
+    reviewTaskDoc: z.string().optional(),
     error: z.string().optional(),
   }),
 });
 
-export const arbitrationStartRpc = defineRpc({
-  name: "todo.arbitration_start",
+export const reviewStartRpc = defineRpc({
+  name: "todo.review_start",
   input: z.object({
     id: z.string(),
-    kind: z.enum(["arbitrate", "review"]),
-    prompt: z.string().min(1),
-    judge: agentRefSchema,
+    kind: z.enum(["multi", "single"]),
+    reviewer: agentRefSchema,
+    // 需求正文：弹层框里的字，用户可整段删掉
+    task: z.string().optional(),
+    // 审核时指定审哪一匹（候选名单里的位置）；不传就按现在的规则挑
+    targetIndex: z.number().int().optional(),
   }),
   output: z.object({
     ok: z.boolean(),
@@ -313,8 +340,8 @@ export const arbitrationStartRpc = defineRpc({
   }),
 });
 
-export const arbitrationVerdictRpc = defineRpc({
-  name: "todo.arbitration_verdict",
+export const reviewVerdictRpc = defineRpc({
+  name: "todo.review_verdict",
   input: z.object({ id: z.string() }),
   output: z.object({
     verdict: z.string().optional(),
@@ -322,12 +349,44 @@ export const arbitrationVerdictRpc = defineRpc({
   }),
 });
 
-export const arbitrationSendRpc = defineRpc({
-  name: "todo.arbitration_send",
+export const reviewSendRpc = defineRpc({
+  name: "todo.review_send",
   input: z.object({ id: z.string() }),
   output: z.object({
     ok: z.boolean(),
     target: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+
+export const reviewAbortRpc = defineRpc({
+  name: "todo.review_abort",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
+    error: z.string().optional(),
+  }),
+});
+
+export const reviewContinueRpc = defineRpc({
+  name: "todo.review_continue",
+  input: z.object({ id: z.string(), task: z.string().optional() }),
+  output: z.object({
+    ok: z.boolean(),
+    error: z.string().optional(),
+  }),
+});
+
+export const reviewTemplateRpc = defineRpc({
+  name: "todo.review_template",
+  input: z.object({
+    // multi 多匹马评审 / single 一匹马评审 / send 发回时给干活的那句话
+    kind: z.enum(["multi", "single", "send"]),
+    text: z.string().optional(),
+  }),
+  output: z.object({
+    text: z.string().optional(),
     error: z.string().optional(),
   }),
 });

@@ -1,10 +1,13 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
+import { listTodos } from "./server/store";
 import {
   addTodoRpc,
-  arbitrationDirsRpc,
-  arbitrationSendRpc,
-  arbitrationStartRpc,
-  arbitrationVerdictRpc,
+  reviewDirsRpc,
+  reviewAbortRpc,
+  reviewContinueRpc,
+  reviewSendRpc,
+  reviewStartRpc,
+  reviewVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
   handleAddTodo,
@@ -16,6 +19,7 @@ import {
   handleListWorkspaces,
   handleRemoveTodo,
   handleUpdateTodo,
+  reviewTemplateRpc,
   listIssuesRpc,
   listModelsRpc,
   listProjectsRpc,
@@ -31,17 +35,23 @@ import {
   cleanupWorkspaceBranches,
   completeByAgentId,
   completeByWorkspaceId,
+  reviveByAgentId,
   handleStartTodo,
   stashWorkspaceProject,
 } from "./server/executor";
 import {
-  cleanupArbitrationBranch,
-  completeArbitration,
-  handleArbitrationDirs,
-  handleArbitrationSend,
-  handleArbitrationStart,
-  handleArbitrationVerdict,
-} from "./server/arbitration";
+  cleanupReviewArtifacts,
+  completeReview,
+  autoStartReview,
+  autoAdvanceReview,
+  handleReviewAbort,
+  handleReviewContinue,
+  handleReviewDirs,
+  handleReviewSend,
+  handleReviewStart,
+  handleReviewVerdict,
+  handleReviewTemplate,
+} from "./server/review";
 import {
   handleCreateIssue,
   handleFetchIssue,
@@ -62,20 +72,32 @@ export default function contribute(server: PluginServerContext) {
   server.handle(fetchIssueRpc, (input) => handleFetchIssue(input));
   server.handle(createIssueRpc, (input) => handleCreateIssue(input));
   server.handle(listSkillsRpc, () => handleListSkills());
-  server.handle(arbitrationDirsRpc, (input, ctx) =>
-    handleArbitrationDirs(input, ctx),
+  server.handle(reviewDirsRpc, (input, ctx) =>
+    handleReviewDirs(input, ctx),
   );
-  server.handle(arbitrationStartRpc, (input, ctx) =>
-    handleArbitrationStart(input, ctx),
+  server.handle(reviewStartRpc, (input, ctx) =>
+    handleReviewStart(input, ctx),
   );
-  server.handle(arbitrationVerdictRpc, (input, ctx) =>
-    handleArbitrationVerdict(input, ctx),
+  server.handle(reviewVerdictRpc, (input, ctx) =>
+    handleReviewVerdict(input, ctx),
   );
-  server.handle(arbitrationSendRpc, (input, ctx) =>
-    handleArbitrationSend(input, ctx),
+  server.handle(reviewSendRpc, (input, ctx) =>
+    handleReviewSend(input, ctx),
   );
+  server.handle(reviewAbortRpc, (input, ctx) =>
+    handleReviewAbort(input, ctx),
+  );
+  server.handle(reviewContinueRpc, (input, ctx) =>
+    handleReviewContinue(input, ctx),
+  );
+  server.handle(reviewTemplateRpc, (input) => handleReviewTemplate(input));
 
-  server.on("agent.turn_ended", (event) => {
+  server.on("agent.turn_started", (event) => {
+    // 会话又跑起来了：之前的失败作废，待办恢复进行中
+    reviveByAgentId(event.agent.id);
+  });
+
+  server.on("agent.turn_ended", (event, { paseo }) => {
     const errMsg =
       event.outcome.kind === "failed" ? event.outcome.error.message : undefined;
     const outcome =
@@ -84,20 +106,36 @@ export default function contribute(server: PluginServerContext) {
         : event.outcome.kind === "canceled"
           ? "canceled"
           : "completed";
-    // 判官只翻仲裁状态，不碰待办本身
-    if (completeArbitration(event.agent.id, outcome, errMsg)) return;
-    if (event.outcome.kind === "completed") return;
-    completeByAgentId(event.agent.id, outcome, errMsg);
+    // 评审员只翻评审状态，不碰待办本身
+    if (completeReview(event.agent.id, outcome, errMsg)) {
+      // 评审刚出结果：自动发回或收工
+      const hit = listTodos().find((t) => t.review?.agentId === event.agent.id);
+      if (hit) void autoAdvanceReview(hit.id, paseo);
+      return;
+    }
+    if (event.outcome.kind === "completed") {
+      const done = completeByAgentId(event.agent.id, outcome, errMsg);
+      if (done?.status === "done") void autoStartReview(done.id, paseo);
+      return;
+    }
+    const finished = completeByAgentId(event.agent.id, outcome, errMsg);
+    if (finished?.status === "done") void autoStartReview(finished.id, paseo);
   });
 
-  server.on("workspace.archived", (event) => {
+  server.on("workspace.archived", (event, { paseo }) => {
     stashWorkspaceProject(event.workspace.id, event.workspace.projectId);
     cleanupWorkspaceBranches(event.workspace.id);
-    void cleanupArbitrationBranch(event.workspace.id);
+    void cleanupReviewArtifacts(event.workspace.id);
     completeByWorkspaceId(
       event.workspace.id,
       event.workspace.archivedAt ?? undefined,
     );
+    // 归档可能把待办推成「已完成」：开着自动的就接着发起评审
+    for (const t of listTodos()) {
+      if (t.status === "done" && (t.autoReview?.maxRounds ?? 0) !== 0) {
+        void autoStartReview(t.id, paseo);
+      }
+    }
   });
 
   return () => {};
