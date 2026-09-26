@@ -1,32 +1,37 @@
 ---
 name: one-lorebloom
-description: "Lore Bloom 知识库：随手丢原始资料、摄入自动整理、查询笔记、校验，ingest/lint 触发。"
+description: "Lore Bloom 知识库：丢原始资料、摄入编译、查询、校验，ingest/lint 触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
 ---
 
 # Lore Bloom 知识库
 
-GitHub 远端仓库 `wupengbo125/lorebloom`（私有，分支 main）。
-本地克隆路径：`~/onespace/github/lorebloom`。
-**仓库根目录 `AGENTS.md` 是权威操作规则**，与本技能冲突时以 AGENTS.md 为准。
+GitHub 远端 `wupengbo125/lorebloom`（私有，main）。本地 `~/onespace/github/lorebloom`。
 
-## 结构（Karpathy llm-wiki 模式：raw + wiki + schema）
+## 引导词：compiler
 
-- `raw/` 根目录：收件箱，原始资料随手丢，不分类、不改写。
-- `raw/ingested/YYYY-MM/`：已摄入原文按月归档。
-- `lorebloom/`：AI 维护的知识层，**按领域分目录**：
-  - 领域：life、study、food、technology、stocks
-  - 每个领域下：`concepts/`、`entities/`、`summaries/`、`index.md`
-  - `lorebloom/index.md` 总索引；`lorebloom/log.md` 全库流水
-  - 页面靠 `[[双链]]` 跨领域关联
+把 wiki 当编译器：`raw/` 是源码，ingest 是编译，`lorebloom/` 是成品，lint 是测试。成品承载全部有价值信息，编译后基本不再翻源码。
+
+## 结构
+
+```
+raw/                  根目录散文件 = 待摄入收件箱
+raw/<领域>/           进了领域目录 = 已摄入归档（life/study/food/technology/stocks）
+lorebloom/<领域>/     知识层，每领域下：
+  concepts/           可复用方法论、跨资料出现的思维模型
+  entities/           外部对象：人物、工具、产品、地点、食材
+  projects/           我的项目：Carefree、Paseo插件等，记录状态与进展
+  summaries/          每份原文一对一完整浓缩
+  index.md
+lorebloom/index.md    总索引
+lorebloom/log.md      全库流水
+```
 
 ## 意图分流
 
-从用户意图或显式参数选择一个操作，**仅读取对应的一个参考文件**后直接执行：
-
 | 操作 | 说明 | 读取文件 |
 | :--- | :--- | :--- |
-| `note` | 把原始资料丢进 `raw/` 根目录，或更新收件箱资料 | `./references/note.md` |
-| `ingest` | 扫描 `raw/` 根目录，编译入扁平 `lorebloom/`，原文按月归档 | `./references/ingest.md` |
-| `query` | 从 `lorebloom/index.md` 与双链检索并追溯原文 | `./references/query.md` |
-| `lint` | 检查 `lorebloom/` 死链、孤儿页面与矛盾并修复 | `./references/lint.md` |
+| `note` | 原始资料丢进 raw 根目录 | `./references/note.md` |
+| `ingest` | 扫描 raw 根目录，编译入 lorebloom，原文移进对应领域目录 | `./references/ingest.md` |
+| `query` | 从 lorebloom 检索并追溯原文 | `./references/query.md` |
+| `lint` | 校验死链、薄页面、孤儿、矛盾 | `./references/lint.md` |
