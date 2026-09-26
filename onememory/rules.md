@@ -89,3 +89,10 @@ Paseo 插件仓库布局与命名
   - 插件放 `paseo-plugins/<名>/`；待办插件目录 `one-todo`、id `one-todo`
   - 数据在 `~/.paseo/plugin-data/<id>/`；改 id 必须迁数据目录
   - 不用把宿主名/类型词粘进 id（如 `paseo-*-plugin`）
+
+Lore Bloom 摄入工作流：raw 根即收件箱
+- Date: 2026-09-25
+- Instructions:
+  - 资料直接丢 raw/ 根目录，不分类不建子目录；ingest 只扫根目录
+  - 摄入后原文移到 raw/ingested/YYYY-MM/，内容不改不删，移动即标记
+  - 知识层 lorebloom/ 由 AI 自动归类，新领域先问用户
