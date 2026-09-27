@@ -49,3 +49,7 @@
   - 只派一个 Agent 时标题与分支不带 🐎 前缀，多人赛马才带
   - 支持 -sda/--set-default-agent 记住默认 Agent，之后不带 -a 直接用它
   - CodeBuddy 走终端模式：等终端起来后以 codebuddy --model <模型> "<Issue链接> <提示词>" 启动
+- [paseo-plugins/one-todo/](paseo-plugins/one-todo/)
+  - 在 Paseo 中管理待办任务与 GitHub Issue，支持本地执行与多马独立 Worktree 并发开跑
+  - 支持会话跳转、待办继承与白盒开场指令模板自定义
+  - 多马模式提供赛马比对专属页，单马审核提供统一下拉选择器与分支一键删除（✕）

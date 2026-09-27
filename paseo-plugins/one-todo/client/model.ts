@@ -19,6 +19,7 @@ export type RunDraft = {
   source?: "todo" | "issue";
   issueRef?: string;
   issueUrl?: string;
+  extraPrompt?: string;
 };
 
 export type Picker =
@@ -32,7 +33,7 @@ export type Picker =
   | { kind: "project" }
   | { kind: "workspace" }
   | { kind: "skills" }
-  | { kind: "judge"; step: "provider" | "model"; provider: string };
+  | { kind: "reviewer"; step: "provider" | "model"; provider: string };
 
 export type PickItem = {
   id: string;
@@ -74,6 +75,7 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
     skills: [],
     workspaceId: "",
     workspaceName: "",
+    extraPrompt: "",
   };
 }
 

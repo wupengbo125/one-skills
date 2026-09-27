@@ -4,14 +4,18 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
+import { dropReviewFile } from "./review";
 import {
   addTodoRpc,
-  arbitrationDirsRpc,
-  arbitrationSendRpc,
-  arbitrationStartRpc,
-  arbitrationVerdictRpc,
+  reviewAbortRpc,
+  reviewContinueRpc,
+  reviewDirsRpc,
+  reviewSendRpc,
+  reviewStartRpc,
+  reviewVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
+  reviewTemplateRpc,
   listIssuesRpc,
   listModelsRpc,
   listProjectsRpc,
@@ -112,6 +116,7 @@ export function handleAddTodo(input: RpcInput<typeof addTodoRpc>): {
     baseBranch: input.baseBranch?.trim() || undefined,
     newBranch: input.newBranch?.trim() || undefined,
     pinned: input.pinned,
+    extraPrompt: input.extraPrompt?.trim() || undefined,
     status: "pending",
     createdAt: now,
   };
@@ -131,6 +136,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     next.agents = p.agents;
   }
   if (p.skills !== undefined) next.skills = p.skills;
+  if (p.autoReview !== undefined) next.autoReview = p.autoReview;
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;
   if (p.issueUrl !== undefined) next.issueUrl = p.issueUrl || undefined;
@@ -170,6 +176,12 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.newBranch !== undefined)
     next.newBranch = p.newBranch.trim() || undefined;
   if (p.pinned !== undefined) next.pinned = p.pinned;
+  if (p.agentIds !== undefined) next.agentIds = p.agentIds;
+  if (p.terminalIds !== undefined) next.terminalIds = p.terminalIds;
+  if (p.pendingAgentIds !== undefined) next.pendingAgentIds = p.pendingAgentIds;
+  if (p.worktreeRepo !== undefined) next.worktreeRepo = p.worktreeRepo;
+  if (p.worktrees !== undefined) next.worktrees = p.worktrees;
+  if (p.extraPrompt !== undefined) next.extraPrompt = p.extraPrompt.trim() || undefined;
   if (p.status !== undefined) {
     next.status = p.status;
     if (p.status === "running") {
@@ -177,8 +189,6 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
       next.finishedAt = undefined;
     }
     if (p.status === "pending") {
-      next.agentIds = [];
-      next.pendingAgentIds = [];
       next.startedAt = undefined;
       next.finishedAt = undefined;
       next.error = undefined;
@@ -195,6 +205,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
 }
 
 export function handleRemoveTodo(input: RpcInput<typeof removeTodoRpc>) {
+  dropReviewFile(input.id);
   return { ok: removeTodo(input.id) };
 }
 
@@ -292,12 +303,15 @@ export async function handleListProjects({ paseo }: PluginHandlerContext) {
 
 export {
   addTodoRpc,
-  arbitrationDirsRpc,
-  arbitrationSendRpc,
-  arbitrationStartRpc,
-  arbitrationVerdictRpc,
+  reviewAbortRpc,
+  reviewContinueRpc,
+  reviewDirsRpc,
+  reviewSendRpc,
+  reviewStartRpc,
+  reviewVerdictRpc,
   createIssueRpc,
   fetchIssueRpc,
+  reviewTemplateRpc,
   listIssuesRpc,
   listModelsRpc,
   listProjectsRpc,
