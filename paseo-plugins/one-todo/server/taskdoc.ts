@@ -29,7 +29,7 @@ export function readTaskDoc(key: string | undefined): string | undefined {
   }
 }
 
-/** 派马时塞进提示词的那一行：告诉这匹马需求文档写哪去。 */
+/** 派马时塞进提示词的那一行：让这匹马把需求整理成平铺计划写进需求文档。 */
 export function taskDocHint(key: string): string {
-  return `需求文档路径：${taskDocPath(key)}\n`;
+  return `把上面的需求整理成平铺计划列给用户，并写到：${taskDocPath(key)}\n`;
 }

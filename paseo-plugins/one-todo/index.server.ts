@@ -41,6 +41,7 @@ import {
 } from "./server/executor";
 import {
   cleanupReviewArtifacts,
+  autoOn,
   completeReview,
   autoStartReview,
   autoAdvanceReview,
@@ -113,16 +114,37 @@ export default function contribute(server: PluginServerContext) {
       if (hit) void autoAdvanceReview(hit.id, paseo);
       return;
     }
-    if (event.outcome.kind === "completed") {
-      const done = completeByAgentId(event.agent.id, outcome, errMsg);
-      if (done?.status === "done") void autoStartReview(done.id, paseo);
+    // 报错只标失败，名单不动：马再跑起来由 turn_started 自动恢复
+    if (outcome === "failed" || outcome === "canceled") {
+      completeByAgentId(event.agent.id, outcome, errMsg);
       return;
     }
-    const finished = completeByAgentId(event.agent.id, outcome, errMsg);
-    if (finished?.status === "done") void autoStartReview(finished.id, paseo);
+
+    // 干活马回合正常结束 (completed)：会话保持存活，直接自动触发审核
+    const todo = listTodos().find(
+      (t) =>
+        t.status === "running" && (t.agentIds ?? []).includes(event.agent.id),
+    );
+    if (!todo) return;
+
+    // 多马模式下若未决出胜者，不自动进单马审核；单马或已选胜者，自动拉起单马审核
+    if (autoOn(todo)) {
+      const isMultiWithoutWinner =
+        (todo.agents ?? []).length > 1 &&
+        (todo.review?.kind !== "single" ||
+          todo.review?.targetIndex === undefined);
+      if (!isMultiWithoutWinner) {
+        void autoStartReview(todo.id, paseo);
+      }
+    }
   });
 
-  server.on("workspace.archived", (event, { paseo }) => {
+  server.on("agent.archived", (event) => {
+    // 归档这匹马 = 收工或删除：从名单摘掉，不触发自动评审
+    completeByAgentId(event.agent.id, "completed");
+  });
+
+  server.on("workspace.archived", (event) => {
     stashWorkspaceProject(event.workspace.id, event.workspace.projectId);
     cleanupWorkspaceBranches(event.workspace.id);
     void cleanupReviewArtifacts(event.workspace.id);
@@ -130,12 +152,6 @@ export default function contribute(server: PluginServerContext) {
       event.workspace.id,
       event.workspace.archivedAt ?? undefined,
     );
-    // 归档可能把待办推成「已完成」：开着自动的就接着发起评审
-    for (const t of listTodos()) {
-      if (t.status === "done" && (t.autoReview?.maxRounds ?? 0) !== 0) {
-        void autoStartReview(t.id, paseo);
-      }
-    }
   });
 
   return () => {};

@@ -502,7 +502,7 @@ function noteAuto(todo: Todo, note: string, patch?: Partial<Todo["autoReview"]>)
 }
 
 /** 自动开着吗：轮数 0 = 关着，-1 = 不限，>0 = 有上限 */
-function autoOn(todo: Todo): boolean {
+export function autoOn(todo: Todo): boolean {
   return (todo.autoReview?.maxRounds ?? 0) !== 0;
 }
 
@@ -527,7 +527,7 @@ export async function autoStartReview(
   const auto = todo?.autoReview;
   if (!todo || !auto || !autoOn(todo)) return;
   if (auto.phase === "reviewing") return;
-  if (todo.status !== "done") return;
+  if (todo.status === "failed") return;
   if (todo.review?.status === "running") return;
   if (!autoRoundsLeft(todo)) {
     stopAuto(todo, `已自动跑满 ${auto.roundsUsed} 轮，停了`);
@@ -589,7 +589,17 @@ export async function autoAdvanceReview(
   const body = verdictHasBody(text);
 
   if (single && passed && !body) {
-    stopAuto(todo, "评审通过、没有建议，自动停");
+    saveTodo({
+      ...todo,
+      status: "done",
+      finishedAt: new Date().toISOString(),
+      autoReview: {
+        ...auto,
+        maxRounds: 0,
+        phase: undefined,
+        note: "评审通过、没有建议，自动停",
+      },
+    });
     return;
   }
   if (!autoRoundsLeft(todo)) {
@@ -621,6 +631,7 @@ export async function autoAdvanceReview(
       : `已自动发回第 ${used} 轮，等它改完再评`;
   saveTodo({
     ...now,
+    status: "running",
     // 赛马选出胜者后，后面就只评那一匹
     ...(胜者 && !single
       ? {
