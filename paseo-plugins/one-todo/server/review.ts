@@ -206,10 +206,10 @@ export async function handleReviewDirs(
 // 插件运行时不提供 import.meta.url，就从 paseo 配置里认自己的目录（加载时先不算，避免加载失败）
 const PLUGIN_ID = "one-todo";
 const TEMPLATE_NAME = {
-  multi: "评审-多马.md",
-  single: "评审-单马.md",
-  send: "下发改进意见.md",
-  initial: "开场指令.md",
+  multi: "赛马向导词.md",
+  single: "评审向导词.md",
+  send: "整改向导词.md",
+  initial: "开场向导词.md",
 } as const;
 export type TplKind = keyof typeof TEMPLATE_NAME;
 
@@ -304,7 +304,13 @@ export function readOrSeedTemplateRaw(kind: TplKind): string {
 
 function checkTemplate(kind: TplKind, part: string): string | undefined {
   const name =
-    kind === "multi" ? "多匹马评审" : kind === "single" ? "一匹马评审" : kind === "send" ? "下发改进意见" : "开场指令";
+    kind === "multi"
+      ? "赛马向导词"
+      : kind === "single"
+        ? "评审向导词"
+        : kind === "send"
+          ? "整改向导词"
+          : "开场向导词";
   if (!part.trim()) return `${name}不能为空`;
   if (kind === "send" || kind === "initial") return undefined;
   if (!part.includes("{{task}}")) return `${name}模板缺少 {{task}} 空位`;
@@ -517,6 +523,52 @@ function noteAuto(todo: Todo, note: string, patch?: Partial<Todo["autoReview"]>)
   return saveTodo({ ...todo, autoReview: { ...auto, note, ...patch } });
 }
 
+// 这一回合的做事流水里，哪些工具算"动了代码"、哪些只是"看看"
+const CODE_WRITE_TOOLS = new Set([
+  "write",
+  "edit",
+  "multiedit",
+  "notebookedit",
+  "replace_in_file",
+  "create_file",
+  "write_file",
+  "insert",
+  "delete_file",
+  "apply_patch",
+  "str_replace_editor",
+]);
+const READ_ONLY_TOOLS = new Set([
+  "read",
+  "glob",
+  "grep",
+  "search",
+  "ls",
+  "list_dir",
+  "todoread",
+  "todowrite",
+  "todo",
+  "webfetch",
+  "websearch",
+  "task",
+  "exit_plan_mode",
+]);
+
+/**
+ * 干活马这一回合到底有没有动代码：只看黑马提供的做事流水里的工具调用。
+ * 认不出是什么工具时不装懂，按"动过"算，宁可多评一次也别漏评。
+ */
+export function turnTouchedCode(timeline: readonly unknown[]): boolean {
+  const tools: string[] = [];
+  for (const it of timeline ?? []) {
+    if (!it || typeof it !== "object") continue;
+    const r = it as { type?: unknown; name?: unknown; status?: unknown };
+    if (r.type !== "tool_call" || r.status !== "completed") continue;
+    if (typeof r.name === "string") tools.push(r.name.toLowerCase());
+  }
+  if (tools.some((n) => CODE_WRITE_TOOLS.has(n))) return true;
+  return tools.some((n) => !READ_ONLY_TOOLS.has(n));
+}
+
 /** 自动开着吗：轮数 0 = 关着，-1 = 不限，>0 = 有上限 */
 export function autoOn(todo: Todo): boolean {
   return (todo.autoReview?.maxRounds ?? 0) !== 0;
@@ -646,11 +698,15 @@ export async function autoAdvanceReview(
     roundsUsed: used,
     phase: "horse",
   };
-  if (patch.maxRounds !== 0 && auto.maxRounds > 0 && used >= auto.maxRounds) {
+  if (passed) {
+    // 已经通过：建议发回让它改，但不再自动拉下一轮
+    patch.maxRounds = 0;
+  } else if (auto.maxRounds > 0 && used >= auto.maxRounds) {
     patch.maxRounds = 0;
   }
-  const stopNote =
-    patch.maxRounds === 0
+  const stopNote = passed
+    ? "评审已通过，建议已发回让它改，自动停"
+    : patch.maxRounds === 0
       ? `已自动跑满 ${used} 轮，停了`
       : `已自动发回第 ${used} 轮，等它改完再评`;
   saveTodo({
@@ -953,7 +1009,7 @@ export async function handleReviewContinue(
   if (picked.error) return { ok: false, error: picked.error };
   const targets = picked.targets;
   const task = input.task?.trim() || "";
-  if (!task) return { ok: false, error: "请先指定评审基准" };
+  if (!task) return { ok: false, error: "请先填写需求详情" };
   let prompt: string;
   let verdictName: string;
   try {

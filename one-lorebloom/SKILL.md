@@ -2,6 +2,7 @@
 name: one-lorebloom
 description: "Lore Bloom 知识库：丢原始资料、摄入编译、查询、校验，ingest/lint 触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
+disable-model-invocation: true
 ---
 
 # Lore Bloom 知识库

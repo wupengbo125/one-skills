@@ -43,6 +43,7 @@ import {
 import {
   cleanupReviewArtifacts,
   autoOn,
+  turnTouchedCode,
   completeReview,
   autoStartReview,
   autoAdvanceReview,
@@ -132,7 +133,8 @@ export default function contribute(server: PluginServerContext) {
     );
     if (!todo) return;
 
-    if (autoOn(todo)) {
+    // 只是说话没动代码的回合不拉评审（上次就是因为这条空跑了一轮）
+    if (autoOn(todo) && turnTouchedCode(event.timeline ?? [])) {
       void autoStartReview(todo.id, paseo, event.agent.id);
     }
   });

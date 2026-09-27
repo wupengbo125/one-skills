@@ -661,7 +661,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       sendSavedRef.current = res.text;
       setSendSeed(res.text);
       setSendDirty(false);
-      showArbMsg({ text: "下发改进意见前导词已保存" });
+      showArbMsg({ text: "整改向导词已保存" });
     },
     onError: (e: Error) =>
       showArbMsg({ text: e.message || "保存失败", bad: true }),
@@ -684,7 +684,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         setSingleTplDirty(false);
       }
       showArbMsg({
-        text: `${vars.kind === "multi" ? "多匹马" : "一匹马"}评审提示词已保存`,
+        text: `${vars.kind === "multi" ? "赛马" : "评审"}向导词已保存`,
       });
     },
     onError: (e: Error) =>
@@ -713,7 +713,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       initialSavedRef.current = res.text;
       setInitialSeed(res.text);
       setInitialDirty(false);
-      toast.show("开场指令已保存", { variant: "success" });
+      toast.show("开场向导词已保存", { variant: "success" });
     },
     onError: (e: Error) => toast.error(e.message || "保存失败"),
   });
@@ -1796,7 +1796,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             {collapseRow(
-              `评审基准${
+              `需求详情${
                 arbTaskSeed.trim()
                   ? ` · ${arbTaskSeed.trim().split("\n").length} 行`
                   : ""
@@ -1873,7 +1873,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             {collapseRow(
-              `评审提示词模板（${isMulti ? "多匹马" : "一匹马"}）${
+              `${isMulti ? "赛马向导词" : "评审向导词"}${
                 tplDirty ? "（已修改未保存）" : ""
               }`,
               tplView !== "collapsed",
@@ -1965,7 +1965,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         fontWeight: "600",
                       }}
                     >
-                      请先指定评审基准
+                      请先填写需求详情
                     </Text>
                   </View>
                 </View>
@@ -1987,7 +1987,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 }
                 onPress={() => {
                   if (tplDirty) {
-                    setArbMsg({ text: "提示词改了还没保存，先点保存模板", bad: true });
+                    setArbMsg({ text: "向导词改了还没保存，先点保存模板", bad: true });
                     return;
                   }
                   if (!arbTaskRef.current.trim()) {
@@ -2383,7 +2383,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </View>
           <View style={s.formSection}>
             {collapseRow(
-              `开场指令${initialDirty ? "（已修改未保存）" : ""}`,
+              `开场向导词${initialDirty ? "（已修改未保存）" : ""}`,
               initialView !== "collapsed",
               () =>
                 setInitialView(initialView === "collapsed" ? "preview" : "collapsed"),
@@ -2391,7 +2391,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             {initialView !== "collapsed" ? (
               <>
                 <Text style={s.pathText}>
-                  开场永久指令模板，支持 {"{{docPath}}"}（文档路径）与 {"{{id}}"}（工作区ID）：
+                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）与 {"{{id}}"}（工作区ID）：
                 </Text>
                 {initialQ.isLoading ? (
                   <Text style={s.empty}>读取中…</Text>
@@ -2421,7 +2421,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         initialRef.current = v;
                         setInitialDirty(v !== initialSavedRef.current);
                       }}
-                      placeholder="开场指令模板，支持 {{docPath}} 与 {{id}} 变量…"
+                      placeholder="开场向导词模板，支持 {{docPath}} 与 {{id}} 变量…"
                       placeholderTextColor={theme.colors.foregroundMuted}
                       multiline
                     />
@@ -2843,12 +2843,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 ]}
                 keyboardShouldPersistTaps="handled"
               >
-                {arbVerdictQ.data?.verdict ? (
-                  <View style={s.formSection}>
-                    {collapseRow(
-                      `评审结论 · ${(
-                      arbVerdictQ.data.verdict.split("\n", 1)[0] ?? ""
-                    ).trim()}`,
+                <View style={s.formSection}>
+                  {collapseRow(
+                    `评审结论${
+                      arbVerdictQ.data?.verdict
+                        ? ` · ${(arbVerdictQ.data.verdict.split("\n", 1)[0] ?? "").trim()}`
+                        : ""
+                    }`,
                     verdictOpen,
                     () => setVerdictOpen(!verdictOpen),
                   )}
@@ -2868,24 +2869,24 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                           lineHeight: 20,
                         }}
                       >
-                        {arbVerdictQ.data.verdict}
+                        {arbVerdictQ.data?.verdict || "（空）"}
                       </Text>
                     </View>
                   ) : null}
                 </View>
-              ) : arbTodo.review?.status === "running" ? (
-                <View style={s.formSection}>
-                  <Text style={s.pathText}>评审员正在审阅中，生成结论后可在此展开查看并下发…</Text>
-                </View>
-              ) : (
-                <View style={s.formSection}>
-                  <Text style={s.pathText}>暂无评审结论，请先在「审阅配置」页发起评审。</Text>
-                </View>
-              )}
+                {arbTodo.review?.status === "running" ? (
+                  <View style={s.formSection}>
+                    <Text style={s.pathText}>评审员正在审阅中，生成结论后可在此展开查看并下发…</Text>
+                  </View>
+                ) : arbVerdictQ.data?.verdict ? null : (
+                  <View style={s.formSection}>
+                    <Text style={s.pathText}>请先进行评审。</Text>
+                  </View>
+                )}
 
               <View style={s.formSection}>
                 {collapseRow(
-                  `下发改进意见前导词${sendDirty ? "（已修改未保存）" : ""}`,
+                  `整改向导词${sendDirty ? "（已修改未保存）" : ""}`,
                   sendView !== "collapsed",
                   () =>
                     setSendView(sendView === "collapsed" ? "preview" : "collapsed"),

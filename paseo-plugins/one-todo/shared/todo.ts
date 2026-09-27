@@ -394,7 +394,7 @@ export const reviewContinueRpc = defineRpc({
 export const reviewTemplateRpc = defineRpc({
   name: "todo.review_template",
   input: z.object({
-    // multi 多匹马评审 / single 一匹马评审 / send 下发改进意见 / initial 开场指令
+    // multi 赛马向导词 / single 评审向导词 / send 整改向导词 / initial 开场向导词
     kind: z.enum(["multi", "single", "send", "initial"]),
     text: z.string().optional(),
   }),
