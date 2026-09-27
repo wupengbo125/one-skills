@@ -2,6 +2,7 @@
 name: one-wiki
 description: "记笔记、记到大本子、更新笔记、查询笔记，ingest，lint触发。"
 argument-hint: "note | ingest | query | lint, 以及可选内容或问题"
+disable-model-invocation: true
 ---
 
 # Markdown Wiki
