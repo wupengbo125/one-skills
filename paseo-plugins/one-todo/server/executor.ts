@@ -9,9 +9,26 @@ import {
 } from "../shared/todo";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { savePreferences } from "./preferences";
-import { taskDocHint } from "./taskdoc";
 import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
+import { readOrSeedTemplateRaw } from "./review";
+import { taskDocPath } from "./taskdoc";
+
+function formatInitialPrompt(basePrompt: string, wsId: string): string {
+  let initial = "";
+  try {
+    initial = readOrSeedTemplateRaw("initial") || "";
+  } catch {
+    initial = "";
+  }
+  if (!initial.trim()) return basePrompt;
+  const docPath = taskDocPath(wsId);
+  const extraText = initial
+    .replace(/\{\{(docPath|taskDocPath)\}\}/g, docPath)
+    .replace(/\{\{(id|workspaceId)\}\}/g, wsId)
+    .trim();
+  return extraText ? `${extraText}\n\n${basePrompt}` : basePrompt;
+}
 
 export async function resolveProviderField(
   paseo: PluginHandlerContext["paseo"],
@@ -138,6 +155,7 @@ export async function handleStartTodo(
         ...(input.agents ? { agents: input.agents } : {}),
         ...(input.prompt !== undefined ? { prompt: input.prompt } : {}),
         ...(input.skills !== undefined ? { skills: input.skills } : {}),
+        ...(input.extraPrompt !== undefined ? { extraPrompt: input.extraPrompt } : {}),
         ...(hasPlacementPatch ? placementPatch : {}),
       },
     });
@@ -212,7 +230,7 @@ export async function handleStartTodo(
           ws,
           refs[i],
           multi ? `${title} #${i + 1}` : title,
-          `${prompt}\n\n${taskDocHint(ws.id)}`,
+          formatInitialPrompt(prompt, ws.id),
         );
         if (launched.agentId) agentIds.push(launched.agentId);
         if (launched.terminalId) terminalIds.push(launched.terminalId);
@@ -258,7 +276,7 @@ export async function handleStartTodo(
             ws,
             refs[i],
             multi ? `${title} #${i + 1}` : title,
-            `${prompt}\n\n${taskDocHint(ws.id)}`,
+            formatInitialPrompt(prompt, ws.id),
           );
           if (launched.agentId) agentIds.push(launched.agentId);
           if (launched.terminalId) terminalIds.push(launched.terminalId);
@@ -310,7 +328,7 @@ export async function handleStartTodo(
             ws,
             refs[i],
             multi ? `${title} #${i + 1}` : title,
-            `${prompt}\n\n${taskDocHint(ws.id)}`,
+            formatInitialPrompt(prompt, ws.id),
           );
           if (launched.agentId) agentIds.push(launched.agentId);
           if (launched.terminalId) terminalIds.push(launched.terminalId);
@@ -370,7 +388,7 @@ export async function handleStartTodo(
           ws,
           refs[i],
           multi ? `${title} #${i + 1}` : title,
-          `${prompt}\n\n${taskDocHint(ws.id)}`,
+          formatInitialPrompt(prompt, ws.id),
         );
         if (launched.agentId) agentIds.push(launched.agentId);
         if (launched.terminalId) terminalIds.push(launched.terminalId);

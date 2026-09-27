@@ -1,4 +1,5 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
+import { removeWorktreeRpc } from "./shared/todo";
 import { listTodos } from "./server/store";
 import {
   addTodoRpc,
@@ -52,6 +53,7 @@ import {
   handleReviewStart,
   handleReviewVerdict,
   handleReviewTemplate,
+  handleRemoveWorktree,
 } from "./server/review";
 import {
   handleCreateIssue,
@@ -92,6 +94,9 @@ export default function contribute(server: PluginServerContext) {
     handleReviewContinue(input, ctx),
   );
   server.handle(reviewTemplateRpc, (input) => handleReviewTemplate(input));
+  server.handle(removeWorktreeRpc, (input, ctx) =>
+    handleRemoveWorktree(input, ctx),
+  );
 
   server.on("agent.turn_started", (event) => {
     // 会话又跑起来了：之前的失败作废，待办恢复进行中
@@ -127,15 +132,8 @@ export default function contribute(server: PluginServerContext) {
     );
     if (!todo) return;
 
-    // 多马模式下若未决出胜者，不自动进单马审核；单马或已选胜者，自动拉起单马审核
     if (autoOn(todo)) {
-      const isMultiWithoutWinner =
-        (todo.agents ?? []).length > 1 &&
-        (todo.review?.kind !== "single" ||
-          todo.review?.targetIndex === undefined);
-      if (!isMultiWithoutWinner) {
-        void autoStartReview(todo.id, paseo);
-      }
+      void autoStartReview(todo.id, paseo, event.agent.id);
     }
   });
 

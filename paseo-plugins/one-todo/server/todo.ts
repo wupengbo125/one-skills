@@ -116,6 +116,7 @@ export function handleAddTodo(input: RpcInput<typeof addTodoRpc>): {
     baseBranch: input.baseBranch?.trim() || undefined,
     newBranch: input.newBranch?.trim() || undefined,
     pinned: input.pinned,
+    extraPrompt: input.extraPrompt?.trim() || undefined,
     status: "pending",
     createdAt: now,
   };
@@ -175,6 +176,12 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.newBranch !== undefined)
     next.newBranch = p.newBranch.trim() || undefined;
   if (p.pinned !== undefined) next.pinned = p.pinned;
+  if (p.agentIds !== undefined) next.agentIds = p.agentIds;
+  if (p.terminalIds !== undefined) next.terminalIds = p.terminalIds;
+  if (p.pendingAgentIds !== undefined) next.pendingAgentIds = p.pendingAgentIds;
+  if (p.worktreeRepo !== undefined) next.worktreeRepo = p.worktreeRepo;
+  if (p.worktrees !== undefined) next.worktrees = p.worktrees;
+  if (p.extraPrompt !== undefined) next.extraPrompt = p.extraPrompt.trim() || undefined;
   if (p.status !== undefined) {
     next.status = p.status;
     if (p.status === "running") {

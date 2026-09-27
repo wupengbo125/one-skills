@@ -22,9 +22,11 @@ import {
   reviewVerdictRpc,
   branchFromTitle,
   reviewTemplateRpc,
+  removeWorktreeRpc,
   type AgentRef,
   type Todo,
 } from "../shared/todo";
+import { deleteBranches } from "./worktree";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { launchAgentOrTerminal, todoAgents } from "./executor";
 import { primaryAgent } from "../shared/todo";
@@ -125,6 +127,22 @@ async function resolveCandidates(
   todo: Todo,
   paseo: PluginHandlerContext["paseo"],
 ): Promise<Candidate[]> {
+  const list: Candidate[] = [];
+
+  // 1. 本地目录（作为基础目标，存在即加入）
+  const localDir = todo.projectPath || todo.cwd;
+  if (localDir && existsSync(localDir)) {
+    list.push({
+      workspaceId: todo.workspaceId ?? "",
+      branch: todo.baseBranch?.trim() || "main",
+      dir: localDir,
+      exists: true,
+      label: `本地目录 · ${todo.projectName || "项目"}`,
+      taskDoc: readTaskDoc(todo.workspaceId),
+    });
+  }
+
+  // 2. 所有 Worktree 分支
   const worktrees = todo.worktrees ?? [];
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
   const gitDirs = repo ? await gitWorktreeDirs(repo) : null;
@@ -134,31 +152,32 @@ async function resolveCandidates(
     try {
       const res = await paseo.workspaces.list();
       for (const w of res.entries ?? []) {
-        // 只信 workspaceDirectory；projectRootPath 是项目根不是 worktree 目录
         if (w.workspaceDirectory) wsDirs.set(w.id, w.workspaceDirectory);
       }
     } catch {
-      // workspace 列表拿不到就只靠存的 dir
+      // ignore
     }
   }
 
-  // 名单是累积的（可以反复发起），不再拿它和本轮马匹数量做对号
-  return worktrees.map((w, i) => {
+  for (let i = 0; i < worktrees.length; i++) {
+    const w = worktrees[i];
     const gdir = gitDirs?.get(w.branch);
     const dir = gdir ?? w.dir ?? wsDirs.get(w.workspaceId);
     const exists =
       gitDirs !== null
         ? Boolean(gdir && existsSync(gdir))
         : Boolean(dir && existsSync(dir));
-    return {
+    list.push({
       workspaceId: w.workspaceId,
       branch: w.branch,
       dir,
       exists,
       label: `${i + 1}# ${w.model ? `${w.provider ?? ""} / ${w.model}` : w.provider || w.branch}`,
       taskDoc: readTaskDoc(w.workspaceId),
-    };
-  });
+    });
+  }
+
+  return list;
 }
 
 export async function handleReviewDirs(
@@ -170,47 +189,17 @@ export async function handleReviewDirs(
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
   const baseBranch = todo.baseBranch?.trim() || "main";
   const candidates = await resolveCandidates(todo, paseo);
-  let reviewDir: string | undefined;
-  if (!candidates.some((c) => c.exists)) {
-    reviewDir = await resolveReviewDir(todo, paseo, candidates);
-  }
-  if (candidates.length === 0 && !reviewDir) {
+  if (candidates.length === 0) {
     return { candidates: [], error: "该待办没有可评审的目录" };
   }
   return {
     repo,
     baseBranch,
     candidates,
-    reviewDir,
     reviewTaskDoc: readTaskDoc(
       todo.workspaceId ?? todo.projectPath ?? todo.cwd,
     ),
   };
-}
-
-/**
- * 评审目标目录（一匹马/本地直跑没有可用候选时）：
- * 单个活 worktree → projectPath → cwd → workspace 查表。
- */
-async function resolveReviewDir(
-  todo: Todo,
-  paseo: PluginHandlerContext["paseo"],
-  candidates: Candidate[],
-): Promise<string | undefined> {
-  const live = candidates.find((c) => c.exists && c.dir);
-  if (live?.dir) return live.dir;
-  if (todo.projectPath) return todo.projectPath;
-  if (todo.cwd) return todo.cwd;
-  if (todo.workspaceId) {
-    try {
-      const res = await paseo.workspaces.list();
-      const hit = (res.entries ?? []).find((w) => w.id === todo.workspaceId);
-      if (hit?.workspaceDirectory) return hit.workspaceDirectory;
-    } catch {
-      // 查不到就算了
-    }
-  }
-  return undefined;
 }
 
 // 提示词是插件资产，住在插件目录的 prompts/ 里，随仓库走（换机器也在）
@@ -219,7 +208,8 @@ const PLUGIN_ID = "one-todo";
 const TEMPLATE_NAME = {
   multi: "评审-多马.md",
   single: "评审-单马.md",
-  send: "发送提示词.md",
+  send: "下发改进意见.md",
+  initial: "开场指令.md",
 } as const;
 export type TplKind = keyof typeof TEMPLATE_NAME;
 
@@ -287,13 +277,16 @@ const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问�
 const DEFAULT_SEND =
   "【评审反馈与整改建议】以下为审阅结论。请评估可行性并排查技术风险，涉及架构与关键逻辑变更须经确认后推进，依此落实修正。";
 
+const DEFAULT_INITIAL = `会话开始时，先记录一下 Git commit ID 到需求文档中。
+把上面的需求整理成平铺计划列给用户，并写到：{{docPath}}`;
+
 const DEFAULT_TPL = {
   multi: DEFAULT_MULTI,
   single: DEFAULT_SINGLE,
   send: DEFAULT_SEND,
+  initial: DEFAULT_INITIAL,
 } as const;
-
-function readOrSeedTemplateRaw(kind: TplKind): string {
+export function readOrSeedTemplateRaw(kind: TplKind): string {
   const path = templatePath(kind);
   try {
     return readFileSync(path, "utf8");
@@ -311,9 +304,9 @@ function readOrSeedTemplateRaw(kind: TplKind): string {
 
 function checkTemplate(kind: TplKind, part: string): string | undefined {
   const name =
-    kind === "multi" ? "多匹马评审" : kind === "single" ? "一匹马评审" : "发送提示词";
+    kind === "multi" ? "多匹马评审" : kind === "single" ? "一匹马评审" : kind === "send" ? "下发改进意见" : "开场指令";
   if (!part.trim()) return `${name}不能为空`;
-  if (kind === "send") return undefined;
+  if (kind === "send" || kind === "initial") return undefined;
   if (!part.includes("{{task}}")) return `${name}模板缺少 {{task}} 空位`;
   if (!part.includes("{{targets}}")) return `${name}模板缺少 {{targets}} 空位`;
   if (!part.includes("{{verdictFile}}")) {
@@ -351,6 +344,37 @@ export function handleReviewTemplate(
     return { error: "保存失败，请重试" };
   }
 }
+export async function handleRemoveWorktree(
+  input: RpcInput<typeof removeWorktreeRpc>,
+  { paseo }: PluginHandlerContext,
+): Promise<RpcOutput<typeof removeWorktreeRpc>> {
+  const todo = getTodo(input.id);
+  if (!todo) return { ok: false, todo: null, error: "待办不存在" };
+  const worktrees = todo.worktrees ?? [];
+  const target = worktrees.find((w) => w.workspaceId === input.workspaceId);
+  if (!target) return { ok: false, todo, error: "未找到该分支工作区" };
+
+  const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
+  if (repo && target.branch) {
+    try {
+      await deleteBranches(repo, [target.branch]);
+    } catch {
+      // ignore
+    }
+  }
+  try {
+    await paseo.workspaces.ref(input.workspaceId).archive();
+  } catch {
+    // ignore
+  }
+  const remaining = worktrees.filter((w) => w.workspaceId !== input.workspaceId);
+  const updated = saveTodo({
+    ...todo,
+    worktrees: remaining,
+  });
+  return { ok: true, todo: updated };
+}
+
 
 /** 发消息给某个会话：走 paseo CLI（agent 用 send，终端用 send-keys）。发不出去就报错。 */
 async function sendToSession(
@@ -407,7 +431,7 @@ function sendPromptText(): string {
   }
 }
 
-/** 挑这轮评审要看的候选：多匹马给全部活着的；一匹马给指定的那匹（没指定给第一匹活着的）；都没有就用本地目录。 */
+/** 挑这轮评审要看的候选：多匹马比对各分支；一匹马统一从候选列表取（指定或默认最新）。 */
 async function pickTargets(
   todo: Todo,
   paseo: PluginHandlerContext["paseo"],
@@ -417,36 +441,28 @@ async function pickTargets(
   const candidates = await resolveCandidates(todo, paseo);
   const live = candidates.filter((c) => c.exists);
   if (kind === "multi") {
-    if (live.length < 2) {
+    const wtCandidates = live.filter((c) =>
+      (todo.worktrees ?? []).some((w) => w.workspaceId === c.workspaceId),
+    );
+    if (wtCandidates.length < 2) {
       return {
         targets: [],
-        error: `可评审的 worktree 不足 2 个（找到 ${live.length} 个），可能已被归档`,
+        error: `可评比的分支不足 2 个（找到 ${wtCandidates.length} 个），可能已被归档`,
       };
     }
-    return { targets: live };
+    return { targets: wtCandidates };
   }
   if (targetIndex !== undefined) {
     const t = candidates[targetIndex];
     if (!t || !t.exists) {
-      return { targets: [], error: "选中的那匹马目录已失效" };
+      return { targets: [], error: "选中的目录已失效" };
     }
     return { targets: [t] };
   }
-  if (live.length > 0) return { targets: [live[0]] };
-  // 没有 worktree（主干 / 本地直跑）：就评项目目录本身
-  const dir = await resolveReviewDir(todo, paseo, candidates);
-  if (!dir) return { targets: [], error: "找不到可评审的目录" };
-  return {
-    targets: [
-      {
-        workspaceId: "",
-        branch: todo.baseBranch?.trim() || "main",
-        dir,
-        exists: true,
-        label: "本地目录",
-      },
-    ],
-  };
+  if (live.length > 0) {
+    return { targets: [live[live.length - 1]] };
+  }
+  return { targets: [], error: "找不到可评审的目录" };
 }
 
 /** 组装给评审员的那段话——新起会话和接着聊用的是同一段。 */
@@ -522,6 +538,7 @@ function defaultReviewer(todo: Todo): AgentRef {
 export async function autoStartReview(
   todoId: string,
   paseo: PluginHandlerContext["paseo"],
+  agentId?: string,
 ): Promise<void> {
   const todo = getTodo(todoId);
   const auto = todo?.autoReview;
@@ -534,12 +551,33 @@ export async function autoStartReview(
     return;
   }
   const candidates = await resolveCandidates(todo, paseo);
-  const live = candidates.filter((c) => c.exists);
-  const kind: ReviewKind = live.length >= 2 ? "multi" : "single";
+  let targetIdx: number | undefined;
+  if (agentId) {
+    const idx = (todo.worktrees ?? []).findIndex(
+      (w) => w.agentId === agentId || w.terminalId === agentId,
+    );
+    if (idx >= 0) {
+      const candIdx = candidates.findIndex(
+        (c) => c.workspaceId === (todo.worktrees ?? [])[idx]?.workspaceId,
+      );
+      if (candIdx >= 0 && candidates[candIdx]?.exists) targetIdx = candIdx;
+    }
+  }
+  if (targetIdx === undefined && todo.review?.targetIndex !== undefined) {
+    if (candidates[todo.review.targetIndex]?.exists) {
+      targetIdx = todo.review.targetIndex;
+    }
+  }
+  if (targetIdx === undefined && candidates.length > 0) {
+    const liveIdx = candidates.reduceRight(
+      (acc, c, i) => (acc === -1 && c.exists ? i : acc),
+      -1,
+    );
+    if (liveIdx >= 0) targetIdx = liveIdx;
+  }
   const docKey =
-    (kind === "single" && todo.review?.targetIndex !== undefined
-      ? candidates[todo.review.targetIndex]?.workspaceId
-      : live[0]?.workspaceId) ?? todo.workspaceId;
+    (targetIdx !== undefined ? candidates[targetIdx]?.workspaceId : undefined) ??
+    todo.workspaceId;
   const task = readTaskDoc(docKey) ?? "";
   if (!task) {
     stopAuto(todo, "没有需求文档，自动停了，等你手动发起");
@@ -548,12 +586,11 @@ export async function autoStartReview(
   const res = await handleReviewStart(
     {
       id: todo.id,
-      kind,
+      kind: "single",
       task,
       reviewer: defaultReviewer(todo),
-      ...(kind === "single" && todo.review?.targetIndex !== undefined
-        ? { targetIndex: todo.review.targetIndex }
-        : {}),
+      ...(targetIdx !== undefined ? { targetIndex: targetIdx } : {}),
+      targetAgentId: agentId,
     },
     { paseo },
   );
@@ -575,24 +612,16 @@ export async function autoAdvanceReview(
   const auto = todo?.autoReview;
   const rev = todo?.review;
   if (!todo || !auto || !autoOn(todo) || !rev || rev.status !== "done") return;
-  const text = readVerdictFile(
-    todo.title,
-    rev.kind ?? "single",
-    rev.verdictFile,
-  )?.text;
+  const text = readVerdictFile(todo.title, "single", rev.verdictFile)?.text;
   if (!text) {
     stopAuto(todo, "评审没有有效结果，自动停了");
     return;
   }
-  const single = (rev.kind ?? "single") === "single";
-  const passed = single && verdictPassed(text);
+  const passed = verdictPassed(text);
   const body = verdictHasBody(text);
-
-  if (single && passed && !body) {
+  if (passed && !body) {
     saveTodo({
       ...todo,
-      status: "done",
-      finishedAt: new Date().toISOString(),
       autoReview: {
         ...auto,
         maxRounds: 0,
@@ -613,35 +642,19 @@ export async function autoAdvanceReview(
     return;
   }
   const used = auto.roundsUsed + 1;
-  const 胜者 = /胜者\s*[:：]\s*(\d+)/.exec(verdictFirstLine(text));
   const patch: Partial<NonNullable<Todo["autoReview"]>> = {
     roundsUsed: used,
     phase: "horse",
   };
-  // 通过但有建议：发回改完就停，不再自动评
-  if (single && passed && body) patch.maxRounds = 0;
   if (patch.maxRounds !== 0 && auto.maxRounds > 0 && used >= auto.maxRounds) {
     patch.maxRounds = 0;
   }
   const stopNote =
     patch.maxRounds === 0
-      ? single && passed && body
-        ? "评审通过、建议已发回，改完就停"
-        : `已自动跑满 ${used} 轮，停了`
+      ? `已自动跑满 ${used} 轮，停了`
       : `已自动发回第 ${used} 轮，等它改完再评`;
   saveTodo({
     ...now,
-    status: "running",
-    // 赛马选出胜者后，后面就只评那一匹
-    ...(胜者 && !single
-      ? {
-          review: {
-            ...now.review!,
-            kind: "single" as const,
-            targetIndex: parseInt(胜者[1], 10) - 1,
-          },
-        }
-      : {}),
     autoReview: { ...now.autoReview!, ...patch, note: stopNote },
   });
 }
@@ -702,7 +715,7 @@ export async function handleReviewStart(
       (arb.reviewer.model || "") !== (input.reviewer.model || ""));
   if (arb && !reviewerChanged && (await isReviewSessionAlive(todo, paseo))) {
     const contRes = await handleReviewContinue(
-      { id: input.id, task: input.task },
+      { id: input.id, task: input.task, targetIndex: input.targetIndex },
       { paseo },
     );
     return {
@@ -785,6 +798,7 @@ export async function handleReviewStart(
         ...(input.targetIndex !== undefined
           ? { targetIndex: input.targetIndex }
           : {}),
+        ...(input.targetAgentId ? { targetAgentId: input.targetAgentId } : {}),
       },
     };
     return { ok: true, todo: saveTodo(next) };
@@ -928,11 +942,13 @@ export async function handleReviewContinue(
   if (!agentId && !terminalId) {
     return { ok: false, error: "上次的评审会话找不到了，只能开新评审" };
   }
+  const targetIndex =
+    input.targetIndex !== undefined ? input.targetIndex : arb.targetIndex;
   const picked = await pickTargets(
     todo,
     paseo,
-    arb.kind ?? "multi",
-    arb.targetIndex,
+    arb.kind ?? "single",
+    targetIndex,
   );
   if (picked.error) return { ok: false, error: picked.error };
   const targets = picked.targets;
@@ -978,6 +994,7 @@ export async function handleReviewContinue(
       finishedAt: undefined,
       error: undefined,
       verdictFile: verdictName,
+      targetIndex,
       startedAt: new Date().toISOString(),
     },
   });
@@ -995,13 +1012,13 @@ export async function handleReviewSend(
   const kind: ReviewKind = arb.kind ?? "multi";
   const file = readVerdictFile(todo.title, kind, arb.verdictFile);
   if (!file.valid || !file.text) return { ok: false, error: "还没有有效结论，发不了" };
-
-  // 定目标马：优先名单里有 worktree 的马；没有（主干/本地直跑）就用待办自己的会话
   const worktrees = todo.worktrees ?? [];
   const candidates = await resolveCandidates(todo, paseo);
   let agentId: string | undefined;
   let terminalId: string | undefined;
-  if (worktrees.length > 0) {
+  if (arb.targetAgentId) {
+    agentId = arb.targetAgentId;
+  } else if (worktrees.length > 0) {
     let idx = -1;
     if (kind === "multi") {
       const m = /^\s*(?:#\s*)?胜者\s*[:：]\s*(\d+)/.exec(
@@ -1119,22 +1136,23 @@ export function completeReview(
     if (!arb || arb.status !== "running" || arb.agentId !== agentId) continue;
     let error: string | undefined;
     let finalStatus: "done" | "failed" = "done";
-    if (outcome !== "completed") {
+    const kind: ReviewKind = arb.kind ?? "single";
+    const file = readVerdictFile(t.title, kind, arb.verdictFile);
+    if (file.valid) {
+      // 只要结论文件成功写出且格式有效，即判定评审成功，允许自动发回！
+      finalStatus = "done";
+      error = undefined;
+    } else if (outcome !== "completed") {
       finalStatus = "failed";
       error =
         errorMessage ||
         (outcome === "canceled" ? "评审会话已取消" : "评审 turn failed");
     } else {
-      // 完成也必须有有效结论，否则算失败
-      const kind: ReviewKind = arb.kind ?? "multi";
-      const file = readVerdictFile(t.title, kind, arb.verdictFile);
-      if (!file.valid) {
-        finalStatus = "failed";
-        error =
-          kind === "single"
-            ? "评审结束了，但未写出有效结果（缺「结论: 通过/不通过」首行）"
-            : "评审结束了，但未写出有效结果（缺「胜者: <候选>」首行）";
-      }
+      finalStatus = "failed";
+      error =
+        kind === "single"
+          ? "评审结束了，但未写出有效结果（缺「结论: 通过/不通过」首行）"
+          : "评审结束了，但未写出有效结果（缺「胜者: <候选>」首行）";
     }
     saveTodo({
       ...t,

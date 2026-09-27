@@ -32,6 +32,18 @@ export const autoReviewSchema = z.object({
 });
 
 export type AutoReview = z.infer<typeof autoReviewSchema>;
+export const todoWorktreeItemSchema = z.object({
+  workspaceId: z.string(),
+  branch: z.string(),
+  dir: z.string().optional(),
+  // 这匹马自己的会话号：发回会话直接用，不靠下标对号
+  agentId: z.string().optional(),
+  terminalId: z.string().optional(),
+  provider: z.string().optional(),
+  model: z.string().optional(),
+});
+export type TodoWorktreeItem = z.infer<typeof todoWorktreeItemSchema>;
+
 
 export const todoSchema = z.object({
   id: z.string(),
@@ -57,20 +69,7 @@ export const todoSchema = z.object({
   terminalIds: z.array(z.string()).optional(),
   pendingAgentIds: z.array(z.string()).optional(),
   worktreeRepo: z.string().optional(),
-  worktrees: z
-    .array(
-      z.object({
-        workspaceId: z.string(),
-        branch: z.string(),
-        dir: z.string().optional(),
-        // 这匹马自己的会话号：发回会话直接用，不靠下标对号
-        agentId: z.string().optional(),
-        terminalId: z.string().optional(),
-        provider: z.string().optional(),
-        model: z.string().optional(),
-      }),
-    )
-    .optional(),
+  worktrees: z.array(todoWorktreeItemSchema).optional(),
   review: z
     .object({
       kind: z.enum(["multi", "single"]).optional(),
@@ -84,7 +83,7 @@ export const todoSchema = z.object({
       startedAt: z.string(),
       finishedAt: z.string().optional(),
       targetIndex: z.number().int().optional(),
-      // 评审结果文件名（标题+评审），记在待办数据里
+      targetAgentId: z.string().optional(),
       verdictFile: z.string().optional(),
     })
     .optional(),
@@ -94,6 +93,7 @@ export const todoSchema = z.object({
     skills: z.array(z.string()).optional(),
     pinned: z.boolean().optional(),
     autoReview: autoReviewSchema.optional(),
+    extraPrompt: z.string().optional(),
   });
   export const preferencesSchema = z.object({
     lastProvider: z.string().optional(),
@@ -137,6 +137,7 @@ export const addTodoRpc = defineRpc({
     agents: z.array(agentRefSchema).min(1).optional(),
     ...todoPlacementFields,
     pinned: z.boolean().optional(),
+    extraPrompt: z.string().optional(),
   }),
   output: z.object({ todo: todoSchema }),
 });
@@ -168,9 +169,15 @@ export const updateTodoRpc = defineRpc({
       issueRef: z.string().optional(),
       issueUrl: z.string().optional(),
       ...todoPlacementFields,
+      agentIds: z.array(z.string()).optional(),
+      terminalIds: z.array(z.string()).optional(),
+      pendingAgentIds: z.array(z.string()).optional(),
+      worktreeRepo: z.string().optional(),
+      worktrees: z.array(todoWorktreeItemSchema).optional(),
       status: todoStatusSchema.optional(),
       pinned: z.boolean().optional(),
       autoReview: autoReviewSchema.optional(),
+      extraPrompt: z.string().optional(),
     }),
   }),
   output: z.object({
@@ -191,6 +198,7 @@ export const startTodoRpc = defineRpc({
       agents: z.array(agentRefSchema).min(1).optional(),
       prompt: z.string().optional(),
       skills: z.array(z.string()).optional(),
+      extraPrompt: z.string().optional(),
       ...todoPlacementFields,
   }),
   output: z.object({
@@ -332,6 +340,7 @@ export const reviewStartRpc = defineRpc({
     task: z.string().optional(),
     // 审核时指定审哪一匹（候选名单里的位置）；不传就按现在的规则挑
     targetIndex: z.number().int().optional(),
+    targetAgentId: z.string().optional(),
   }),
   output: z.object({
     ok: z.boolean(),
@@ -371,7 +380,11 @@ export const reviewAbortRpc = defineRpc({
 
 export const reviewContinueRpc = defineRpc({
   name: "todo.review_continue",
-  input: z.object({ id: z.string(), task: z.string().optional() }),
+  input: z.object({
+    id: z.string(),
+    task: z.string().optional(),
+    targetIndex: z.number().int().optional(),
+  }),
   output: z.object({
     ok: z.boolean(),
     error: z.string().optional(),
@@ -381,12 +394,24 @@ export const reviewContinueRpc = defineRpc({
 export const reviewTemplateRpc = defineRpc({
   name: "todo.review_template",
   input: z.object({
-    // multi 多匹马评审 / single 一匹马评审 / send 发回时给干活的那句话
-    kind: z.enum(["multi", "single", "send"]),
+    // multi 多匹马评审 / single 一匹马评审 / send 下发改进意见 / initial 开场指令
+    kind: z.enum(["multi", "single", "send", "initial"]),
     text: z.string().optional(),
   }),
   output: z.object({
     text: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+export const removeWorktreeRpc = defineRpc({
+  name: "todo.remove_worktree",
+  input: z.object({
+    id: z.string(),
+    workspaceId: z.string(),
+  }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
     error: z.string().optional(),
   }),
 });
