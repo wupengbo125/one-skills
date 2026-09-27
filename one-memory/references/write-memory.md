@@ -45,3 +45,4 @@ pre-commit 会拉远端当日文件做整行等值比对，缺失或不一致均
 
 ### Step 4 提交
 代码与 `onememory/` 同批 `git add` + commit + `git push`（pre-commit 已同时门禁 `onememory/` 与海马摘要等号，禁止 `--no-verify`）。交付时报一句"记忆已沉淀"。
+如果push网络不通，运行mihomo命令可以打通代理，然后重试
