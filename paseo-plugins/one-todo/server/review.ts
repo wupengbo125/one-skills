@@ -21,6 +21,7 @@ import {
   reviewStartRpc,
   reviewVerdictRpc,
   branchFromTitle,
+  horseBySession,
   reviewTemplateRpc,
   removeWorktreeRpc,
   type AgentRef,
@@ -92,6 +93,10 @@ export type Candidate = {
   dir?: string;
   exists: boolean;
   label: string;
+  // 这条候选是哪匹马：它的会话号（终端马就是终端号）
+  agentId?: string;
+  // 这匹马在自己单独的分支工作区里（可以 ✕ 掉它）
+  ownWorkspace?: boolean;
   // 这匹马写的需求清单内容（弹层「文档」按钮用）
   taskDoc?: string;
 };
@@ -119,37 +124,22 @@ async function gitWorktreeDirs(repo: string): Promise<Map<string, string> | null
 }
 
 /**
- * 找赛马候选目录（插件的琐事）：
- * git worktree list 按分支（权威） → worktrees[].dir → workspace 目录。
- * 分支已不在 git worktree 列表里（worktree 被删/归档）即视为失效。
+ * 找评审候选：一条候选就是一匹马（名单上第几匹，谁都按这本号）。
+ * - 这匹马有自己的分支 → 评它的分支目录（目录已不在＝标失效）。
+ * - 本地直跑的马 → 评同一个目录，但回传还是认它自己。
+ * 目录：git worktree list 按分支（权威） → 马自己记的目录 → workspace 目录。
  */
 async function resolveCandidates(
   todo: Todo,
   paseo: PluginHandlerContext["paseo"],
 ): Promise<Candidate[]> {
   const list: Candidate[] = [];
-  const worktrees = todo.worktrees ?? [];
-
-  // 1. 有马就只认马：主干是审核员的落脚点，不是评审对象
-  const localDir =
-    worktrees.length === 0 ? todo.projectPath || todo.cwd : undefined;
-  if (localDir && existsSync(localDir)) {
-    list.push({
-      workspaceId: todo.workspaceId ?? "",
-      branch: todo.baseBranch?.trim() || "main",
-      dir: localDir,
-      exists: true,
-      label: `本地目录 · ${todo.projectName || "项目"}`,
-      taskDoc: readTaskDoc(todo.workspaceId),
-    });
-  }
-
-  // 2. 所有 Worktree 分支
+  const horses = todoAgents(todo);
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
   const gitDirs = repo ? await gitWorktreeDirs(repo) : null;
 
   const wsDirs = new Map<string, string>();
-  if (gitDirs === null && worktrees.some((w) => !w.dir)) {
+  if (gitDirs === null && horses.some((a) => a.branch && !a.dir)) {
     try {
       const res = await paseo.workspaces.list();
       for (const w of res.entries ?? []) {
@@ -160,21 +150,58 @@ async function resolveCandidates(
     }
   }
 
-  for (let i = 0; i < worktrees.length; i++) {
-    const w = worktrees[i];
-    const gdir = gitDirs?.get(w.branch);
-    const dir = gdir ?? w.dir ?? wsDirs.get(w.workspaceId);
-    const exists =
-      gitDirs !== null
-        ? Boolean(gdir && existsSync(gdir))
-        : Boolean(dir && existsSync(dir));
+  const localDir = todo.projectPath || todo.cwd;
+  for (const [i, a] of horses.entries()) {
+    const session = a.agentId ?? a.terminalId;
+    // 还没开跑的马不是评审对象
+    if (!session) continue;
+    const label = `${a.no ?? i + 1}# ${a.model ? `${a.provider} / ${a.model}` : a.provider || "默认"}`;
+    const workspaceId = a.workspaceId ?? todo.workspaceId ?? "";
+    // 赛马时才"每匹马一条自己的分支"：那种能单独划掉（普通模式的分支是你填的，不许划）
+    const ownWorkspace = todo.raceMode === true && Boolean(a.branch);
+    if (a.branch) {
+      const gdir = gitDirs?.get(a.branch);
+      const dir = gdir ?? a.dir ?? wsDirs.get(workspaceId);
+      const exists =
+        gitDirs !== null
+          ? Boolean(gdir && existsSync(gdir))
+          : Boolean(dir && existsSync(dir));
+      list.push({
+        workspaceId,
+        branch: a.branch,
+        dir,
+        exists,
+        label,
+        agentId: session,
+        ...(ownWorkspace ? { ownWorkspace: true } : {}),
+        taskDoc: readTaskDoc(workspaceId),
+      });
+      continue;
+    }
+    // 本地直跑：几匹马挤在同一个目录里，候选仍是一匹马一条
+    const dir = a.dir ?? localDir;
+    if (dir && existsSync(dir)) {
+      list.push({
+        workspaceId,
+        branch: todo.baseBranch?.trim() || "main",
+        dir,
+        exists: true,
+        label,
+        agentId: session,
+        taskDoc: readTaskDoc(workspaceId),
+      });
+    }
+  }
+
+  // 一匹马都没开过会话（或全归档了）：还有目录就给审核员一个落脚点
+  if (list.length === 0 && localDir && existsSync(localDir)) {
     list.push({
-      workspaceId: w.workspaceId,
-      branch: w.branch,
-      dir,
-      exists,
-      label: `${i + 1}# ${w.model ? `${w.provider ?? ""} / ${w.model}` : w.provider || w.branch}`,
-      taskDoc: readTaskDoc(w.workspaceId),
+      workspaceId: todo.workspaceId ?? "",
+      branch: todo.baseBranch?.trim() || "main",
+      dir: localDir,
+      exists: true,
+      label: `本地目录 · ${todo.projectName || "项目"}`,
+      taskDoc: readTaskDoc(todo.workspaceId),
     });
   }
 
@@ -355,9 +382,25 @@ export async function handleRemoveWorktree(
 ): Promise<RpcOutput<typeof removeWorktreeRpc>> {
   const todo = getTodo(input.id);
   if (!todo) return { ok: false, todo: null, error: "待办不存在" };
-  const worktrees = todo.worktrees ?? [];
-  const target = worktrees.find((w) => w.workspaceId === input.workspaceId);
-  if (!target) return { ok: false, todo, error: "未找到该分支工作区" };
+  const horses = todo.agents ?? [];
+  const target = horses.find((a) => a.workspaceId === input.workspaceId);
+  if (!target) return { ok: false, todo, error: "未找到这匹马的工作区" };
+  // 主工作区是审核员和马一起落脚的地方，划了整单就没了
+  if (input.workspaceId === todo.workspaceId) {
+    return {
+      ok: false,
+      todo,
+      error: "这是这单的主工作区，不能在这儿划掉",
+    };
+  }
+  const sharers = horses.filter((a) => a.workspaceId === input.workspaceId);
+  if (sharers.length > 1) {
+    return {
+      ok: false,
+      todo,
+      error: "这个工作区里还住着别的马，划掉会一起没",
+    };
+  }
 
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
   if (repo && target.branch) {
@@ -372,10 +415,12 @@ export async function handleRemoveWorktree(
   } catch {
     // ignore
   }
-  const remaining = worktrees.filter((w) => w.workspaceId !== input.workspaceId);
+  // ✕ 掉这匹马：它连自己的工作区、分支、会话一起从名单走
   const updated = saveTodo({
     ...todo,
-    worktrees: remaining,
+    agents: (todo.agents ?? []).filter(
+      (a) => a.workspaceId !== input.workspaceId,
+    ),
   });
   return { ok: true, todo: updated };
 }
@@ -436,38 +481,49 @@ function sendPromptText(): string {
   }
 }
 
-/** 挑这轮评审要看的候选：多匹马比对各分支；一匹马统一从候选列表取（指定或默认最新）。 */
+/** 挑这轮评审要看的候选：多匹马比对各分支；一匹马认那匹自己的目录。 */
 async function pickTargets(
   todo: Todo,
   paseo: PluginHandlerContext["paseo"],
   kind: ReviewKind,
-  targetIndex?: number,
+  targetAgentId?: string,
 ): Promise<{ targets: Candidate[]; error?: string }> {
   const candidates = await resolveCandidates(todo, paseo);
   const live = candidates.filter((c) => c.exists);
   if (kind === "multi") {
-    const wtCandidates = live.filter((c) =>
-      (todo.worktrees ?? []).some((w) => w.workspaceId === c.workspaceId),
-    );
-    if (wtCandidates.length < 2) {
+    // 赛马评比：一条分支一份目录；几匹马挤同一个目录不算（那是单马审核）
+    const own = live.filter((c) => c.ownWorkspace);
+    const targets: Candidate[] = [];
+    const seen = new Set<string>();
+    for (const c of own) {
+      const key = c.dir ?? c.workspaceId;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      targets.push(c);
+    }
+    if (targets.length < 2) {
       return {
         targets: [],
-        error: `可评比的分支不足 2 个（找到 ${wtCandidates.length} 个），可能已被归档`,
+        error: `可评比的分支不足 2 个（找到 ${targets.length} 个），可能已被归档`,
       };
     }
-    return { targets: wtCandidates };
+    return { targets };
   }
-  if (targetIndex !== undefined) {
-    const t = candidates[targetIndex];
+  if (targetAgentId) {
+    const t = candidates.find((c) => c.agentId === targetAgentId);
     if (!t || !t.exists) {
-      return { targets: [], error: "选中的目录已失效" };
+      return { targets: [], error: "审的那匹马已经不在了（可能已归档）" };
     }
     return { targets: [t] };
   }
-  if (live.length > 0) {
-    return { targets: [live[live.length - 1]] };
+  // 没指定审谁：只有唯一一个候选才算说得清，多个候选不猜
+  if (live.length === 1) {
+    return { targets: [live[0]] };
   }
-  return { targets: [], error: "找不到可评审的目录" };
+  if (live.length === 0) {
+    return { targets: [], error: "找不到可评审的目录" };
+  }
+  return { targets: [], error: "先选审的是哪匹马" };
 }
 
 /** 只分析不动手：审核员跟马同屋，除了结论文件什么都不能写。 */
@@ -607,33 +663,10 @@ export async function autoStartReview(
     return;
   }
   const candidates = await resolveCandidates(todo, paseo);
-  let targetIdx: number | undefined;
-  if (agentId) {
-    const idx = (todo.worktrees ?? []).findIndex(
-      (w) => w.agentId === agentId || w.terminalId === agentId,
-    );
-    if (idx >= 0) {
-      const candIdx = candidates.findIndex(
-        (c) => c.workspaceId === (todo.worktrees ?? [])[idx]?.workspaceId,
-      );
-      if (candIdx >= 0 && candidates[candIdx]?.exists) targetIdx = candIdx;
-    }
-  }
-  if (targetIdx === undefined && todo.review?.targetIndex !== undefined) {
-    if (candidates[todo.review.targetIndex]?.exists) {
-      targetIdx = todo.review.targetIndex;
-    }
-  }
-  if (targetIdx === undefined && candidates.length > 0) {
-    const liveIdx = candidates.reduceRight(
-      (acc, c, i) => (acc === -1 && c.exists ? i : acc),
-      -1,
-    );
-    if (liveIdx >= 0) targetIdx = liveIdx;
-  }
-  const docKey =
-    (targetIdx !== undefined ? candidates[targetIdx]?.workspaceId : undefined) ??
-    todo.workspaceId;
+  // 刚跑完的那匹马就是这轮的评审对象；名单上找不到就沿用上次记下的那匹
+  const targetAgentId = agentId ?? todo.review?.targetAgentId;
+  const hit = candidates.find((c) => c.agentId === targetAgentId && c.exists);
+  const docKey = hit?.workspaceId ?? todo.workspaceId;
   const task = readTaskDoc(docKey) ?? "";
   if (!task) {
     stopAuto(todo, "没有需求文档，自动停了，等你手动发起");
@@ -645,8 +678,7 @@ export async function autoStartReview(
       kind: "single",
       task,
       reviewer: defaultReviewer(todo),
-      ...(targetIdx !== undefined ? { targetIndex: targetIdx } : {}),
-      targetAgentId: agentId,
+      ...(targetAgentId ? { targetAgentId } : {}),
     },
     { paseo },
   );
@@ -775,7 +807,7 @@ export async function handleReviewStart(
       (arb.reviewer.model || "") !== (input.reviewer.model || ""));
   if (arb && !reviewerChanged && (await isReviewSessionAlive(todo, paseo))) {
     const contRes = await handleReviewContinue(
-      { id: input.id, task: input.task, targetIndex: input.targetIndex },
+      { id: input.id, task: input.task, targetAgentId: input.targetAgentId },
       { paseo },
     );
     return {
@@ -799,9 +831,7 @@ export async function handleReviewStart(
         reviewer: input.reviewer as AgentRef,
         workspaceId: todo.workspaceId,
         ...(verdictFile ? { verdictFile } : {}),
-        ...(input.targetIndex !== undefined
-          ? { targetIndex: input.targetIndex }
-          : {}),
+        ...(input.targetAgentId ? { targetAgentId: input.targetAgentId } : {}),
         status: "failed",
         error,
         startedAt: now,
@@ -811,7 +841,7 @@ export async function handleReviewStart(
     error,
   });
 
-  const picked = await pickTargets(todo, paseo, kind, input.targetIndex);
+  const picked = await pickTargets(todo, paseo, kind, input.targetAgentId);
   if (picked.error) return startFailed(picked.error);
   const targets = picked.targets;
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
@@ -856,9 +886,6 @@ export async function handleReviewStart(
         status: "running",
         startedAt: now,
         verdictFile: verdictName,
-        ...(input.targetIndex !== undefined
-          ? { targetIndex: input.targetIndex }
-          : {}),
         ...(input.targetAgentId ? { targetAgentId: input.targetAgentId } : {}),
       },
     };
@@ -1004,13 +1031,12 @@ export async function handleReviewContinue(
   if (!agentId && !terminalId) {
     return { ok: false, error: "上次的评审会话找不到了，只能开新评审" };
   }
-  const targetIndex =
-    input.targetIndex !== undefined ? input.targetIndex : arb.targetIndex;
+  const targetAgentId = input.targetAgentId ?? arb.targetAgentId;
   const picked = await pickTargets(
     todo,
     paseo,
     arb.kind ?? "single",
-    targetIndex,
+    targetAgentId,
   );
   if (picked.error) return { ok: false, error: picked.error };
   const targets = picked.targets;
@@ -1056,7 +1082,6 @@ export async function handleReviewContinue(
       finishedAt: undefined,
       error: undefined,
       verdictFile: verdictName,
-      targetIndex,
       startedAt: new Date().toISOString(),
     },
   });
@@ -1074,56 +1099,38 @@ export async function handleReviewSend(
   const kind: ReviewKind = arb.kind ?? "multi";
   const file = readVerdictFile(todo.title, kind, arb.verdictFile);
   if (!file.valid || !file.text) return { ok: false, error: "还没有有效结论，发不了" };
-  const worktrees = todo.worktrees ?? [];
-  const candidates = await resolveCandidates(todo, paseo);
   let agentId: string | undefined;
   let terminalId: string | undefined;
   if (arb.targetAgentId) {
-    agentId = arb.targetAgentId;
-  } else if (worktrees.length > 0) {
-    let idx = -1;
-    if (kind === "multi") {
-      const m = /^\s*(?:#\s*)?胜者\s*[:：]\s*(\d+)/.exec(
-        file.text.split("\n", 1)[0] ?? "",
-      );
-      const n = m ? parseInt(m[1], 10) : NaN;
-      if (!n || n < 1 || n > worktrees.length) {
-        return { ok: false, error: "结论里找不到胜者编号" };
-      }
-      idx = n - 1;
-    } else {
-      // 一匹马：发起时指定了哪匹就发回哪匹，没指定就发回第一个还活着的
-      idx =
-        arb.targetIndex !== undefined
-          ? arb.targetIndex
-          : candidates.findIndex((c) => c.exists);
+    // 这次评审指定了哪匹马：就发回它自己那个会话，不猜
+    const horse = horseBySession(todo.agents, arb.targetAgentId);
+    if (!horse) {
+      return {
+        ok: false,
+        error: "这次评审的那匹马已经不在了（可能已归档），发不回去",
+      };
     }
-    if (idx < 0) return { ok: false, error: "没有可发送的目标" };
-    if (!candidates[idx]?.exists) {
-      return { ok: false, error: "那匹马的目录已经不在了（可能已归档）" };
+    agentId = horse.agentId;
+    terminalId = horse.terminalId;
+  } else if (kind === "multi") {
+    // 赛马：结论首行写"胜者: N"，N 就是那匹马的号
+    const m = /^\s*(?:#\s*)?胜者\s*[:：]\s*(\d+)/.exec(
+      file.text.split("\n", 1)[0] ?? "",
+    );
+    const n = m ? parseInt(m[1], 10) : NaN;
+    const horse = todoAgents(todo).find((a) => a.no === n);
+    if (!horse) return { ok: false, error: "结论里的胜者编号找不到对应的马" };
+    if (!horse.agentId && !horse.terminalId) {
+      return { ok: false, error: "那匹马已经不在了（可能已归档），发不回去" };
     }
-    agentId = worktrees[idx]?.agentId;
-    terminalId = worktrees[idx]?.terminalId;
+    agentId = horse.agentId;
+    terminalId = horse.terminalId;
   } else {
-    // 主干/本地直跑：马就在待办自己的会话里，取最近派的那匹
-    agentId = [...(todo.agentIds ?? [])].reverse().find(Boolean);
-    terminalId = [...(todo.terminalIds ?? [])].reverse().find(Boolean);
-    if (!agentId && !terminalId) {
-      try {
-        const { stdout } = await execFileAsync("paseo", ["ls", "--json"]);
-        const list = JSON.parse(stdout) as Array<{ id?: string; status?: string }>;
-        const hit = list.find((a) => a.id && a.id !== arb.agentId && a.status !== "closed");
-        if (hit?.id) {
-          agentId = hit.id;
-          saveTodo({
-            ...todo,
-            agentIds: [...new Set([...(todo.agentIds ?? []), hit.id])],
-          });
-        }
-      } catch {
-        // ignore
-      }
-    }
+    // 没记下发回哪匹马：不猜
+    return {
+      ok: false,
+      error: "这次评审没记下发给哪匹马，没法发回；可以点「复制」自己粘",
+    };
   }
   if (!agentId && !terminalId) {
     return {

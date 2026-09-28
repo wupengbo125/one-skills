@@ -40,6 +40,7 @@ import {
   handleStartTodo,
   stashWorkspaceProject,
 } from "./server/executor";
+import { horseBySession } from "./shared/todo";
 import {
   cleanupReviewArtifacts,
   autoOn,
@@ -126,8 +127,7 @@ export default function contribute(server: PluginServerContext) {
 
     // 干活马回合正常结束 (completed)：会话保持存活，直接自动触发审核
     const todo = listTodos().find(
-      (t) =>
-        t.status === "running" && (t.agentIds ?? []).includes(event.agent.id),
+      (t) => t.status === "running" && horseBySession(t.agents, event.agent.id),
     );
     if (!todo) return;
 
@@ -138,7 +138,7 @@ export default function contribute(server: PluginServerContext) {
   });
 
   server.on("agent.archived", (event) => {
-    // 归档这匹马 = 收工或删除：从名单摘掉，不触发自动评审
+    // 归档这匹马 = 收工或删除：从名单里划掉，不触发自动评审
     completeByAgentId(event.agent.id, "completed");
   });
 

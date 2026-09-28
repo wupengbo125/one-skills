@@ -20,6 +20,15 @@ export const agentRefSchema = z.object({
   model: z.string().optional(),
   // 这匹马跑过的时间：有值＝老马（只显示不给删），没值＝还没跑的
   spawnedAt: z.string().optional(),
+  // 这匹马的号：开跑时发一次，之后不许改也不许复用（分支名、评审里的编号都用它）
+  no: z.number().int().optional(),
+  // 这匹马自己的会话：开跑时记上，跳转、发回都靠它。还挂着会话＝还没收工
+  agentId: z.string().optional(),
+  terminalId: z.string().optional(),
+  // 这匹马住在哪：它自己的工作区 / 分支 / 目录（本地直跑时没有分支）
+  workspaceId: z.string().optional(),
+  branch: z.string().optional(),
+  dir: z.string().optional(),
 });
 export type AgentRef = z.infer<typeof agentRefSchema>;
 
@@ -34,17 +43,6 @@ export const autoReviewSchema = z.object({
 });
 
 export type AutoReview = z.infer<typeof autoReviewSchema>;
-export const todoWorktreeItemSchema = z.object({
-  workspaceId: z.string(),
-  branch: z.string(),
-  dir: z.string().optional(),
-  // 这匹马自己的会话号：发回会话直接用，不靠下标对号
-  agentId: z.string().optional(),
-  terminalId: z.string().optional(),
-  provider: z.string().optional(),
-  model: z.string().optional(),
-});
-export type TodoWorktreeItem = z.infer<typeof todoWorktreeItemSchema>;
 
 
 export const todoSchema = z.object({
@@ -72,11 +70,9 @@ export const todoSchema = z.object({
   committeeMode: z.boolean().optional(),
   committeeMembers: z.array(agentRefSchema).optional(),
   error: z.string().optional(),
-  agentIds: z.array(z.string()).optional(),
-  terminalIds: z.array(z.string()).optional(),
-  pendingAgentIds: z.array(z.string()).optional(),
   worktreeRepo: z.string().optional(),
-  worktrees: z.array(todoWorktreeItemSchema).optional(),
+  // 发到几号了：只增不减，归档过马也不回收旧号
+  nextNo: z.number().int().optional(),
   review: z
     .object({
       kind: z.enum(["multi", "single"]).optional(),
@@ -89,7 +85,7 @@ export const todoSchema = z.object({
       error: z.string().optional(),
       startedAt: z.string(),
       finishedAt: z.string().optional(),
-      targetIndex: z.number().int().optional(),
+      // 这轮审的是哪匹马：它的会话号（终端马即终端号）
       targetAgentId: z.string().optional(),
       verdictFile: z.string().optional(),
     })
@@ -178,11 +174,9 @@ export const updateTodoRpc = defineRpc({
       issueRef: z.string().optional(),
       issueUrl: z.string().optional(),
       ...todoPlacementFields,
-      agentIds: z.array(z.string()).optional(),
-      terminalIds: z.array(z.string()).optional(),
-      pendingAgentIds: z.array(z.string()).optional(),
       worktreeRepo: z.string().optional(),
-      worktrees: z.array(todoWorktreeItemSchema).optional(),
+      // 发到几号了：整单搬马时也要搬，别让新单子从 1 重发
+      nextNo: z.number().int().optional(),
       status: todoStatusSchema.optional(),
       pinned: z.boolean().optional(),
       autoReview: autoReviewSchema.optional(),
@@ -335,6 +329,10 @@ export const reviewDirsRpc = defineRpc({
         dir: z.string().optional(),
         exists: z.boolean(),
         label: z.string(),
+        // 这条候选是哪匹马（会话号；终端马就是终端号）
+        agentId: z.string().optional(),
+        // 这匹马在自己单独的分支工作区里（可以 ✕ 掉它）
+        ownWorkspace: z.boolean().optional(),
         // 这匹马目录里的需求文件内容，弹层里显示出来供用户删改
         taskDoc: z.string().optional(),
       }),
@@ -354,8 +352,7 @@ export const reviewStartRpc = defineRpc({
     reviewer: agentRefSchema,
     // 需求正文：弹层框里的字，用户可整段删掉
     task: z.string().optional(),
-    // 审核时指定审哪一匹（候选名单里的位置）；不传就按现在的规则挑
-    targetIndex: z.number().int().optional(),
+    // 审的是哪匹马：它的会话号。不传就不指定
     targetAgentId: z.string().optional(),
   }),
   output: z.object({
@@ -399,7 +396,7 @@ export const reviewContinueRpc = defineRpc({
   input: z.object({
     id: z.string(),
     task: z.string().optional(),
-    targetIndex: z.number().int().optional(),
+    targetAgentId: z.string().optional(),
   }),
   output: z.object({
     ok: z.boolean(),
@@ -443,4 +440,40 @@ export function branchFromTitle(title: string): string {
 
 export function primaryAgent(agents: AgentRef[]): AgentRef {
   return agents[0] ?? { provider: "" };
+}
+
+/** 这匹马自己那个会话（终端型马就是终端号）。 */
+export function horseSession(a: AgentRef): string | undefined {
+  return a.agentId ?? a.terminalId;
+}
+
+/** 这个会话是不是这匹马的。 */
+export function isHorseSession(a: AgentRef, sessionId: string): boolean {
+  return a.agentId === sessionId || a.terminalId === sessionId;
+}
+
+/** 按会话号在名单里找那匹马。 */
+export function horseBySession(
+  agents: AgentRef[] | undefined,
+  sessionId: string,
+): AgentRef | undefined {
+  return (agents ?? []).find((a) => isHorseSession(a, sessionId));
+}
+
+/** 名单里还挂着会话的马（还没收工）；空＝这单的活都干完了。 */
+export function pendingSessions(agents: AgentRef[] | undefined): string[] {
+  return (agents ?? [])
+    .map((a) => horseSession(a))
+    .filter((id): id is string => Boolean(id));
+}
+
+/** 名单里第一匹开过会话的马（卡片跳转用）。 */
+export function firstHorse(agents: AgentRef[] | undefined): AgentRef | undefined {
+  return (agents ?? []).find((a) => a.agentId || a.terminalId);
+}
+
+/** 这个 provider 开出来的是终端（agy 只能跑终端，没有会话号）。 */
+export function isTerminalProvider(provider: string): boolean {
+  const p = provider.trim().toLowerCase();
+  return p === "antigravity cli" || p === "agy";
 }

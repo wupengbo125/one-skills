@@ -2,6 +2,10 @@ import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
 import {
   branchFromTitle,
+  horseBySession,
+  isHorseSession,
+  isTerminalProvider,
+  pendingSessions,
   primaryAgent,
   startTodoRpc,
   type AgentRef,
@@ -60,11 +64,6 @@ export function todoAgents(todo: Todo): AgentRef[] {
   return (todo.agents ?? []).filter((a) => a.provider);
 }
 
-export function isAgy(provider: string): boolean {
-  const p = provider.trim().toLowerCase();
-  return p === "antigravity cli" || p === "agy";
-}
-
 export async function launchAgentOrTerminal(
   paseo: PluginHandlerContext["paseo"],
   ws: ReturnType<PluginHandlerContext["paseo"]["workspaces"]["ref"]>,
@@ -72,7 +71,7 @@ export async function launchAgentOrTerminal(
   title: string,
   prompt: string,
 ): Promise<{ agentId?: string; terminalId?: string }> {
-  if (isAgy(ref.provider)) {
+  if (isTerminalProvider(ref.provider)) {
     const args = ["--dangerously-skip-permissions"];
     if (ref.model) {
       args.push("--model", ref.model);
@@ -221,10 +220,35 @@ export async function handleStartTodo(
     .map((agent, index) => ({ agent, index }))
     .filter(({ agent }) => !agent.spawnedAt);
   const fresh = freshPairs.map((p) => p.agent);
-  // 标题里的 #序号 用它在整张名单里的位置，接着老号排
-  const noOf = (i: number) => freshPairs[i].index + 1;
-  const agentIds: string[] = [];
-  const terminalIds: string[] = [];
+  // 给这一批新马发号：只增不减，归档过马也不回收（分支名、评审编号都用它）
+  let nextNo = todo.nextNo ?? 0;
+  const nos = new Map<number, number>();
+  for (const p of freshPairs) {
+    nextNo += 1;
+    nos.set(p.index, nextNo);
+  }
+  // 标题里的 #序号 用这匹马自己的号
+  const noOf = (i: number) => nos.get(freshPairs[i].index) ?? freshPairs[i].index + 1;
+  // 有没有马已经在分支上跑过（决定这条新分支要不要加序号）
+  const hasBranch = (todo.agents ?? []).some((a) => a.branch);
+  // 这一批开出来的会话和住处，按"它在名单里的位置"记下来，直接落到那匹马身上
+  const sessions = new Map<number, { agentId?: string; terminalId?: string }>();
+  const homes = new Map<
+    number,
+    { workspaceId?: string; branch?: string; dir?: string }
+  >();
+  const recordSession = (
+    i: number,
+    launched: { agentId?: string; terminalId?: string },
+  ) => {
+    sessions.set(freshPairs[i].index, launched);
+  };
+  const recordHome = (
+    i: number,
+    home: { workspaceId?: string; branch?: string; dir?: string },
+  ) => {
+    homes.set(freshPairs[i].index, home);
+  };
 
   try {
     if (race && !multi) {
@@ -238,17 +262,6 @@ export async function handleStartTodo(
     let workspaceName = race ? undefined : todo.workspaceName;
     let projectPath = todo.projectPath;
     let projectId = todo.projectId;
-    const wtWorkspaces: Array<{
-      workspaceId: string;
-      branch: string;
-      dir?: string;
-      agentId?: string;
-      terminalId?: string;
-      provider?: string;
-      model?: string;
-    }> = [];
-    // 名单越加越长：新马的分支序号接在已有名单后面，不会和老的撞名
-    const seqBase = todo.worktrees?.length ?? 0;
     let wtRepo: string | undefined;
 
     let staleWorkspace = false;
@@ -273,6 +286,10 @@ export async function handleStartTodo(
 
     if (workspaceId) {
       const ws = paseo.workspaces.ref(workspaceId);
+      // 这个工作区里已经住着的马记的是哪条分支，新来的照抄（同一单口径一致）
+      const housemate = (todo.agents ?? []).find(
+        (a) => a.workspaceId === ws.id && a.branch,
+      );
       for (let i = 0; i < fresh.length; i++) {
         const launched = await launchAgentOrTerminal(
           paseo,
@@ -281,8 +298,12 @@ export async function handleStartTodo(
           multi ? `${title} #${noOf(i)}` : title,
           formatInitialPrompt(prompt, ws.id),
         );
-        if (launched.agentId) agentIds.push(launched.agentId);
-        if (launched.terminalId) terminalIds.push(launched.terminalId);
+        recordSession(i, launched);
+        recordHome(i, {
+          workspaceId: ws.id,
+          branch: housemate?.branch,
+          dir: housemate?.dir ?? todo.projectPath ?? todo.cwd ?? undefined,
+        });
       }
       workspaceName = workspaceName ?? todo.workspaceName;
     } else if (projectPath) {
@@ -312,8 +333,8 @@ export async function handleStartTodo(
         workspaceName = workspaceName ?? todo.workspaceName;
         for (let i = 0; i < fresh.length; i++) {
           const branchName = todo.newBranch?.trim()
-            ? `${branchFromTitle(todo.newBranch)}-a${seqBase + i + 1}`
-            : `${branchFromTitle(title)}-a${seqBase + i + 1}`;
+            ? `${branchFromTitle(todo.newBranch)}-a${noOf(i)}`
+            : `${branchFromTitle(title)}-a${noOf(i)}`;
           wtRepo = srcRepo;
           const ws = await paseo.workspaces.create({
             source: {
@@ -327,11 +348,6 @@ export async function handleStartTodo(
             },
             title: multi ? `${title} #${noOf(i)}` : title,
           });
-          wtWorkspaces.push({
-            workspaceId: ws.id,
-            branch: branchName,
-            dir: ws.directory || undefined,
-          });
           const launched = await launchAgentOrTerminal(
             paseo,
             ws,
@@ -339,20 +355,20 @@ export async function handleStartTodo(
             multi ? `${title} #${noOf(i)}` : title,
             formatInitialPrompt(prompt, ws.id),
           );
-          if (launched.agentId) agentIds.push(launched.agentId);
-          if (launched.terminalId) terminalIds.push(launched.terminalId);
-          const entry = wtWorkspaces[wtWorkspaces.length - 1];
-          entry.agentId = launched.agentId;
-          entry.terminalId = launched.terminalId;
-          entry.provider = fresh[i].provider || undefined;
-          entry.model = fresh[i].model || undefined;
+          recordSession(i, launched);
+          // 这匹马住哪：它自己的分支工作区
+          recordHome(i, {
+            workspaceId: ws.id,
+            branch: branchName,
+            dir: ws.directory || undefined,
+          });
         }
       } else {
         // 普通模式：只有这一个工作区（选 Worktree 就是那条 worktree，几匹马都挤在里面）
-        const singleBranch =
-          seqBase === 0
-            ? todo.newBranch?.trim() || branchFromTitle(title)
-            : `${branchFromTitle(todo.newBranch?.trim() || title)}-a${seqBase + 1}`;
+        // 第一条分支沿用原分支名，之后加马的分支带上自己的号（号只增不减，不撞名）
+        const singleBranch = hasBranch
+          ? `${branchFromTitle(todo.newBranch?.trim() || title)}-a${noOf(0)}`
+          : todo.newBranch?.trim() || branchFromTitle(title);
         if (isWorktree) {
           wtRepo = srcRepo;
         }
@@ -371,13 +387,6 @@ export async function handleStartTodo(
             };
 
         const ws = await paseo.workspaces.create({ source, title });
-        if (isWorktree) {
-          wtWorkspaces.push({
-            workspaceId: ws.id,
-            branch: singleBranch,
-            dir: ws.directory || undefined,
-          });
-        }
         // 普通模式只有一个工作区，它本身就是主工作区
         workspaceId = ws.id;
         workspaceName = ws.name ?? title;
@@ -392,16 +401,13 @@ export async function handleStartTodo(
             multi ? `${title} #${noOf(i)}` : title,
             formatInitialPrompt(prompt, ws.id),
           );
-          if (launched.agentId) agentIds.push(launched.agentId);
-          if (launched.terminalId) terminalIds.push(launched.terminalId);
-          if (isWorktree) {
-            // 同一个工作区里多匹马时只记第一个会话（与现有行为一致）
-            const entry = wtWorkspaces[wtWorkspaces.length - 1];
-            entry.agentId = entry.agentId ?? launched.agentId;
-            entry.terminalId = entry.terminalId ?? launched.terminalId;
-            entry.provider = entry.provider ?? (fresh[i].provider || undefined);
-            entry.model = entry.model ?? (fresh[i].model || undefined);
-          }
+          recordSession(i, launched);
+          // 几匹马都住这一个工作区：选 Worktree 就是那条 worktree
+          recordHome(i, {
+            workspaceId: ws.id,
+            branch: isWorktree ? singleBranch : undefined,
+            dir: ws.directory || projectPath,
+          });
         }
       }
     } else {
@@ -414,9 +420,9 @@ export async function handleStartTodo(
       }
       // 之后再发要加序号避撞（首次沿用原分支名）
       const cwdBranch = todo.newBranch
-        ? seqBase === 0
-          ? todo.newBranch.trim()
-          : `${branchFromTitle(todo.newBranch.trim())}-a${seqBase + 1}`
+        ? hasBranch
+          ? `${branchFromTitle(todo.newBranch.trim())}-a${noOf(0)}`
+          : todo.newBranch.trim()
         : "";
       const isWorktree = (todo.isolation ?? "local") === "worktree";
       const source =
@@ -438,11 +444,6 @@ export async function handleStartTodo(
       workspaceName = ws.name ?? title;
       if (source.kind === "worktree") {
         wtRepo = todo.cwd;
-        wtWorkspaces.push({
-          workspaceId: ws.id,
-          branch: cwdBranch,
-          dir: ws.directory || undefined,
-        });
       }
       for (let i = 0; i < fresh.length; i++) {
         const launched = await launchAgentOrTerminal(
@@ -452,35 +453,37 @@ export async function handleStartTodo(
           multi ? `${title} #${noOf(i)}` : title,
           formatInitialPrompt(prompt, ws.id),
         );
-        if (launched.agentId) agentIds.push(launched.agentId);
-        if (launched.terminalId) terminalIds.push(launched.terminalId);
-        if (source.kind === "worktree") {
-          const entry = wtWorkspaces[wtWorkspaces.length - 1];
-          entry.agentId = entry.agentId ?? launched.agentId;
-          entry.terminalId = entry.terminalId ?? launched.terminalId;
-          entry.provider = entry.provider ?? (fresh[i].provider || undefined);
-          entry.model = entry.model ?? (fresh[i].model || undefined);
-        }
+        recordSession(i, launched);
+        recordHome(i, {
+          workspaceId: ws.id,
+          branch: source.kind === "worktree" ? cwdBranch : undefined,
+          dir: ws.directory || todo.cwd,
+        });
       }
     }
 
-    // 名单只有一份：新马追加进去，谁结束都认（不分批次）
-    const allAgentIds = [...(todo.agentIds ?? []), ...agentIds];
-    const allTerminalIds = [...(todo.terminalIds ?? []), ...terminalIds];
-    const allWorktrees = [...(todo.worktrees ?? []), ...wtWorkspaces];
+    // 名单只有一份：新马连自己的会话和住处一起落进去，谁结束都认（不分批次）
     const next: Todo = {
       ...todo,
       status: "running",
       raceMode: race,
       // 只在委员会这一单上留标记；普通 / 赛马成功启动不落 false 噪声
       ...(committee ? { committeeMode: true } : {}),
-      // 这一批跑起来了：给它们标上时间，下次就知道哪些是老马
-      agents: refs.map((a) => (a.spawnedAt ? a : { ...a, spawnedAt: now })),
-      agentIds: allAgentIds,
-      terminalIds: allTerminalIds.length ? allTerminalIds : undefined,
-      pendingAgentIds: [...(todo.pendingAgentIds ?? []), ...agentIds],
+      // 这一批跑起来了：会话和住处记在那匹马自己身上，标上时间下次就知道是老马
+      agents: refs.map((a, i) => {
+        const launched = sessions.get(i);
+        if (!launched) return a;
+        return {
+          ...a,
+          no: nos.get(i),
+          ...(launched.agentId ? { agentId: launched.agentId } : {}),
+          ...(launched.terminalId ? { terminalId: launched.terminalId } : {}),
+          ...homes.get(i),
+          spawnedAt: now,
+        };
+      }),
       worktreeRepo: wtRepo,
-      worktrees: allWorktrees.length ? allWorktrees : undefined,
+      nextNo: nextNo || undefined,
       workspaceId: workspaceId || undefined,
       workspaceName: workspaceName || undefined,
       projectId: projectId || undefined,
@@ -502,17 +505,25 @@ export async function handleStartTodo(
     return { ok: true, todo: saveTodo(next) };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    // 中途炸了：已经起来的马照标上，下次重派不会把它们再开一遍
-    const done = agentIds.length + terminalIds.length;
-    const spawnedIdx = new Set(freshPairs.slice(0, done).map((p) => p.index));
+    // 中途炸了：已经起来的马照标上（连会话和住处一起）；发号记录也要存，下次不许重发旧号
     const next: Todo = {
       ...todo,
       status: "failed",
-      ...(done > 0
+      nextNo: nextNo || undefined,
+      ...(sessions.size > 0
         ? {
-            agents: refs.map((a, i) =>
-              spawnedIdx.has(i) ? { ...a, spawnedAt: now } : a,
-            ),
+            agents: refs.map((a, i) => {
+              const launched = sessions.get(i);
+              if (!launched) return a;
+              return {
+                ...a,
+                no: nos.get(i),
+                ...(launched.agentId ? { agentId: launched.agentId } : {}),
+                ...(launched.terminalId ? { terminalId: launched.terminalId } : {}),
+                ...homes.get(i),
+                spawnedAt: now,
+              };
+            }),
           }
         : {}),
       error: message,
@@ -527,15 +538,14 @@ export function completeByAgentId(
   outcome: "completed" | "failed" | "canceled",
   errorMessage?: string,
 ): Todo | null {
-  const todo = listTodos().find(
-    (t) =>
-      (t.status === "running" || t.status === "failed") &&
-      (t.agentIds ?? []).includes(agentId),
-  );
+  // 名单里挂着这个会话的单子就是它；已经收工的也算（归档一匹马照样要从名单划掉）
+  const todo = listTodos().find((t) => horseBySession(t.agents, agentId));
   if (!todo) return null;
   const now = new Date().toISOString();
 
   if (outcome === "failed" || outcome === "canceled") {
+    // 没跑起来的单子（未开始 / 已完成）不因一次报错翻车
+    if (todo.status !== "running" && todo.status !== "failed") return null;
     // 只标记失败，名单里的马原样留着：这个会话再跑起来就能自己恢复
     return saveTodo({
       ...todo,
@@ -547,31 +557,33 @@ export function completeByAgentId(
     });
   }
 
-  const pool = (todo.pendingAgentIds ?? todo.agentIds ?? []).filter(
-    (id) => id !== agentId,
+  // 收工 / 归档：把这匹马从名单里划掉；名单里没有还挂着会话的马了，这单才算完成
+  const agents = (todo.agents ?? []).filter(
+    (a) => !isHorseSession(a, agentId),
   );
-  if (pool.length === 0) {
+  if (pendingSessions(agents).length > 0) {
     return saveTodo({
       ...todo,
-      status: "done",
-      finishedAt: now,
-      pendingAgentIds: [],
+      agents,
+      status: "running",
+      finishedAt: undefined,
       error: undefined,
     });
   }
   return saveTodo({
     ...todo,
-    status: "running",
-    finishedAt: undefined,
+    agents,
+    status: "done",
+    // 已经收工过的单子别改收工时间
+    ...(todo.status === "done" ? {} : { finishedAt: now }),
     error: undefined,
-    pendingAgentIds: pool,
   });
 }
 
 /** 名单里的某个会话又开始跑了：上一次的失败作废，待办恢复进行中。 */
 export function reviveByAgentId(agentId: string): Todo | null {
   const todo = listTodos().find(
-    (t) => t.status === "failed" && (t.agentIds ?? []).includes(agentId),
+    (t) => t.status === "failed" && horseBySession(t.agents, agentId),
   );
   if (!todo) return null;
   return saveTodo({
@@ -601,34 +613,24 @@ export async function cleanupWorkspaceBranches(
   workspaceId: string,
 ): Promise<void> {
   for (const t of listTodos()) {
-    const hit = (t.worktrees ?? []).filter((w) => w.workspaceId === workspaceId);
+    const horses = t.agents ?? [];
+    const hit = horses.filter((a) => a.workspaceId === workspaceId);
     if (hit.length === 0) continue;
     const repo = t.worktreeRepo;
-    if (repo) {
-      await deleteBranches(
-        repo,
-        hit.map((w) => w.branch),
-      );
-    }
-    // 归档 = 把这匹马从名单里去掉；它的会话号也一并摘掉
-    const gone = new Set(
-      hit.flatMap((w) => [w.agentId, w.terminalId]).filter(Boolean) as string[],
+    // 多匹马挤同一条分支时只删一次
+    const branches = Array.from(
+      new Set(hit.map((a) => a.branch).filter(Boolean) as string[]),
     );
-    const keep = (ids?: string[]) =>
-      (ids ?? []).filter((id) => !gone.has(id));
-    const agentIds = keep(t.agentIds);
-    const terminalIds = keep(t.terminalIds);
-    const pendingAgentIds = keep(t.pendingAgentIds);
+    if (repo && branches.length > 0) {
+      await deleteBranches(repo, branches);
+    }
+    // 工作区没了，住在里面的马就没了：会话、分支、编号一起走
+    const agents = horses.filter((a) => a.workspaceId !== workspaceId);
     saveTodo({
       ...t,
-      worktrees: (t.worktrees ?? []).filter(
-        (w) => w.workspaceId !== workspaceId,
-      ),
-      agentIds,
-      terminalIds: terminalIds.length ? terminalIds : undefined,
-      pendingAgentIds,
-      // 名单里没有还在跑的马了，这个待办才算完成
-      ...(t.status === "running" && pendingAgentIds.length === 0
+      agents,
+      // 名单里没有还挂着会话的马了，这个待办才算完成
+      ...(t.status === "running" && pendingSessions(agents).length === 0
         ? {
             status: "done" as const,
             finishedAt: new Date().toISOString(),
@@ -649,14 +651,13 @@ export function completeByWorkspaceId(
       (t) =>
         t.status === "running" &&
         t.workspaceId === workspaceId &&
-        (t.pendingAgentIds ?? []).length === 0,
+        pendingSessions(t.agents).length === 0,
     )
     .map((t) =>
       saveTodo({
         ...t,
         status: "done",
         finishedAt: now,
-        pendingAgentIds: [],
         error: undefined,
       }),
     );

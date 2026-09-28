@@ -35,6 +35,7 @@ import {
   updateTodoRpc,
   removeWorktreeRpc,
   branchFromTitle,
+  firstHorse,
   type AgentRef,
   type Todo,
   type TodoPreferences,
@@ -227,8 +228,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [arbTaskSeed, setArbTaskSeed] = useState("");
   const [arbTaskVer, setArbTaskVer] = useState(0);
   const arbTaskRef = useRef("");
-  // 一匹马时指定评审哪一匹（候选名单里的位置）
-  const [arbTarget, setArbTarget] = useState<number | null>(null);
+  // 一匹马时指定评审哪一匹：记它的会话号（身份），不记候选位置——归档一匹也不会漂
+  const [arbTargetKey, setArbTargetKey] = useState<string | null>(null);
   const [targetPickerOpen, setTargetPickerOpen] = useState(false);
 
   const triggerHoldTip = useCallback(() => {
@@ -337,7 +338,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       toast.show(`未找到待办 #${seqNum}`, { variant: "info" });
       return;
     }
-    if (!source.agentIds?.length && !source.terminalIds?.length && !source.workspaceId) {
+    if (
+      !(source.agents ?? []).some((a) => a.agentId || a.terminalId) &&
+      !source.workspaceId
+    ) {
       toast.show(`待办 #${seqNum} 尚未关联任何会话或工作区`, { variant: "info" });
       return;
     }
@@ -345,11 +349,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       await updateTodo({
         id: bindTarget.id,
         patch: {
-          agentIds: source.agentIds,
-          terminalIds: source.terminalIds,
-          pendingAgentIds: source.pendingAgentIds,
+          agents: source.agents,
           worktreeRepo: source.worktreeRepo,
-          worktrees: source.worktrees,
+          nextNo: source.nextNo,
           workspaceId: source.workspaceId,
           workspaceName: source.workspaceName,
           projectId: source.projectId,
@@ -360,10 +362,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       });
       invalidate();
       setBindTarget(null);
-      if (source.terminalIds?.length && source.workspaceId) {
+      const horse = firstHorse(source.agents);
+      if (horse?.terminalId && source.workspaceId) {
         navigation?.openWorkspace?.({ workspaceId: source.workspaceId });
-      } else if (source.agentIds?.length) {
-        navigation?.openAgent?.({ agentId: source.agentIds[0] });
+      } else if (horse?.agentId) {
+        navigation?.openAgent?.({ agentId: horse.agentId });
       } else if (source.workspaceId) {
         navigation?.openWorkspace?.({ workspaceId: source.workspaceId });
       }
@@ -538,12 +541,17 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const modeLocked = Boolean(
     runTodo &&
       (runTodo.raceMode !== undefined ||
-        (runTodo.agentIds ?? []).length > 0 ||
+        (runTodo.agents ?? []).some((a) => a.spawnedAt) ||
         Boolean(runTodo.workspaceId)),
   );
   // 跑过的马只显示不给删；剩下的才是这次要派的新马
   const spawnedList = run ? run.agents.filter((a) => a.spawnedAt) : [];
   const pendingAgents = run ? run.agents.filter((a) => !a.spawnedAt) : [];
+  const maxHorseNo = run
+    ? run.agents.reduce((m, a) => Math.max(m, a.no ?? 0), 0)
+    : 0;
+  // 新马会拿到的号：接着待办记的"发到几号了"往下发，和派马时发的一致
+  const nextHorseNo = runTodo?.nextNo ?? maxHorseNo;
   const arbTodo: Todo | undefined = arb
     ? todos.find((t) => t.id === arb.id)
     : undefined;
@@ -563,14 +571,26 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   });
   const cands = arbDirsQ.data?.candidates ?? [];
   const arbLiveCount = cands.filter((c) => c.exists).length;
-  const hasMulti = arbLiveCount >= 2;
+  // 赛马评比只认"每匹马一条分支"：几匹马挤同一个目录不算（那是单马审核）
+  const raceLiveCount = new Set(
+    cands
+      .filter((c) => c.exists && c.ownWorkspace)
+      .map((c) => c.dir ?? c.workspaceId),
+  ).size;
+  const hasMulti = raceLiveCount >= 2;
   const arbTabs = hasMulti
     ? ["赛马评比", "单马审核", "意见回传"]
     : ["单马审核", "意见回传"];
+  // 选中哪匹马按会话号认；活着的只有一个时才自动认它，其余情况要你自己选
+  const liveCandCount = cands.filter((c) => c.exists).length;
   const selectedTargetIdx =
-    arbTarget !== null && arbTarget < cands.length
-      ? arbTarget
-      : cands.findIndex((c) => c.exists);
+    arbTargetKey !== null
+      ? cands.findIndex((c) => c.agentId === arbTargetKey)
+      : liveCandCount === 1
+        ? cands.findIndex((c) => c.exists)
+        : cands.length === 1
+          ? 0
+          : -1;
   const loadArbTask = (src: "todo" | "doc", mode: "multi" | "single") => {
     const seed =
       src === "todo"
@@ -754,7 +774,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       kind: "multi" | "single";
       task?: string;
       reviewer: AgentRef;
-      targetIndex?: number;
+      targetAgentId?: string;
     }) => reviewStart(vars),
     onSuccess: (res) => {
       if (res.ok) {
@@ -1088,6 +1108,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     const isFailed = t.status === "failed";
     const isDone = t.status === "done";
     const agentCount = t.agents?.filter((a) => a.provider).length ?? 0;
+    // 跳转认名单里第一匹开过会话的马（归档的马已经不在名单里了）
+    const jumpHorse = firstHorse(t.agents);
     return (
       <View
         key={t.id}
@@ -1188,7 +1210,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           {isFailed ? (
             <View style={[s.actions, { marginTop: 4 }]}>
-              {t.workspaceId || t.agentIds?.length || t.terminalIds?.length ? (
+              {t.workspaceId || jumpHorse ? (
                 <Pressable
                   style={s.btn}
                   onPress={() =>
@@ -1227,10 +1249,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               }}
               onPress={(e) => {
                 e.stopPropagation();
-                if (t.terminalIds?.length && t.workspaceId) {
+                if (jumpHorse?.terminalId && t.workspaceId) {
                   navigation.openWorkspace({ workspaceId: t.workspaceId });
-                } else if (t.agentIds?.length) {
-                  navigation.openAgent({ agentId: t.agentIds[0] });
+                } else if (jumpHorse?.agentId) {
+                  navigation.openAgent({ agentId: jumpHorse.agentId });
                 } else if (t.workspaceId) {
                   navigation.openWorkspace({ workspaceId: t.workspaceId });
                 } else {
@@ -1242,7 +1264,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Text
                 style={{
                   fontSize: 14,
-                  color: (t.agentIds?.length || t.terminalIds?.length || t.workspaceId)
+                  color: (jumpHorse || t.workspaceId)
                     ? theme.colors.accent
                     : theme.colors.foregroundMuted,
                   fontWeight: "700",
@@ -1253,7 +1275,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               </Text>
             </Pressable>
           ) : null}
-          {(t.worktrees?.length ?? 0) >= 1 ||
+          {(t.agents ?? []).some((a) => a.branch) ||
           t.status !== "pending" ||
           t.review ? (
             <Pressable
@@ -1435,9 +1457,16 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const renderReviewConfig = (mode: "multi" | "single") => {
     if (!arb || !arbTodo) return null;
     const isMulti = mode === "multi";
+    // 单马审核（赛马切过来也一样）：活着的候选不止一匹时必须自己选，不默认替你选第一匹
+    const needTargetPick =
+      !isMulti &&
+      liveCandCount > 1 &&
+      cands[selectedTargetIdx]?.exists !== true;
     const canStart = isMulti
-      ? arbLiveCount >= 2 && !arbDirsQ.isLoading
-      : (arbLiveCount >= 1 || !!arbDirsQ.data?.reviewDir) && !arbDirsQ.isLoading;
+      ? raceLiveCount >= 2 && !arbDirsQ.isLoading
+      : (arbLiveCount >= 1 || !!arbDirsQ.data?.reviewDir) &&
+        !arbDirsQ.isLoading &&
+        !needTargetPick;
     const tplSeed = isMulti ? multiTplSeed : singleTplSeed;
     const tplDirty = isMulti ? multiTplDirty : singleTplDirty;
     const tplView = isMulti ? multiTplView : singleTplView;
@@ -1671,15 +1700,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             <Text style={s.formSectionTitle}>
-              {isMulti ? `全部候选工作区 (共 ${arbLiveCount} 匹马)` : "选择审核目标"}
+              {isMulti ? `全部候选工作区 (共 ${raceLiveCount} 匹马)` : "选择审核目标"}
             </Text>
             {arbDirsQ.isLoading ? (
               <Text style={s.empty}>找目录中…</Text>
             ) : arbDirsQ.data?.error ? (
               <Text style={s.err}>{arbDirsQ.data.error}</Text>
-            ) : isMulti && arbLiveCount < 2 ? (
+            ) : isMulti && raceLiveCount < 2 ? (
               <Text style={s.err}>
-                有效候选只有 {arbLiveCount} 个（需 ≥2），可能已被归档
+                有效候选只有 {raceLiveCount} 个（需 ≥2），可能已被归档
               </Text>
             ) : !isMulti && arbLiveCount < 1 && !arbDirsQ.data?.reviewDir ? (
               <Text style={s.err}>找不到可评审的目录</Text>
@@ -1707,8 +1736,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 <Text style={s.empty}>没有候选工作区</Text>
               )
             ) : isMulti ? (
-              cands.map((c) => (
-                <View key={c.workspaceId} style={[s.chip, { gap: 2, paddingVertical: 6, paddingHorizontal: 10 }]}>
+              cands.map((c, idx) => (
+                <View key={c.agentId ?? `${c.workspaceId}-${idx}`} style={[s.chip, { gap: 2, paddingVertical: 6, paddingHorizontal: 10 }]}>
                   <Text style={s.chipText}>
                     {c.label}
                     {c.exists ? "" : "  ·  目录已失效"}
@@ -1742,6 +1771,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     {targetPickerOpen ? "▲" : "▼"}
                   </Text>
                 </Pressable>
+                {needTargetPick ? (
+                  <Text style={s.empty}>先选审的是哪匹马，再发起</Text>
+                ) : null}
                 {cands[selectedTargetIdx] ? (
                   <Text style={[s.pathText, { paddingHorizontal: 4 }]} numberOfLines={1}>
                     {cands[selectedTargetIdx].branch
@@ -1754,15 +1786,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   <View style={[s.inlinePicker, { gap: 4, paddingVertical: 4 }]}>
                     {cands.map((c, idx) => {
                       const isPicked = selectedTargetIdx === idx;
-                      const isWorktree = Boolean(
-                        c.workspaceId &&
-                          (arbTodo.worktrees ?? []).some(
-                            (w) => w.workspaceId === c.workspaceId,
-                          ),
-                      );
+                      const isWorktree = Boolean(c.ownWorkspace);
                       return (
                         <View
-                          key={c.workspaceId || idx}
+                          key={c.agentId ?? `${c.workspaceId}-${idx}`}
                           style={[
                             s.chip,
                             {
@@ -1783,7 +1810,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                           <Pressable
                             style={{ flex: 1, gap: 2 }}
                             onPress={() => {
-                              setArbTarget(idx);
+                              setArbTargetKey(c.agentId ?? null);
                               setTargetPickerOpen(false);
                             }}
                           >
@@ -2055,8 +2082,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     kind: mode,
                     task: arbTaskRef.current,
                     reviewer: arb.reviewer,
-                    ...(!isMulti && selectedTargetIdx !== null && selectedTargetIdx >= 0
-                      ? { targetIndex: selectedTargetIdx }
+                    ...(!isMulti && cands[selectedTargetIdx]?.agentId
+                      ? { targetAgentId: cands[selectedTargetIdx].agentId }
                       : {}),
                   });
                 }}
@@ -2585,7 +2612,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             {spawnedList.length > 0 ? (
               <Text style={s.empty}>
                 已跑过：{spawnedList
-                  .map((a) => `#${run.agents.indexOf(a) + 1} ${agentLabel(a)}`)
+                  .map((a) => `#${a.no ?? run.agents.indexOf(a) + 1} ${agentLabel(a)}`)
                   .join(" · ")}
                 （跑过的不给删）
               </Text>
@@ -2607,7 +2634,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     }}
                   >
                     <Text style={a.provider ? s.chipText : s.chipMuted} numberOfLines={1}>
-                      {`#${i + 1}  ${agentLabel(a)}`}
+                      {`#${nextHorseNo + pendingAgents.indexOf(a) + 1}  ${agentLabel(a)}`}
                     </Text>
                     <Text style={{ color: theme.colors.foregroundMuted, fontSize: 14 }}>
                       ▼
@@ -2956,7 +2983,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             setSingleTplSeed("");
             setSingleTplDirty(false);
             setSingleTplView("collapsed");
-            setArbTarget(null);
+            setArbTargetKey(null);
             setTaskView("collapsed");
             setVerdictOpen(true);
             setPage(0);
