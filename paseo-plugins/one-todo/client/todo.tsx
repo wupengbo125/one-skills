@@ -2446,9 +2446,18 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     s.segBtn,
                     run.isolation === "worktree" && s.segOn,
                   ]}
-                  onPress={() =>
-                    setRun({ ...run, isolation: "worktree" })
-                  }
+                  onPress={() => {
+                    // 框里空着就拿标题填一下，替你打一次字；之后这个框和标题互不相干
+                    const titleNow =
+                      runTitleRef.current.trim() || run.title.trim();
+                    setRun({
+                      ...run,
+                      isolation: "worktree",
+                      newBranch:
+                        run.newBranch.trim() ||
+                        (titleNow ? branchFromTitle(titleNow) : ""),
+                    });
+                  }}
                 >
                   <Text
                     style={[
