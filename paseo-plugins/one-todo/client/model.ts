@@ -18,6 +18,9 @@ export type RunDraft = {
   workspaceName: string;
   // 赛马模式：进弹层时按待办定，跑过之后不能改
   race?: boolean;
+  // 委员会模式：只一匹马，另指定两个派生成员
+  committee?: boolean;
+  committeeMembers?: AgentRef[];
   source?: "todo" | "issue";
   issueRef?: string;
   issueUrl?: string;
@@ -31,6 +34,8 @@ export type Picker =
       step: "provider" | "model";
       index: number;
       provider: string;
+      // 选的是哪一栏：放马（agents，默认）还是委员会成员（members）
+      target?: "agents" | "members";
     }
   | { kind: "project" }
   | { kind: "workspace" }
@@ -79,6 +84,8 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
     workspaceName: "",
     extraPrompt: "",
     race: false,
+    committee: false,
+    committeeMembers: [],
   };
 }
 

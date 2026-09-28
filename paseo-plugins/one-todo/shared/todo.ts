@@ -68,6 +68,9 @@ export const todoSchema = z.object({
   status: todoStatusSchema,
   // 赛马模式：第一次派马时定下来，之后不能改
   raceMode: z.boolean().optional(),
+  // 委员会模式：同样第一次派马时定死；只一匹马，另指定两个派生成员
+  committeeMode: z.boolean().optional(),
+  committeeMembers: z.array(agentRefSchema).optional(),
   error: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
   terminalIds: z.array(z.string()).optional(),
@@ -142,6 +145,8 @@ export const addTodoRpc = defineRpc({
     ...todoPlacementFields,
     pinned: z.boolean().optional(),
     extraPrompt: z.string().optional(),
+    committee: z.boolean().optional(),
+    committeeMembers: z.array(agentRefSchema).optional(),
   }),
   output: z.object({ todo: todoSchema }),
 });
@@ -182,6 +187,8 @@ export const updateTodoRpc = defineRpc({
       pinned: z.boolean().optional(),
       autoReview: autoReviewSchema.optional(),
       extraPrompt: z.string().optional(),
+      committee: z.boolean().optional(),
+      committeeMembers: z.array(agentRefSchema).optional(),
     }),
   }),
   output: z.object({
@@ -205,6 +212,9 @@ export const startTodoRpc = defineRpc({
       extraPrompt: z.string().optional(),
       // 赛马模式：第一次派马时按按钮定下来，之后不能改
       race: z.boolean().optional(),
+      // 委员会模式：同上，另带两个派生成员配置
+      committee: z.boolean().optional(),
+      committeeMembers: z.array(agentRefSchema).optional(),
       ...todoPlacementFields,
   }),
   output: z.object({

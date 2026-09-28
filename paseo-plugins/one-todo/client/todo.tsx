@@ -468,6 +468,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           workspaceId: d.workspaceId,
           workspaceName: d.workspaceName,
           race: Boolean(d.race),
+          committee: Boolean(d.committee),
+          committeeMembers: d.committeeMembers,
         });
       }
       return startTodo({
@@ -483,6 +485,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         baseBranch: d.baseBranch.trim(),
         newBranch: d.newBranch.trim(),
         race: Boolean(d.race),
+        committee: Boolean(d.committee),
+        committeeMembers: d.committeeMembers,
       });
     },
     onSuccess: (res) => {
@@ -872,6 +876,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     d.workspaceName = t?.workspaceName ?? "";
     // 赛马模式第一次派马时定死，跑过就不给改
     d.race = t?.raceMode ?? false;
+    // 委员会模式：同样跑过不能改；两个成员配置默认沿用上次
+    d.committee = t?.committeeMode ?? false;
+    // 两个成员留空：逼用户显式选，不默认塞同一个 provider/model
+    d.committeeMembers = t?.committeeMembers?.length
+      ? t.committeeMembers
+      : [
+          { provider: "", model: "" },
+          { provider: "", model: "" },
+        ];
     d.agents = agents;
     d.skills = t?.skills ?? [];
     d.baseBranch = t?.baseBranch || "main";
@@ -939,6 +952,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           baseBranch: run.baseBranch,
           newBranch: run.newBranch,
           extraPrompt: run.extraPrompt,
+          // 模式标记跟着保存走（锁不再看它，不会锁死）；成员只在委员会下存
+          committee: Boolean(run.committee),
+          ...(run.committee ? { committeeMembers: run.committeeMembers } : {}),
         },
       });
     } else {
@@ -954,6 +970,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         baseBranch: run.baseBranch,
         newBranch: run.newBranch,
         extraPrompt: run.extraPrompt,
+        committee: Boolean(run.committee),
+        ...(run.committee ? { committeeMembers: run.committeeMembers } : {}),
         source: run.source || "todo",
         issueRef: run.issueRef,
         issueUrl: run.issueUrl,
@@ -977,6 +995,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       if (!run.projectId && !run.projectPath)
         return toast.error("赛马要先选项目（Worktree 需要仓库）");
       if (!run.newBranch.trim()) return toast.error("新建分支名不能为空");
+    }
+    if (run.committee) {
+      if (run.agents.length !== 1) return toast.error("委员会只能一匹马");
+      if (
+        (run.committeeMembers ?? []).filter((m) => m.provider.trim()).length !== 2
+      )
+        return toast.error("先给委员会指定两个成员");
     }
     if (!run.workspaceId && !run.race) {
       if (!run.projectId && !run.projectPath) {
@@ -2232,28 +2257,63 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             <Text style={s.formSectionTitle}>模式 *</Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable
-                style={[s.segBtn, s.seg, { flex: 1 }, !run.race && s.segOn]}
+                style={[
+                  s.segBtn,
+                  s.seg,
+                  { flex: 1 },
+                  !run.race && !run.committee && s.segOn,
+                ]}
                 disabled={modeLocked}
-                onPress={() => setRun({ ...run, race: false })}
+                onPress={() =>
+                  setRun({ ...run, race: false, committee: false })
+                }
               >
-                <Text style={[s.segText, !run.race && s.segTextOn]}>
+                <Text
+                  style={[
+                    s.segText,
+                    !run.race && !run.committee && s.segTextOn,
+                  ]}
+                >
                   普通
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[s.segBtn, s.seg, { flex: 1 }, run.committee && s.segOn]}
+                disabled={modeLocked}
+                onPress={() =>
+                  setRun({
+                    ...run,
+                    race: false,
+                    committee: true,
+                    agents: run.agents.slice(0, 1),
+                  })
+                }
+              >
+                <Text style={[s.segText, run.committee && s.segTextOn]}>
+                  委员会
                 </Text>
               </Pressable>
               <Pressable
                 style={[s.segBtn, s.seg, { flex: 1 }, run.race && s.segOn]}
                 disabled={modeLocked}
                 onPress={() =>
-                  setRun({ ...run, race: true, isolation: "worktree" })
+                  setRun({
+                    ...run,
+                    race: true,
+                    committee: false,
+                    isolation: "worktree",
+                  })
                 }
               >
                 <Text style={[s.segText, run.race && s.segTextOn]}>赛马</Text>
               </Pressable>
             </View>
             <Text style={s.empty}>
-              {run.race
-                ? "赛马：至少 2 匹马、必须 Worktree；每匹马一条分支，主干留给审核"
-                : "普通：一个工作区，马都在里面"}
+              {run.committee
+                ? "委员会：只 1 匹马，可 Local 可 Worktree；另指定两个成员，由它派生"
+                : run.race
+                  ? "赛马：至少 2 匹马、必须 Worktree；每匹马一条分支，主干留给审核"
+                  : "普通：一个工作区，马都在里面"}
               {modeLocked ? "（这单已经开始跑，模式不能改）" : ""}
             </Text>
           </View>
@@ -2514,9 +2574,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             <Text style={s.formSectionTitle}>
-              放马（{pendingAgents.length} 匹要派
-              {spawnedList.length ? ` · 已跑 ${spawnedList.length} 匹` : ""}
-              ，多个并行）
+              {run.committee
+                ? `放马（委员会只 1 匹，成员由它派生${
+                    spawnedList.length ? ` · 已跑 ${spawnedList.length} 匹` : ""
+                  }）`
+                : `放马（${pendingAgents.length} 匹要派${
+                    spawnedList.length ? ` · 已跑 ${spawnedList.length} 匹` : ""
+                  }，多个并行）`}
             </Text>
             {spawnedList.length > 0 ? (
               <Text style={s.empty}>
@@ -2549,6 +2613,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       ▼
                     </Text>
                   </Pressable>
+                  {run.committee ? null : (
                   <Pressable
                     style={s.iconBtn}
                     disabled={pendingAgents.length <= 1 && spawnedList.length === 0}
@@ -2578,9 +2643,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       ✕
                     </Text>
                   </Pressable>
+                  )}
                 </View>
               );
             })}
+            {run.committee ? null : (
             <Pressable style={s.addAgent} onPress={() => {
               const defAgent: AgentRef = preferences?.lastProvider
                 ? { provider: preferences.lastProvider, model: preferences.lastModel }
@@ -2589,7 +2656,44 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             }}>
               <Text style={s.addAgentText}>+ 加一个</Text>
             </Pressable>
+            )}
           </View>
+
+          {run.committee ? (
+            <View style={s.formSection}>
+              <Text style={s.formSectionTitle}>委员会成员（两个，由这匹马派生）</Text>
+              {[0, 1].map((mi) => {
+                const m = run.committeeMembers?.[mi] ?? { provider: "", model: "" };
+                return (
+                  <View key={mi} style={s.agentRow}>
+                    <Pressable
+                      style={[s.chip, s.agentChip]}
+                      onPress={() => {
+                        setSearch("");
+                        setPicker({
+                          kind: "agent",
+                          step: "provider",
+                          index: mi,
+                          provider: m.provider || "",
+                          target: "members",
+                        });
+                      }}
+                    >
+                      <Text
+                        style={m.provider ? s.chipText : s.chipMuted}
+                        numberOfLines={1}
+                      >
+                        {`成员 ${mi + 1}  ${agentLabel(m)}`}
+                      </Text>
+                      <Text style={{ color: theme.colors.foregroundMuted, fontSize: 14 }}>
+                        ▼
+                      </Text>
+                    </Pressable>
+                  </View>
+                );
+              })}
+            </View>
+          ) : null}
 
               <View style={{ flexDirection: "row", gap: 10 }}>
                 <Pressable
@@ -2667,7 +2771,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         title={
           picker?.kind === "agent"
             ? picker.step === "provider"
-              ? `选择 Provider (#${picker.index + 1})`
+              ? `选择 Provider (${
+                  picker.target === "members"
+                    ? `成员 ${picker.index + 1}`
+                    : `#${picker.index + 1}`
+                })`
               : `选择 Model (${picker.provider})`
             : ""
         }
@@ -2695,6 +2803,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       step: "provider",
                       index: picker.index,
                       provider: "",
+                      target: picker.target,
                     });
                   }}
                 >
@@ -2716,7 +2825,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     (providersQ.data?.providers ?? []).map((p) => ({
                       id: p.id,
                       label: p.id,
-                      selected: run.agents[picker.index]?.provider === p.id,
+                      selected:
+                        (picker.target === "members"
+                          ? run.committeeMembers
+                          : run.agents)?.[picker.index]?.provider === p.id,
                     })),
                     (item) => {
                       setSearch("");
@@ -2725,6 +2837,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         index: picker.index,
                         step: "model",
                         provider: item.id,
+                        target: picker.target,
                       });
                     }
                   )
@@ -2734,21 +2847,32 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         id: "",
                         label: "（默认 Model）",
                         sub: "使用 Provider 默认模型",
-                        selected: !run.agents[picker.index]?.model,
+                        selected: !(picker.target === "members"
+                          ? run.committeeMembers
+                          : run.agents)?.[picker.index]?.model,
                       },
                       ...((modelsQ.data?.models ?? []) as Array<{ id: string; label: string }>).map((m) => ({
                         id: m.id,
                         label: m.label || m.id,
                         sub: m.label && m.label !== m.id ? m.id : undefined,
-                        selected: run.agents[picker.index]?.model === m.id,
+                        selected:
+                          (picker.target === "members"
+                            ? run.committeeMembers
+                            : run.agents)?.[picker.index]?.model === m.id,
                       })),
                     ],
                     (item) => {
                       const provider = picker.provider;
                       const model = item.id;
                       const idx = picker.index;
+                      const isMember = picker.target === "members";
                       setRun((d) => {
                         if (!d) return null;
+                        if (isMember) {
+                          const next = [...(d.committeeMembers ?? [])];
+                          next[idx] = { provider, model };
+                          return { ...d, committeeMembers: next };
+                        }
                         const next = [...d.agents];
                         next[idx] = { provider, model };
                         return { ...d, agents: next };

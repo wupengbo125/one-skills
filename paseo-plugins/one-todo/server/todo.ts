@@ -117,6 +117,8 @@ export function handleAddTodo(input: RpcInput<typeof addTodoRpc>): {
     newBranch: input.newBranch?.trim() || undefined,
     pinned: input.pinned,
     extraPrompt: input.extraPrompt?.trim() || undefined,
+    committeeMode: input.committee,
+    committeeMembers: input.committeeMembers,
     status: "pending",
     createdAt: now,
   };
@@ -136,6 +138,8 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     next.agents = p.agents;
   }
   if (p.skills !== undefined) next.skills = p.skills;
+  if (p.committee !== undefined) next.committeeMode = p.committee;
+  if (p.committeeMembers !== undefined) next.committeeMembers = p.committeeMembers;
   if (p.autoReview !== undefined) next.autoReview = p.autoReview;
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;

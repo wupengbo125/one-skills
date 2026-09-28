@@ -130,6 +130,8 @@ export async function handleStartTodo(
 
   // 赛马模式：第一次派马时按按钮定死，之后加马照它走，不能改
   const race = base.raceMode ?? Boolean(input.race);
+  // 委员会模式：同上，只一匹马，成员由它照技能派生
+  const committee = base.committeeMode ?? Boolean(input.committee);
   const placementPatch = {
     projectId: input.projectId,
     projectName: input.projectName,
@@ -149,6 +151,7 @@ export async function handleStartTodo(
     input.agents ||
     input.prompt !== undefined ||
     input.skills !== undefined ||
+    (committee && input.committeeMembers !== undefined) ||
     hasPlacementPatch
   ) {
     const updated = handleUpdateTodo({
@@ -158,6 +161,12 @@ export async function handleStartTodo(
         ...(input.prompt !== undefined ? { prompt: input.prompt } : {}),
         ...(input.skills !== undefined ? { skills: input.skills } : {}),
         ...(input.extraPrompt !== undefined ? { extraPrompt: input.extraPrompt } : {}),
+        // 委员会标记不在这里落库：只随成功收尾写（跟 raceMode 一致），
+        // 启动失败的工作区失效/报错不能把模式段锁死。
+        // 成员配置也只在委员会模式下写，普通待办不留空成员
+        ...(committee && input.committeeMembers !== undefined
+          ? { committeeMembers: input.committeeMembers }
+          : {}),
         ...(hasPlacementPatch ? placementPatch : {}),
       },
     });
@@ -175,15 +184,36 @@ export async function handleStartTodo(
     return { ok: false, todo, error: "标题或内容至少填一项" };
   }
 
+  const members = (todo.committeeMembers ?? []).filter((m) => m.provider);
+  if (committee) {
+    if (refs.length !== 1) {
+      return { ok: false, todo, error: "委员会只能一匹马" };
+    }
+    if (members.length !== 2) {
+      return { ok: false, todo, error: "先给委员会指定两个成员（各选 Agent 和模型）" };
+    }
+  }
+
   const title = todo.title.trim();
+  // 委员会模式：强制带上委员会技能，并把这匹马的两个成员指定死，不让技能自己挑
+  const skillList = committee
+    ? Array.from(new Set([...(todo.skills ?? []), "paseo-committee"]))
+    : todo.skills ?? [];
   const skillPrefix =
-    todo.skills && todo.skills.length > 0
-      ? `[使用技能: ${todo.skills.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
+    skillList.length > 0
+      ? `[使用技能: ${skillList.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
       : "";
+  const memberText = members
+    .map((m) => (m.model ? `${m.provider} / ${m.model}` : `${m.provider} / 默认`))
+    .join("、");
+  const committeeNote = committee
+    ? `【委员会模式】用 paseo-committee 技能，两个成员指定为：${memberText}，不要让技能自己挑成员。\n` +
+      `派生成员都落在你自己这个工作区里，不要另开工作区。\n\n`
+    : "";
   const body = todo.prompt.trim()
     ? (title ? `${title}\n\n${todo.prompt.trim()}` : todo.prompt.trim())
     : title;
-  const prompt = skillPrefix + body;
+  const prompt = skillPrefix + committeeNote + body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
   // 只派没跑过的马：老马（标过 spawnedAt）的会话和 worktree 都不动
@@ -442,6 +472,8 @@ export async function handleStartTodo(
       ...todo,
       status: "running",
       raceMode: race,
+      // 只在委员会这一单上留标记；普通 / 赛马成功启动不落 false 噪声
+      ...(committee ? { committeeMode: true } : {}),
       // 这一批跑起来了：给它们标上时间，下次就知道哪些是老马
       agents: refs.map((a) => (a.spawnedAt ? a : { ...a, spawnedAt: now })),
       agentIds: allAgentIds,
