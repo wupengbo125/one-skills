@@ -128,9 +128,11 @@ async function resolveCandidates(
   paseo: PluginHandlerContext["paseo"],
 ): Promise<Candidate[]> {
   const list: Candidate[] = [];
+  const worktrees = todo.worktrees ?? [];
 
-  // 1. 本地目录（作为基础目标，存在即加入）
-  const localDir = todo.projectPath || todo.cwd;
+  // 1. 有马就只认马：主干是审核员的落脚点，不是评审对象
+  const localDir =
+    worktrees.length === 0 ? todo.projectPath || todo.cwd : undefined;
   if (localDir && existsSync(localDir)) {
     list.push({
       workspaceId: todo.workspaceId ?? "",
@@ -143,7 +145,6 @@ async function resolveCandidates(
   }
 
   // 2. 所有 Worktree 分支
-  const worktrees = todo.worktrees ?? [];
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
   const gitDirs = repo ? await gitWorktreeDirs(repo) : null;
 
@@ -255,9 +256,8 @@ const DEFAULT_MULTI = `你是评审员。同一需求由多匹马在不同 workt
 规则：
 1. 候选只读：只能看和用只读 git 命令，禁止任何改动。
 2. 需求里写了起点提交 ID 的，本轮改动 = 从那次提交之后的一切（含未提交）；没写起点的，先看 status 再看 diff：没提交的都算本轮，已提交的看提交时间和提交信息判断哪些属于本轮，必要时和基线 {{base}} 比。
-3. 要跑测试先导出 patch 到自己目录再跑。
-4. 先按需求判对错，再按标准横向比。
-5. 结果写入 {{verdictFile}}：首行「胜者: <编号>」，下面每匹马两三句点评+一句改进建议。写完把结果全文贴在回复里，全部控制在十五行以内。`;
+3. 先按需求判对错，再按标准横向比。
+4. 结果写入 {{verdictFile}}：首行「胜者: <编号>」，下面每匹马两三句点评+一句改进建议。写完把结果全文贴在回复里，全部控制在十五行以内。`;
 
 const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问题并给出改进建议。
 
@@ -270,9 +270,8 @@ const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问�
 规则：
 1. 目标只读：只能看和用只读 git 命令，禁止任何改动。
 2. 需求里写了起点提交 ID 的，本轮改动 = 从那次提交之后的一切（含未提交）；没写起点的，先看 status 再看 diff：没提交的都算本轮，已提交的看提交时间和提交信息判断哪些属于本轮，必要时和基线 {{base}} 比。
-3. 要跑测试先导出 patch 到自己目录再跑。
-4. 按需求逐项核对，再按标准看质量与风险。
-5. 结果写入 {{verdictFile}}：首行「结论: 通过」或「结论: 不通过」，下面只列问题（标阻塞/建议）和一句话理由。写完把结果全文贴在回复里，全部控制在十五行以内。`;
+3. 按需求逐项核对，再按标准看质量与风险。
+4. 结果写入 {{verdictFile}}：首行「结论: 通过」或「结论: 不通过」，下面只列问题（标阻塞/建议）和一句话理由。写完把结果全文贴在回复里，全部控制在十五行以内。`;
 
 const DEFAULT_SEND =
   "【评审反馈与整改建议】以下为审阅结论。请评估可行性并排查技术风险，涉及架构与关键逻辑变更须经确认后推进，依此落实修正。";
@@ -471,6 +470,10 @@ async function pickTargets(
   return { targets: [], error: "找不到可评审的目录" };
 }
 
+/** 只分析不动手：审核员跟马同屋，除了结论文件什么都不能写。 */
+const NO_EDIT_SUFFIX =
+  "\n\n【只分析不动手】这次只分析：除结论文件外，禁止新建、修改、删除任何文件（含你所在的待办目录和候选目录），也不要执行会改动它们的命令。";
+
 /** 组装给评审员的那段话——新起会话和接着聊用的是同一段。 */
 function assembleReviewPrompt(
   todo: Todo,
@@ -483,12 +486,13 @@ function assembleReviewPrompt(
     .map((c) => `${c.label} — 分支 ${c.branch} — 目录 ${c.dir}`)
     .join("\n");
   const verdictName = verdictFileName(todo.title);
-  const prompt = fillTemplate(tpl, {
-    task,
-    targets: list,
-    base: todo.baseBranch?.trim() || "main",
-    verdictFile: verdictPath(todo.title, verdictName),
-  });
+  const prompt =
+    fillTemplate(tpl, {
+      task,
+      targets: list,
+      base: todo.baseBranch?.trim() || "main",
+      verdictFile: verdictPath(todo.title, verdictName),
+    }) + NO_EDIT_SUFFIX;
   return { prompt, verdictName };
 }
 
@@ -781,39 +785,41 @@ export async function handleReviewStart(
     };
   }
   const kind: ReviewKind = input.kind;
+  const now = new Date().toISOString();
+  // 发起没成：没有额外工作区要回收，只在待办身上把这次评审记成失败
+  const startFailed = (
+    error: string,
+    verdictFile?: string,
+  ): RpcOutput<typeof reviewStartRpc> => ({
+    ok: false,
+    todo: saveTodo({
+      ...todo,
+      review: {
+        kind,
+        reviewer: input.reviewer as AgentRef,
+        workspaceId: todo.workspaceId,
+        ...(verdictFile ? { verdictFile } : {}),
+        ...(input.targetIndex !== undefined
+          ? { targetIndex: input.targetIndex }
+          : {}),
+        status: "failed",
+        error,
+        startedAt: now,
+        finishedAt: new Date().toISOString(),
+      },
+    }),
+    error,
+  });
 
   const picked = await pickTargets(todo, paseo, kind, input.targetIndex);
-  if (picked.error) return { ok: false, todo, error: picked.error };
+  if (picked.error) return startFailed(picked.error);
   const targets = picked.targets;
   const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
-  if (!repo) return { ok: false, todo, error: "找不到仓库路径" };
+  if (!repo) return startFailed("找不到仓库路径");
 
-  const now = new Date().toISOString();
-  // 评审只读、不改代码：给它一个空目录当落脚点，不开分支、不动仓库
-  const stamp = Date.now().toString(36);
   const title = `⚖ 评审《${todo.title}》`;
-  const deskDir = join(
-    tmpdir(),
-    "one-todo",
-    "评审员",
-    `${branchFromTitle(todo.title) || "待办"}-${stamp}`,
-  );
-  let workspaceId: string;
-  try {
-    mkdirSync(deskDir, { recursive: true });
-    const ws = await paseo.workspaces.create({
-      source: {
-        kind: "directory",
-        path: deskDir,
-        ...(todo.projectId ? { projectId: todo.projectId } : {}),
-      },
-      title,
-    });
-    workspaceId = ws.id;
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { ok: false, todo, error: `创建评审工作区失败: ${message}` };
-  }
+  // 审核员就开在待办的主工作区（主干）里
+  const reviewWorkspaceId = todo.workspaceId;
 
   let prompt: string;
   let verdictName: string;
@@ -826,8 +832,7 @@ export async function handleReviewStart(
     ));
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    void discardReviewDesk(paseo, workspaceId);
-    return { ok: false, todo, error: message };
+    return startFailed(message);
   }
   try {
     // 建结果目录并清掉上一次的结果，免得评审员还没写就被当成旧结果读走
@@ -835,7 +840,7 @@ export async function handleReviewStart(
     rmSync(verdictPath(todo.title, verdictName), { force: true });
     const launched = await launchAgentOrTerminal(
       paseo,
-      paseo.workspaces.ref(workspaceId),
+      paseo.workspaces.ref(reviewWorkspaceId!),
       input.reviewer,
       title,
       prompt,
@@ -847,7 +852,7 @@ export async function handleReviewStart(
         reviewer: input.reviewer as AgentRef,
         agentId: launched.agentId,
         terminalId: launched.terminalId,
-        workspaceId,
+        workspaceId: reviewWorkspaceId,
         status: "running",
         startedAt: now,
         verdictFile: verdictName,
@@ -860,24 +865,7 @@ export async function handleReviewStart(
     return { ok: true, todo: saveTodo(next) };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    void discardReviewDesk(paseo, workspaceId);
-    const next: Todo = {
-      ...todo,
-      review: {
-        kind,
-        reviewer: input.reviewer as AgentRef,
-        workspaceId,
-        status: "failed",
-        verdictFile: verdictName,
-        ...(input.targetIndex !== undefined
-          ? { targetIndex: input.targetIndex }
-          : {}),
-        error: message,
-        startedAt: now,
-        finishedAt: new Date().toISOString(),
-      },
-    };
-    return { ok: false, todo: saveTodo(next), error: message };
+    return startFailed(message, verdictName);
   }
 }
 
@@ -959,10 +947,25 @@ export async function handleReviewVerdict(
 }
 
 /** 把评审意见发给干活的会话：一匹马发给那一匹，多匹马发给评审选中的那匹。 */
-/** 卡在「评审中」时的人工出口：作废这次评审，评审工作区一并清掉。 */
+/** 让评审会话停下：agent 打断，终端直接杀。停不掉也不影响作废。 */
+async function stopReviewSession(arb: {
+  agentId?: string;
+  terminalId?: string;
+}): Promise<void> {
+  try {
+    if (arb.agentId) {
+      await execFileAsync("paseo", ["agent", "stop", arb.agentId]);
+    } else if (arb.terminalId) {
+      await execFileAsync("paseo", ["terminal", "kill", arb.terminalId]);
+    }
+  } catch {
+    // 停不掉也不影响作废
+  }
+}
+
+/** 卡在「评审中」时的人工出口：作废这次评审，不动任何工作区。 */
 export async function handleReviewAbort(
   input: RpcInput<typeof reviewAbortRpc>,
-  { paseo }: PluginHandlerContext,
 ): Promise<RpcOutput<typeof reviewAbortRpc>> {
   const todo = getTodo(input.id);
   const arb = todo?.review;
@@ -980,7 +983,10 @@ export async function handleReviewAbort(
     },
   };
   const saved = saveTodo(next);
-  if (arb.workspaceId) void discardReviewDesk(paseo, arb.workspaceId);
+  // 先让它停下，不然它还会把结论写回来，等于没作废
+  void stopReviewSession(arb);
+  // 中止就把结论文件删掉，免得下次当成旧结果读出来
+  rmSync(verdictPath(todo.title, arb.verdictFile), { force: true });
   return { ok: true, todo: saved };
 }
 
@@ -1140,32 +1146,23 @@ export async function handleReviewSend(
   }
 }
 
-/** 评审没发起成功：落脚工作区白建了，当场归档，不留孤儿。 */
-async function discardReviewDesk(
-  paseo: PluginHandlerContext["paseo"],
-  workspaceId: string,
-): Promise<void> {
-  try {
-    await paseo.workspaces.ref(workspaceId).archive();
-  } catch {
-    // 归档不了也不影响别的
-  }
-}
-
-/** 评审工作区归档：标失败（若还在跑），删掉结果文件（评审不开分支，没有分支可删）。 */
+/**
+ * 待办的主工作区（审核员就开在里面）被归档：在跑的就作废，结论文件一并删。
+ * 赛马时 ✕ 掉某条马的工作区不走这里，不会牵连结论。
+ */
 export async function cleanupReviewArtifacts(
   workspaceId: string,
 ): Promise<void> {
   for (const t of listTodos()) {
     const arb = t.review;
-    if (!arb || arb.workspaceId !== workspaceId) continue;
+    if (!arb || t.workspaceId !== workspaceId) continue;
     if (arb.status === "running") {
       saveTodo({
         ...t,
         review: {
           ...arb,
           status: "failed",
-          error: "评审工作区已归档",
+          error: "工作区已归档，评审作废",
           finishedAt: new Date().toISOString(),
         },
       });

@@ -467,6 +467,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           extraPrompt: d.extraPrompt,
           workspaceId: d.workspaceId,
           workspaceName: d.workspaceName,
+          race: Boolean(d.race),
         });
       }
       return startTodo({
@@ -478,9 +479,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         projectId: d.projectId,
         projectName: d.projectName,
         projectPath: d.projectPath,
-        isolation: d.isolation,
+        isolation: d.race ? "worktree" : d.isolation,
         baseBranch: d.baseBranch.trim(),
         newBranch: d.newBranch.trim(),
+        race: Boolean(d.race),
       });
     },
     onSuccess: (res) => {
@@ -525,6 +527,19 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const preferences: TodoPreferences | undefined = todosQ.data?.preferences;
 
   const todos: Todo[] = todosQ.data?.todos ?? [];
+  // 模式第一次派马时定死：跑过就不给改
+  const runTodo: Todo | undefined = run
+    ? todos.find((t) => t.id === run.id)
+    : undefined;
+  const modeLocked = Boolean(
+    runTodo &&
+      (runTodo.raceMode !== undefined ||
+        (runTodo.agentIds ?? []).length > 0 ||
+        Boolean(runTodo.workspaceId)),
+  );
+  // 跑过的马只显示不给删；剩下的才是这次要派的新马
+  const spawnedList = run ? run.agents.filter((a) => a.spawnedAt) : [];
+  const pendingAgents = run ? run.agents.filter((a) => !a.spawnedAt) : [];
   const arbTodo: Todo | undefined = arb
     ? todos.find((t) => t.id === arb.id)
     : undefined;
@@ -855,6 +870,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
     d.workspaceId = t?.workspaceId ?? "";
     d.workspaceName = t?.workspaceName ?? "";
+    // 赛马模式第一次派马时定死，跑过就不给改
+    d.race = t?.raceMode ?? false;
     d.agents = agents;
     d.skills = t?.skills ?? [];
     d.baseBranch = t?.baseBranch || "main";
@@ -953,7 +970,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     run.prompt = prompt;
     if (!run.agents.length || !run.agents.every((a) => a.provider.trim()))
       return toast.error("每个 Agent 都要选 Provider");
-    if (!run.workspaceId) {
+    if (!pendingAgents.length)
+      return toast.error("没有新马要派，先加一匹");
+    if (run.race) {
+      if (run.agents.length < 2) return toast.error("赛马至少 2 匹马");
+      if (!run.projectId && !run.projectPath)
+        return toast.error("赛马要先选项目（Worktree 需要仓库）");
+      if (!run.newBranch.trim()) return toast.error("新建分支名不能为空");
+    }
+    if (!run.workspaceId && !run.race) {
       if (!run.projectId && !run.projectPath) {
         return toast.error("选一个项目");
       }
@@ -2204,6 +2229,36 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               </View>
 
           <View style={s.formSection}>
+            <Text style={s.formSectionTitle}>模式 *</Text>
+            <View style={{ flexDirection: "row", gap: 8 }}>
+              <Pressable
+                style={[s.segBtn, s.seg, { flex: 1 }, !run.race && s.segOn]}
+                disabled={modeLocked}
+                onPress={() => setRun({ ...run, race: false })}
+              >
+                <Text style={[s.segText, !run.race && s.segTextOn]}>
+                  普通
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[s.segBtn, s.seg, { flex: 1 }, run.race && s.segOn]}
+                disabled={modeLocked}
+                onPress={() =>
+                  setRun({ ...run, race: true, isolation: "worktree" })
+                }
+              >
+                <Text style={[s.segText, run.race && s.segTextOn]}>赛马</Text>
+              </Pressable>
+            </View>
+            <Text style={s.empty}>
+              {run.race
+                ? "赛马：至少 2 匹马、必须 Worktree；每匹马一条分支，主干留给审核"
+                : "普通：一个工作区，马都在里面"}
+              {modeLocked ? "（这单已经开始跑，模式不能改）" : ""}
+            </Text>
+          </View>
+
+          <View style={s.formSection}>
             <Text style={s.formSectionTitle}>在哪跑 *</Text>
             <View style={s.formSection}>
               <Pressable
@@ -2279,6 +2334,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 </View>
               ) : null}
 
+              {run.race ? null : (
               <View style={s.seg}>
                 <Pressable
                   style={[
@@ -2317,6 +2373,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   </Text>
                 </Pressable>
               </View>
+              )}
 
               {run.isolation === "worktree" ? (
                 <View style={s.row}>
@@ -2457,9 +2514,20 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             <Text style={s.formSectionTitle}>
-              放马（{run.agents.length} 个，多个并行）
+              放马（{pendingAgents.length} 匹要派
+              {spawnedList.length ? ` · 已跑 ${spawnedList.length} 匹` : ""}
+              ，多个并行）
             </Text>
+            {spawnedList.length > 0 ? (
+              <Text style={s.empty}>
+                已跑过：{spawnedList
+                  .map((a) => `#${run.agents.indexOf(a) + 1} ${agentLabel(a)}`)
+                  .join(" · ")}
+                （跑过的不给删）
+              </Text>
+            ) : null}
             {run.agents.map((a, i) => {
+              if (a.spawnedAt) return null;
               return (
                 <View key={i} style={s.agentRow}>
                   <Pressable
@@ -2483,7 +2551,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   </Pressable>
                   <Pressable
                     style={s.iconBtn}
-                    disabled={run.agents.length <= 1}
+                    disabled={pendingAgents.length <= 1 && spawnedList.length === 0}
                     onPress={() => {
                       setRun((d) =>
                         d
@@ -2501,7 +2569,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       style={{
                         color: theme.colors.statusDanger,
                         fontSize: 16,
-                        opacity: run.agents.length <= 1 ? 0.3 : 1,
+                        opacity:
+                          pendingAgents.length <= 1 && spawnedList.length === 0
+                            ? 0.3
+                            : 1,
                       }}
                     >
                       ✕
@@ -2578,8 +2649,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     label={
                       startM.isPending
                         ? "启动中…"
-                        : run.agents.length > 1
-                          ? `全军出击 ×${run.agents.length}`
+                        : pendingAgents.length > 1
+                          ? `全军出击 ×${pendingAgents.length}`
                           : "全军出击"
                     }
                     onComplete={onRun}

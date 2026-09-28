@@ -88,9 +88,7 @@ export default function contribute(server: PluginServerContext) {
   server.handle(reviewSendRpc, (input, ctx) =>
     handleReviewSend(input, ctx),
   );
-  server.handle(reviewAbortRpc, (input, ctx) =>
-    handleReviewAbort(input, ctx),
-  );
+  server.handle(reviewAbortRpc, (input) => handleReviewAbort(input));
   server.handle(reviewContinueRpc, (input, ctx) =>
     handleReviewContinue(input, ctx),
   );

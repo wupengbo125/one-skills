@@ -128,11 +128,13 @@ export async function handleStartTodo(
   const base = getTodo(input.id);
   if (!base) return { ok: false, todo: null, error: "待办不存在" };
 
+  // 赛马模式：第一次派马时按按钮定死，之后加马照它走，不能改
+  const race = base.raceMode ?? Boolean(input.race);
   const placementPatch = {
     projectId: input.projectId,
     projectName: input.projectName,
     projectPath: input.projectPath,
-    isolation: input.isolation,
+    isolation: race ? "worktree" : input.isolation,
     workspaceId: input.workspaceId,
     workspaceName: input.workspaceName,
     cwd: input.cwd,
@@ -184,14 +186,28 @@ export async function handleStartTodo(
   const prompt = skillPrefix + body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
+  // 只派没跑过的马：老马（标过 spawnedAt）的会话和 worktree 都不动
+  const freshPairs = refs
+    .map((agent, index) => ({ agent, index }))
+    .filter(({ agent }) => !agent.spawnedAt);
+  const fresh = freshPairs.map((p) => p.agent);
+  // 标题里的 #序号 用它在整张名单里的位置，接着老号排
+  const noOf = (i: number) => freshPairs[i].index + 1;
+  const agentIds: string[] = [];
+  const terminalIds: string[] = [];
 
   try {
-    let workspaceId = todo.workspaceId;
-    let workspaceName = todo.workspaceName;
+    if (race && !multi) {
+      return { ok: false, todo, error: "赛马至少 2 匹马" };
+    }
+    if (fresh.length === 0) {
+      return { ok: false, todo, error: "没有新增的马，先加一匹再开跑" };
+    }
+    // 普通模式：主工作区就一个，有就继续用。赛马模式：主干（项目目录）复用，马各开 worktree
+    let workspaceId = race ? undefined : todo.workspaceId;
+    let workspaceName = race ? undefined : todo.workspaceName;
     let projectPath = todo.projectPath;
     let projectId = todo.projectId;
-    const agentIds: string[] = [];
-    const terminalIds: string[] = [];
     const wtWorkspaces: Array<{
       workspaceId: string;
       branch: string;
@@ -214,6 +230,9 @@ export async function handleStartTodo(
     if (!projectPath && projectId) {
       projectPath = await resolveProjectPath(paseo, projectId);
     }
+    if (race && !projectPath) {
+      return { ok: false, todo, error: "赛马要先选项目（Worktree 需要仓库）" };
+    }
     if (staleWorkspace && !projectPath) {
       return {
         ok: false,
@@ -224,12 +243,12 @@ export async function handleStartTodo(
 
     if (workspaceId) {
       const ws = paseo.workspaces.ref(workspaceId);
-      for (let i = 0; i < refs.length; i++) {
+      for (let i = 0; i < fresh.length; i++) {
         const launched = await launchAgentOrTerminal(
           paseo,
           ws,
-          refs[i],
-          multi ? `${title} #${i + 1}` : title,
+          fresh[i],
+          multi ? `${title} #${noOf(i)}` : title,
           formatInitialPrompt(prompt, ws.id),
         );
         if (launched.agentId) agentIds.push(launched.agentId);
@@ -238,12 +257,30 @@ export async function handleStartTodo(
       workspaceName = workspaceName ?? todo.workspaceName;
     } else if (projectPath) {
       const isWorktree = (todo.isolation ?? "local") === "worktree";
-      // Local 选多个 Provider（赛马）时，也建一个 worktree 把会话都放进去
-      const makeWorktree = isWorktree || multi;
       const srcRepo = projectPath;
 
-      if (isWorktree && multi) {
-        for (let i = 0; i < refs.length; i++) {
+      if (race) {
+        // 赛马：主干（项目目录）就是主工作区，复用已有的，没有才建；马各跑各的 worktree
+        let mainId = todo.workspaceId;
+        if (mainId && !(await workspaceIsActive(paseo, mainId))) {
+          mainId = undefined;
+        }
+        if (!mainId) {
+          const main = await paseo.workspaces.create({
+            source: {
+              kind: "directory",
+              path: projectPath,
+              ...(projectId ? { projectId } : {}),
+            },
+            title,
+          });
+          mainId = main.id;
+          projectId = main.projectId ?? projectId;
+          workspaceName = main.name ?? title;
+        }
+        workspaceId = mainId;
+        workspaceName = workspaceName ?? todo.workspaceName;
+        for (let i = 0; i < fresh.length; i++) {
           const branchName = todo.newBranch?.trim()
             ? `${branchFromTitle(todo.newBranch)}-a${seqBase + i + 1}`
             : `${branchFromTitle(title)}-a${seqBase + i + 1}`;
@@ -258,24 +295,18 @@ export async function handleStartTodo(
               branchName,
               worktreeSlug: branchFromTitle(branchName),
             },
-            title: multi ? `${title} #${i + 1}` : title,
+            title: multi ? `${title} #${noOf(i)}` : title,
           });
           wtWorkspaces.push({
             workspaceId: ws.id,
             branch: branchName,
             dir: ws.directory || undefined,
           });
-          if (i === 0) {
-            workspaceId = ws.id;
-            workspaceName = ws.name || title;
-            projectId = ws.projectId || projectId;
-            projectPath = ws.directory || projectPath;
-          }
           const launched = await launchAgentOrTerminal(
             paseo,
             ws,
-            refs[i],
-            multi ? `${title} #${i + 1}` : title,
+            fresh[i],
+            multi ? `${title} #${noOf(i)}` : title,
             formatInitialPrompt(prompt, ws.id),
           );
           if (launched.agentId) agentIds.push(launched.agentId);
@@ -283,19 +314,19 @@ export async function handleStartTodo(
           const entry = wtWorkspaces[wtWorkspaces.length - 1];
           entry.agentId = launched.agentId;
           entry.terminalId = launched.terminalId;
-          entry.provider = refs[i].provider || undefined;
-          entry.model = refs[i].model || undefined;
+          entry.provider = fresh[i].provider || undefined;
+          entry.model = fresh[i].model || undefined;
         }
       } else {
-        // 单马/共享 worktree：首次沿用原分支名，之后再发要加序号避撞
+        // 普通模式：只有这一个工作区（选 Worktree 就是那条 worktree，几匹马都挤在里面）
         const singleBranch =
           seqBase === 0
             ? todo.newBranch?.trim() || branchFromTitle(title)
             : `${branchFromTitle(todo.newBranch?.trim() || title)}-a${seqBase + 1}`;
-        if (makeWorktree) {
+        if (isWorktree) {
           wtRepo = srcRepo;
         }
-        const source = makeWorktree
+        const source = isWorktree
           ? {
               kind: "worktree" as const,
               cwd: projectPath,
@@ -310,35 +341,36 @@ export async function handleStartTodo(
             };
 
         const ws = await paseo.workspaces.create({ source, title });
-        if (makeWorktree) {
+        if (isWorktree) {
           wtWorkspaces.push({
             workspaceId: ws.id,
             branch: singleBranch,
             dir: ws.directory || undefined,
           });
         }
+        // 普通模式只有一个工作区，它本身就是主工作区
         workspaceId = ws.id;
         workspaceName = ws.name ?? title;
         projectId = ws.projectId ?? projectId;
         projectPath = ws.directory ?? projectPath;
 
-        for (let i = 0; i < refs.length; i++) {
+        for (let i = 0; i < fresh.length; i++) {
           const launched = await launchAgentOrTerminal(
             paseo,
             ws,
-            refs[i],
-            multi ? `${title} #${i + 1}` : title,
+            fresh[i],
+            multi ? `${title} #${noOf(i)}` : title,
             formatInitialPrompt(prompt, ws.id),
           );
           if (launched.agentId) agentIds.push(launched.agentId);
           if (launched.terminalId) terminalIds.push(launched.terminalId);
-          if (makeWorktree) {
-            // 同一 worktree 里多匹马时只记第一个会话（与现有行为一致）
+          if (isWorktree) {
+            // 同一个工作区里多匹马时只记第一个会话（与现有行为一致）
             const entry = wtWorkspaces[wtWorkspaces.length - 1];
             entry.agentId = entry.agentId ?? launched.agentId;
             entry.terminalId = entry.terminalId ?? launched.terminalId;
-            entry.provider = entry.provider ?? (refs[i].provider || undefined);
-            entry.model = entry.model ?? (refs[i].model || undefined);
+            entry.provider = entry.provider ?? (fresh[i].provider || undefined);
+            entry.model = entry.model ?? (fresh[i].model || undefined);
           }
         }
       }
@@ -382,12 +414,12 @@ export async function handleStartTodo(
           dir: ws.directory || undefined,
         });
       }
-      for (let i = 0; i < refs.length; i++) {
+      for (let i = 0; i < fresh.length; i++) {
         const launched = await launchAgentOrTerminal(
           paseo,
           ws,
-          refs[i],
-          multi ? `${title} #${i + 1}` : title,
+          fresh[i],
+          multi ? `${title} #${noOf(i)}` : title,
           formatInitialPrompt(prompt, ws.id),
         );
         if (launched.agentId) agentIds.push(launched.agentId);
@@ -396,8 +428,8 @@ export async function handleStartTodo(
           const entry = wtWorkspaces[wtWorkspaces.length - 1];
           entry.agentId = entry.agentId ?? launched.agentId;
           entry.terminalId = entry.terminalId ?? launched.terminalId;
-          entry.provider = entry.provider ?? (refs[i].provider || undefined);
-          entry.model = entry.model ?? (refs[i].model || undefined);
+          entry.provider = entry.provider ?? (fresh[i].provider || undefined);
+          entry.model = entry.model ?? (fresh[i].model || undefined);
         }
       }
     }
@@ -409,6 +441,9 @@ export async function handleStartTodo(
     const next: Todo = {
       ...todo,
       status: "running",
+      raceMode: race,
+      // 这一批跑起来了：给它们标上时间，下次就知道哪些是老马
+      agents: refs.map((a) => (a.spawnedAt ? a : { ...a, spawnedAt: now })),
       agentIds: allAgentIds,
       terminalIds: allTerminalIds.length ? allTerminalIds : undefined,
       pendingAgentIds: [...(todo.pendingAgentIds ?? []), ...agentIds],
@@ -435,9 +470,19 @@ export async function handleStartTodo(
     return { ok: true, todo: saveTodo(next) };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
+    // 中途炸了：已经起来的马照标上，下次重派不会把它们再开一遍
+    const done = agentIds.length + terminalIds.length;
+    const spawnedIdx = new Set(freshPairs.slice(0, done).map((p) => p.index));
     const next: Todo = {
       ...todo,
       status: "failed",
+      ...(done > 0
+        ? {
+            agents: refs.map((a, i) =>
+              spawnedIdx.has(i) ? { ...a, spawnedAt: now } : a,
+            ),
+          }
+        : {}),
       error: message,
       finishedAt: new Date().toISOString(),
     };

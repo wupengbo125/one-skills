@@ -16,6 +16,8 @@ export type RunDraft = {
   skills: string[];
   workspaceId: string;
   workspaceName: string;
+  // 赛马模式：进弹层时按待办定，跑过之后不能改
+  race?: boolean;
   source?: "todo" | "issue";
   issueRef?: string;
   issueUrl?: string;
@@ -76,6 +78,7 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
     workspaceId: "",
     workspaceName: "",
     extraPrompt: "",
+    race: false,
   };
 }
 

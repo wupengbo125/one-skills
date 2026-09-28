@@ -18,6 +18,8 @@ export type TodoSource = z.infer<typeof sourceSchema>;
 export const agentRefSchema = z.object({
   provider: z.string(),
   model: z.string().optional(),
+  // 这匹马跑过的时间：有值＝老马（只显示不给删），没值＝还没跑的
+  spawnedAt: z.string().optional(),
 });
 export type AgentRef = z.infer<typeof agentRefSchema>;
 
@@ -64,6 +66,8 @@ export const todoSchema = z.object({
   baseBranch: z.string().optional(),
   newBranch: z.string().optional(),
   status: todoStatusSchema,
+  // 赛马模式：第一次派马时定下来，之后不能改
+  raceMode: z.boolean().optional(),
   error: z.string().optional(),
   agentIds: z.array(z.string()).optional(),
   terminalIds: z.array(z.string()).optional(),
@@ -199,6 +203,8 @@ export const startTodoRpc = defineRpc({
       prompt: z.string().optional(),
       skills: z.array(z.string()).optional(),
       extraPrompt: z.string().optional(),
+      // 赛马模式：第一次派马时按按钮定下来，之后不能改
+      race: z.boolean().optional(),
       ...todoPlacementFields,
   }),
   output: z.object({
