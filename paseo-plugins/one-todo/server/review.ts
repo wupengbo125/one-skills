@@ -308,25 +308,15 @@ const DEFAULT_SEND =
 const DEFAULT_INITIAL = `会话开始时，先记录一下 Git commit ID 到需求文档中。
 把上面的需求整理成平铺计划列给用户，并写到：{{docPath}}`;
 
-const DEFAULT_TPL = {
+// 三份开场词跟其他 prompts 一样：仓库里各有一份，待遇完全相同，谁也不从谁派生
+const DEFAULT_TPL: Record<TplKind, string> = {
   multi: DEFAULT_MULTI,
   single: DEFAULT_SINGLE,
   send: DEFAULT_SEND,
   initial: DEFAULT_INITIAL,
-} satisfies Record<Exclude<TplKind, "initialRace" | "initialCommittee">, string>;
-
-// 赛马 / 委员会这两份开场词不是仓库资产：这台机器上头一次用到该模式时，
-// 照抄普通那份生成（所以带着你当前的普通内容，包括你改过的字），之后各存各的
-function defaultText(kind: TplKind): string {
-  if (kind === "initialRace" || kind === "initialCommittee") {
-    try {
-      return readFileSync(templatePath("initial"), "utf8");
-    } catch {
-      return DEFAULT_INITIAL;
-    }
-  }
-  return DEFAULT_TPL[kind];
-}
+  initialRace: DEFAULT_INITIAL,
+  initialCommittee: DEFAULT_INITIAL,
+};
 
 // 写不进去就明说：悄悄吞掉会让人以为改动已经存上了
 function writeTemplate(kind: TplKind, text: string): void {
@@ -345,7 +335,7 @@ export function readOrSeedTemplateRaw(kind: TplKind): string {
   try {
     return readFileSync(templatePath(kind), "utf8");
   } catch {
-    const raw = defaultText(kind);
+    const raw = DEFAULT_TPL[kind];
     try {
       writeTemplate(kind, raw);
     } catch {
