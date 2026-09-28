@@ -2,11 +2,10 @@ import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
 import {
   branchFromTitle,
+  finishTodoRpc,
   horseBySession,
   initialKindOf,
-  isHorseSession,
   isTerminalProvider,
-  pendingSessions,
   primaryAgent,
   startTodoRpc,
   type AgentRef,
@@ -540,50 +539,23 @@ export async function handleStartTodo(
   }
 }
 
+/** 这匹马跑崩了 / 被取消：只标失败，名单原样留着，它再跑起来自己会恢复。 */
 export function completeByAgentId(
   agentId: string,
-  outcome: "completed" | "failed" | "canceled",
+  outcome: "failed" | "canceled",
   errorMessage?: string,
 ): Todo | null {
-  // 名单里挂着这个会话的单子就是它；已经收工的也算（归档一匹马照样要从名单划掉）
   const todo = listTodos().find((t) => horseBySession(t.agents, agentId));
   if (!todo) return null;
-  const now = new Date().toISOString();
-
-  if (outcome === "failed" || outcome === "canceled") {
-    // 没跑起来的单子（未开始 / 已完成）不因一次报错翻车
-    if (todo.status !== "running" && todo.status !== "failed") return null;
-    // 只标记失败，名单里的马原样留着：这个会话再跑起来就能自己恢复
-    return saveTodo({
-      ...todo,
-      status: "failed",
-      finishedAt: now,
-      error:
-        errorMessage ||
-        (outcome === "canceled" ? "会话已取消" : "agent turn failed"),
-    });
-  }
-
-  // 收工 / 归档：把这匹马从名单里划掉；名单里没有还挂着会话的马了，这单才算完成
-  const agents = (todo.agents ?? []).filter(
-    (a) => !isHorseSession(a, agentId),
-  );
-  if (pendingSessions(agents).length > 0) {
-    return saveTodo({
-      ...todo,
-      agents,
-      status: "running",
-      finishedAt: undefined,
-      error: undefined,
-    });
-  }
+  // 没跑起来的单子（未开始 / 已完成）不因一次报错翻车
+  if (todo.status !== "running" && todo.status !== "failed") return null;
   return saveTodo({
     ...todo,
-    agents,
-    status: "done",
-    // 已经收工过的单子别改收工时间
-    ...(todo.status === "done" ? {} : { finishedAt: now }),
-    error: undefined,
+    status: "failed",
+    finishedAt: new Date().toISOString(),
+    error:
+      errorMessage ||
+      (outcome === "canceled" ? "会话已取消" : "agent turn failed"),
   });
 }
 
@@ -613,15 +585,14 @@ export function stashWorkspaceProject(
 }
 
 /**
- * workspace 归档时，删掉该任务开跑时创建的分支（工作目录已由 Paseo 删）。
- * 归档即用户确认，未合并的改动会一并丢弃。
+ * workspace 归档时，只删掉该任务开跑时创建的分支（工作目录已由 Paseo 删）。
+ * 归档即用户确认，未合并的改动会一并丢弃。任务本身一律不碰。
  */
 export async function cleanupWorkspaceBranches(
   workspaceId: string,
 ): Promise<void> {
   for (const t of listTodos()) {
-    const horses = t.agents ?? [];
-    const hit = horses.filter((a) => a.workspaceId === workspaceId);
+    const hit = (t.agents ?? []).filter((a) => a.workspaceId === workspaceId);
     if (hit.length === 0) continue;
     const repo = t.worktreeRepo;
     // 多匹马挤同一条分支时只删一次
@@ -631,41 +602,66 @@ export async function cleanupWorkspaceBranches(
     if (repo && branches.length > 0) {
       await deleteBranches(repo, branches);
     }
-    // 工作区没了，住在里面的马就没了：会话、分支、编号一起走
-    const agents = horses.filter((a) => a.workspaceId !== workspaceId);
-    saveTodo({
-      ...t,
-      agents,
-      // 名单里没有还挂着会话的马了，这个待办才算完成
-      ...(t.status === "running" && pendingSessions(agents).length === 0
-        ? {
-            status: "done" as const,
-            finishedAt: new Date().toISOString(),
-            error: undefined,
-          }
-        : {}),
-    });
   }
 }
 
-export function completeByWorkspaceId(
-  workspaceId: string,
-  archivedAt?: string,
-): Todo[] {
-  const now = archivedAt ?? new Date().toISOString();
-  return listTodos()
-    .filter(
-      (t) =>
-        t.status === "running" &&
-        t.workspaceId === workspaceId &&
-        pendingSessions(t.agents).length === 0,
-    )
-    .map((t) =>
-      saveTodo({
-        ...t,
-        status: "done",
-        finishedAt: now,
-        error: undefined,
-      }),
-    );
+/**
+ * 人点完成：先关掉这个任务名下的所有工作区（Paseo 归档工作区会连带关掉
+ * 里面的会话和终端），关完才标完成。关不掉的照样标完成，但要报回去。
+ */
+export async function handleFinishTodo(
+  input: RpcInput<typeof finishTodoRpc>,
+  { paseo }: PluginHandlerContext,
+): Promise<{
+  ok: boolean;
+  todo: Todo | null;
+  closed: number;
+  failed: string[];
+  error?: string;
+}> {
+  const todo = getTodo(input.id);
+  if (!todo) {
+    return { ok: false, todo: null, closed: 0, failed: [], error: "待办不存在" };
+  }
+
+  const ids = Array.from(
+    new Set(
+      [
+        todo.workspaceId,
+        ...(todo.agents ?? []).map((a) => a.workspaceId),
+        todo.review?.workspaceId,
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  // 名字先抄一份，关掉之后 list 里就查不到了
+  const names = new Map<string, string>();
+  try {
+    for (const w of (await paseo.workspaces.list()).entries ?? []) {
+      names.set(w.id, w.title || w.name || w.id);
+    }
+  } catch {
+    // 查不到名单就只用 id 报
+  }
+
+  let closed = 0;
+  const failed: string[] = [];
+  for (const id of ids) {
+    // 名单查得到又不在名单里 = 已经归档过了，算关过了
+    if (names.size > 0 && !names.has(id)) continue;
+    try {
+      await paseo.workspaces.ref(id).archive();
+      closed += 1;
+    } catch {
+      failed.push(names.get(id) ?? id);
+    }
+  }
+
+  const next = saveTodo({
+    ...todo,
+    status: "done",
+    finishedAt: new Date().toISOString(),
+    error: undefined,
+  });
+  return { ok: true, todo: next, closed, failed };
 }

@@ -1,5 +1,5 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
-import { removeWorktreeRpc } from "./shared/todo";
+import { finishTodoRpc, removeWorktreeRpc } from "./shared/todo";
 import { listTodos } from "./server/store";
 import {
   addTodoRpc,
@@ -35,8 +35,8 @@ import {
 import {
   cleanupWorkspaceBranches,
   completeByAgentId,
-  completeByWorkspaceId,
   reviveByAgentId,
+  handleFinishTodo,
   handleStartTodo,
   stashWorkspaceProject,
 } from "./server/executor";
@@ -69,6 +69,7 @@ export default function contribute(server: PluginServerContext) {
   server.handle(updateTodoRpc, (input) => handleUpdateTodo(input));
   server.handle(removeTodoRpc, (input) => handleRemoveTodo(input));
   server.handle(startTodoRpc, (input, ctx) => handleStartTodo(input, ctx));
+  server.handle(finishTodoRpc, (input, ctx) => handleFinishTodo(input, ctx));
   server.handle(listProvidersRpc, (_input, ctx) => handleListProviders(ctx));
   server.handle(listModelsRpc, (input, ctx) => handleListModels(input, ctx));
   server.handle(listWorkspacesRpc, (_input, ctx) => handleListWorkspaces(ctx));
@@ -137,19 +138,11 @@ export default function contribute(server: PluginServerContext) {
     }
   });
 
-  server.on("agent.archived", (event) => {
-    // 归档这匹马 = 收工或删除：从名单里划掉，不触发自动评审
-    completeByAgentId(event.agent.id, "completed");
-  });
-
+  // 归档一律不碰待办：任务完没完由人点完成决定
   server.on("workspace.archived", (event) => {
     stashWorkspaceProject(event.workspace.id, event.workspace.projectId);
-    cleanupWorkspaceBranches(event.workspace.id);
+    void cleanupWorkspaceBranches(event.workspace.id);
     void cleanupReviewArtifacts(event.workspace.id);
-    completeByWorkspaceId(
-      event.workspace.id,
-      event.workspace.archivedAt ?? undefined,
-    );
   });
 
   return () => {};

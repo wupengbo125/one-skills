@@ -8,6 +8,7 @@ import {
   copyText,
 } from "@getpaseo/plugin/client/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
@@ -23,6 +24,7 @@ import {
   reviewTemplateRpc,
   createIssueRpc,
   fetchIssueRpc,
+  finishTodoRpc,
   listIssuesRpc,
   listModelsRpc,
   listProjectsRpc,
@@ -64,16 +66,20 @@ const INITIAL_LABEL: Record<ReturnType<typeof initialKindOf>, string> = {
 
 function HoldToLaunch({
   label,
+  children,
+  duration = 1000,
   disabled,
   style,
   textStyle,
   onComplete,
   onShortPress,
 }: {
-  label: string;
+  label?: string;
+  children?: ReactNode;
+  duration?: number;
   disabled: boolean;
   style: StyleProp<ViewStyle>;
-  textStyle: StyleProp<any>;
+  textStyle?: StyleProp<any>;
   onComplete: () => void;
   onShortPress?: () => void;
 }) {
@@ -87,7 +93,7 @@ function HoldToLaunch({
     progress.setValue(0);
     anim.current = Animated.timing(progress, {
       toValue: 1,
-      duration: 1000,
+      duration,
       useNativeDriver: false,
     });
     anim.current.start(({ finished }) => {
@@ -96,7 +102,7 @@ function HoldToLaunch({
         onComplete();
       }
     });
-  }, [disabled, onComplete, progress]);
+  }, [disabled, duration, onComplete, progress]);
 
   const cancel = useCallback(() => {
     anim.current?.stop();
@@ -131,7 +137,7 @@ function HoldToLaunch({
           backgroundColor: "rgba(0,0,0,0.22)",
         }}
       />
-      <Text style={textStyle}>{label}</Text>
+      {children ?? <Text style={textStyle}>{label}</Text>}
     </Pressable>
   );
 }
@@ -148,6 +154,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const addTodo = useRpc(addTodoRpc);
   const updateTodo = useRpc(updateTodoRpc);
   const removeTodo = useRpc(removeTodoRpc);
+  const finishTodo = useRpc(finishTodoRpc);
   const startTodo = useRpc(startTodoRpc);
   const listProviders = useRpc(listProvidersRpc);
   const listModels = useRpc(listModelsRpc);
@@ -526,7 +533,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       status,
     }: {
       id: string;
-      status: Todo["status"];
+      // 完成不走这里：只有 todo.finish 能标完成
+      status: "pending" | "running" | "failed";
     }) => updateTodo({ id, patch: { status } }),
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message || "更新失败"),
@@ -539,6 +547,26 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     },
     [statusM],
   );
+  // 标完成：服务端先关掉这个任务名下的工作区，关完才标完成
+  const finishM = useMutation({
+    mutationFn: (id: string) => finishTodo({ id }),
+    onSuccess: (res) => {
+      if (res.failed.length > 0) {
+        toast.show(
+          `已标完成，但有 ${res.failed.length} 个工作区没关掉：${res.failed.join("、")}`,
+        );
+      } else if (res.closed > 0) {
+        toast.show(`已完成，关掉 ${res.closed} 个工作区`, {
+          variant: "success",
+        });
+      } else {
+        toast.show("已完成", { variant: "success" });
+      }
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "完成失败"),
+  });
+
   const delM = useMutation({
     mutationFn: (id: string) => removeTodo({ id }),
     onSuccess: () => {
@@ -1183,30 +1211,35 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       >
         <View style={{ flex: 1 }}>
           <View style={s.cardTop}>
-            <Pressable
-              accessibilityRole="button"
-              hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-              style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
-              onPress={(e) => {
-                e.stopPropagation();
-                const next = isDone ? "pending" : "done";
-                statusM.mutate({ id: t.id, status: next });
-              }}
-            >
-              <View
-                style={[
-                  s.check,
-                  isDone && s.checkDone,
-                ]}
+            {isDone ? (
+              // 取消完成不危险：随手点回去
+              <Pressable
+                accessibilityRole="button"
+                hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
+                style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
+                onPress={() => statusM.mutate({ id: t.id, status: "pending" })}
               >
-                {isDone ? (
+                <View style={[s.check, s.checkDone]}>
                   <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>
                     ✓
                   </Text>
-                ) : null}
-              </View>
-              {isRunning ? <PulsingPurpleDot /> : null}
-            </Pressable>
+                </View>
+              </Pressable>
+            ) : (
+              // 标完成会关掉工作区：长按才生效
+              <HoldToLaunch
+                duration={800}
+                disabled={false}
+                style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
+                onComplete={() => finishM.mutate(t.id)}
+                onShortPress={() =>
+                  toast.show("长按才算完成，会关掉它的工作区")
+                }
+              >
+                <View style={s.check} />
+                {isRunning ? <PulsingPurpleDot /> : null}
+              </HoldToLaunch>
+            )}
             <Pressable
               style={s.main}
               onPress={() => openEdit(t)}
@@ -1414,18 +1447,18 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 </Text>
               </Pressable>
               <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-              <Pressable
+              <HoldToLaunch
+                duration={800}
+                disabled={false}
                 style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                onPress={(e) => {
-                  e.stopPropagation();
+                textStyle={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}
+                label="删除任务"
+                onComplete={() => {
                   setMenuTodo(null);
                   delM.mutate(t.id);
                 }}
-              >
-                <Text style={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}>
-                  删除任务
-                </Text>
-              </Pressable>
+                onShortPress={() => toast.show("长按才删除任务")}
+              />
             </View>
           ) : null}
         </View>
@@ -1896,30 +1929,29 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                             </Text>
                           </Pressable>
                           {isWorktree ? (
-                            <Pressable
+                            <HoldToLaunch
+                              duration={800}
+                              disabled={removeWorktreeM.isPending}
                               style={{
                                 padding: 6,
                                 opacity: removeWorktreeM.isPending ? 0.4 : 0.8,
                               }}
-                              disabled={removeWorktreeM.isPending}
-                              onPress={(e) => {
-                                e.stopPropagation();
+                              textStyle={{
+                                color: theme.colors.statusDanger,
+                                fontSize: 15,
+                                fontWeight: "700",
+                              }}
+                              label="✕"
+                              onComplete={() =>
                                 removeWorktreeM.mutate({
                                   id: arb.id,
                                   workspaceId: c.workspaceId,
-                                });
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: theme.colors.statusDanger,
-                                  fontSize: 15,
-                                  fontWeight: "700",
-                                }}
-                              >
-                                ✕
-                              </Text>
-                            </Pressable>
+                                })
+                              }
+                              onShortPress={() =>
+                                toast.show("长按才删掉这条候选")
+                              }
+                            />
                           ) : null}
                         </View>
                       );

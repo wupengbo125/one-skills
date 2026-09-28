@@ -177,7 +177,8 @@ export const updateTodoRpc = defineRpc({
       worktreeRepo: z.string().optional(),
       // 发到几号了：整单搬马时也要搬，别让新单子从 1 重发
       nextNo: z.number().int().optional(),
-      status: todoStatusSchema.optional(),
+      // 完成不走这里：标完成会关掉任务名下的工作区，只能走 todo.finish
+      status: z.enum(["pending", "running", "failed"]).optional(),
       pinned: z.boolean().optional(),
       autoReview: autoReviewSchema.optional(),
       extraPrompt: z.string().optional(),
@@ -194,6 +195,20 @@ export const removeTodoRpc = defineRpc({
   name: "todo.remove",
   input: z.object({ id: z.string() }),
   output: z.object({ ok: z.boolean() }),
+});
+
+export const finishTodoRpc = defineRpc({
+  name: "todo.finish",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
+    // 这次关掉了几个工作区
+    closed: z.number(),
+    // 没关掉的工作区（名字，给用户看是哪个）
+    failed: z.array(z.string()),
+    error: z.string().optional(),
+  }),
 });
 
 export const startTodoRpc = defineRpc({

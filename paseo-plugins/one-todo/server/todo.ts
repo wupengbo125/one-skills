@@ -194,10 +194,6 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
       next.finishedAt = undefined;
       next.error = undefined;
     }
-    if (p.status === "done") {
-      next.finishedAt = new Date().toISOString();
-      next.error = undefined;
-    }
     if (p.status === "failed") {
       next.finishedAt = new Date().toISOString();
     }
