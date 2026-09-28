@@ -238,6 +238,8 @@ const TEMPLATE_NAME = {
   single: "评审向导词.md",
   send: "整改向导词.md",
   initial: "开场向导词.md",
+  initialRace: "赛马开场向导词.md",
+  initialCommittee: "委员会开场向导词.md",
 } as const;
 export type TplKind = keyof typeof TEMPLATE_NAME;
 
@@ -311,34 +313,62 @@ const DEFAULT_TPL = {
   single: DEFAULT_SINGLE,
   send: DEFAULT_SEND,
   initial: DEFAULT_INITIAL,
-} as const;
-export function readOrSeedTemplateRaw(kind: TplKind): string {
-  const path = templatePath(kind);
-  try {
-    return readFileSync(path, "utf8");
-  } catch {
-    const raw = DEFAULT_TPL[kind];
+} satisfies Record<Exclude<TplKind, "initialRace" | "initialCommittee">, string>;
+
+// 赛马 / 委员会这两份开场词不是仓库资产：这台机器上头一次用到该模式时，
+// 照抄普通那份生成（所以带着你当前的普通内容，包括你改过的字），之后各存各的
+function defaultText(kind: TplKind): string {
+  if (kind === "initialRace" || kind === "initialCommittee") {
     try {
-      mkdirSync(promptDir(), { recursive: true });
-      writeFileSync(path, raw, "utf8");
+      return readFileSync(templatePath("initial"), "utf8");
     } catch {
-      // 建不出来就内存里用默认的，不影响使用
+      return DEFAULT_INITIAL;
+    }
+  }
+  return DEFAULT_TPL[kind];
+}
+
+// 写不进去就明说：悄悄吞掉会让人以为改动已经存上了
+function writeTemplate(kind: TplKind, text: string): void {
+  try {
+    mkdirSync(promptDir(), { recursive: true });
+    writeFileSync(templatePath(kind), text, "utf8");
+  } catch (e) {
+    const why = e instanceof Error ? e.message : "未知原因";
+    throw new Error(
+      `${TEMPLATE_LABEL[kind]}没写进提示词目录（${why}），内容没保存`,
+    );
+  }
+}
+
+export function readOrSeedTemplateRaw(kind: TplKind): string {
+  try {
+    return readFileSync(templatePath(kind), "utf8");
+  } catch {
+    const raw = defaultText(kind);
+    try {
+      writeTemplate(kind, raw);
+    } catch {
+      // 目录写不进去：退回内存里这份，面板照样能看能改；真保存时会明确报错
     }
     return raw;
   }
 }
 
+const TEMPLATE_LABEL: Record<TplKind, string> = {
+  multi: "赛马向导词",
+  single: "评审向导词",
+  send: "整改向导词",
+  initial: "开场向导词",
+  initialRace: "赛马开场向导词",
+  initialCommittee: "委员会开场向导词",
+};
+
 function checkTemplate(kind: TplKind, part: string): string | undefined {
-  const name =
-    kind === "multi"
-      ? "赛马向导词"
-      : kind === "single"
-        ? "评审向导词"
-        : kind === "send"
-          ? "整改向导词"
-          : "开场向导词";
+  const name = TEMPLATE_LABEL[kind];
   if (!part.trim()) return `${name}不能为空`;
-  if (kind === "send" || kind === "initial") return undefined;
+  // 整改词和三种开场词没有必填空位，不校验
+  if (kind === "send" || kind.startsWith("initial")) return undefined;
   if (!part.includes("{{task}}")) return `${name}模板缺少 {{task}} 空位`;
   if (!part.includes("{{targets}}")) return `${name}模板缺少 {{targets}} 空位`;
   if (!part.includes("{{verdictFile}}")) {
@@ -361,8 +391,10 @@ export function handleReviewTemplate(
   if (input.text === undefined) {
     try {
       return { text: readOrSeedTemplateRaw(kind) };
-    } catch {
-      return { error: "模板找不到了，请重试" };
+    } catch (e) {
+      return {
+        error: e instanceof Error ? e.message : "模板找不到了，请重试",
+      };
     }
   }
   const text = input.text;
@@ -370,10 +402,10 @@ export function handleReviewTemplate(
   const bad = checkTemplate(kind, text);
   if (bad) return { error: bad };
   try {
-    writeFileSync(templatePath(kind), text, "utf8");
+    writeTemplate(kind, text);
     return { text };
-  } catch {
-    return { error: "保存失败，请重试" };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "保存失败，请重试" };
   }
 }
 export async function handleRemoveWorktree(

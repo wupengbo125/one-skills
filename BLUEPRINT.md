@@ -51,7 +51,7 @@
   - CodeBuddy 走终端模式：等终端起来后以 codebuddy --model <模型> "<Issue链接> <提示词>" 启动
 - [paseo-plugins/one-todo/](paseo-plugins/one-todo/)
   - 在 Paseo 中管理待办任务与 GitHub Issue，支持本地执行与多马独立 Worktree 并发开跑
-  - 支持会话跳转、待办继承与白盒开场向导词模板自定义
+  - 支持会话跳转、待办继承与白盒开场向导词模板自定义（开场词按普通/赛马/委员会分三份，各存各的）
   - 多马模式提供赛马比对专属页，单马审核提供统一下拉选择器与分支一键删除（✕）
   - 派马分「普通」（一个工作区：Local 在当前目录，Worktree 就一条 worktree）与「赛马」（必须 Worktree、至少 2 匹马：主干＋每马一条 worktree）
   - 模式第一次派马时定死，之后加马照原模式走，不能改

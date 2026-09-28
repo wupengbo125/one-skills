@@ -36,6 +36,7 @@ import {
   removeWorktreeRpc,
   branchFromTitle,
   firstHorse,
+  initialKindOf,
   type AgentRef,
   type Todo,
   type TodoPreferences,
@@ -53,6 +54,13 @@ import {
   type RunDraft,
   type SourceFilter,
 } from "./model";
+
+// 开场向导词三份的名字：标题、提示都用它。键写错是编译错误，不会得到空标题
+const INITIAL_LABEL: Record<ReturnType<typeof initialKindOf>, string> = {
+  initial: "普通",
+  initialRace: "赛马",
+  initialCommittee: "委员会",
+};
 
 function HoldToLaunch({
   label,
@@ -185,9 +193,16 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [initialSeed, setInitialSeed] = useState("");
   const [initialView, setInitialView] = useState<"collapsed" | "preview" | "edit">("collapsed");
   const [initialDirty, setInitialDirty] = useState(false);
-  const [initialLoaded, setInitialLoaded] = useState(false);
   const initialRef = useRef("");
   const initialSavedRef = useRef("");
+  // 开场向导词三种模式各一份，记"当前这份是哪一份、加载过了没"
+  const [initialLoadedKind, setInitialLoadedKind] = useState("");
+  // 没保存的草稿按模式各自留着：切模式不丢，切回来还在
+  const initialDraftsRef = useRef<
+    Record<string, { text: string; saved: string }>
+  >({});
+  // 输入框是不受控的：换模式换了内容就靠它加 key 重挂，否则框里还是上一份的字
+  const [initialRev, setInitialRev] = useState(0);
   const [multiTplSeed, setMultiTplSeed] = useState("");
   const multiTplRef = useRef("");
   const multiTplSavedRef = useRef("");
@@ -246,7 +261,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     setRun(null);
     setPicker(null);
     setInitialView("collapsed");
-    setInitialLoaded(false);
+    setInitialLoadedKind("");
     setInitialDirty(false);
     setTargetPickerOpen(false);
   }, []);
@@ -729,30 +744,74 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     onError: (e: Error) =>
       showArbMsg({ text: e.message || "保存失败", bad: true }),
   });
+  // 开场向导词跟着模式走：普通 / 赛马 / 委员会各一份（跟派马时走同一处判定）
+  const initialKind = initialKindOf(
+    Boolean(run?.race),
+    Boolean(run?.committee),
+  );
+  const initialLabel = INITIAL_LABEL[initialKind];
+  const initialKindRef = useRef(initialKind);
   const initialQ = useQuery({
-    queryKey: ["todo-initial-prompt", run?.id],
-    queryFn: () => reviewTemplate({ kind: "initial" }),
+    queryKey: ["todo-initial-prompt", initialKind],
+    queryFn: () => reviewTemplate({ kind: initialKind }),
     enabled: !!run,
   });
   useEffect(() => {
-    if (initialQ.data?.text !== undefined && !initialLoaded) {
-      setInitialLoaded(true);
-      initialRef.current = initialQ.data.text;
-      initialSavedRef.current = initialQ.data.text;
-      setInitialSeed(initialQ.data.text);
+    const prev = initialKindRef.current;
+    if (!run) {
+      // 弹层关了：模式回普通不算"切模式"，草稿和未保存标记一并收干净
+      initialKindRef.current = initialKind;
+      initialDraftsRef.current = {};
+      if (initialDirty) setInitialDirty(false);
+      return;
     }
-  }, [initialQ.data, initialLoaded]);
+    if (prev !== initialKind) {
+      initialKindRef.current = initialKind;
+      // 上一份还有没保存的改动：留成草稿，别让它静默没了
+      if (initialDirty) {
+        initialDraftsRef.current[prev] = {
+          text: initialRef.current,
+          saved: initialSavedRef.current,
+        };
+        toast.show(`${INITIAL_LABEL[prev]}开场向导词还没保存，先替你留着`);
+      }
+      const draft = initialDraftsRef.current[initialKind];
+      if (draft) {
+        initialRef.current = draft.text;
+        initialSavedRef.current = draft.saved;
+        setInitialSeed(draft.text);
+        setInitialRev((n) => n + 1);
+        setInitialDirty(true);
+        // 这份就是草稿：标成已加载，别让下面的加载分支拿服务器原文盖掉
+        setInitialLoadedKind(initialKind);
+        return;
+      }
+      // 这份没草稿：先清空，等它自己的内容到了再填，免得把上一份的字写进这一份
+      setInitialSeed("");
+      setInitialRev((n) => n + 1);
+      setInitialDirty(false);
+    }
+    const text = initialQ.data?.text;
+    if (text === undefined || initialLoadedKind === initialKind) return;
+    setInitialLoadedKind(initialKind);
+    initialRef.current = text;
+    initialSavedRef.current = text;
+    setInitialSeed(text);
+    setInitialRev((n) => n + 1);
+    setInitialDirty(false);
+  }, [initialQ.data, initialKind, initialLoadedKind, initialDirty, run]);
   const initialSaveM = useMutation({
-    mutationFn: (text: string) => reviewTemplate({ kind: "initial", text }),
+    mutationFn: (text: string) => reviewTemplate({ kind: initialKind, text }),
     onSuccess: (res) => {
       if (res.error || res.text === undefined) {
         toast.error(res.error || "保存失败");
         return;
       }
+      delete initialDraftsRef.current[initialKind];
       initialSavedRef.current = res.text;
       setInitialSeed(res.text);
       setInitialDirty(false);
-      toast.show("开场向导词已保存", { variant: "success" });
+      toast.show(`${initialLabel}开场向导词已保存`, { variant: "success" });
     },
     onError: (e: Error) => toast.error(e.message || "保存失败"),
   });
@@ -850,7 +909,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   function openDetail(t?: Todo, issue?: LiveIssue) {
     setPicker(null);
     setInitialView("collapsed");
-    setInitialLoaded(false);
+    setInitialLoadedKind("");
     setInitialDirty(false);
     const defaultAgent: AgentRef = preferences?.lastProvider
       ? { provider: preferences.lastProvider, model: preferences.lastModel }
@@ -2536,7 +2595,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </View>
           <View style={s.formSection}>
             {collapseRow(
-              `开场向导词${initialDirty ? "（已修改未保存）" : ""}`,
+              `${initialLabel}开场向导词${initialDirty ? "（已修改未保存）" : ""}`,
               initialView !== "collapsed",
               () =>
                 setInitialView(initialView === "collapsed" ? "preview" : "collapsed"),
@@ -2568,8 +2627,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 ) : (
                   <>
                     <StableInput
+                      key={`initial-tpl-${initialKind}-${initialRev}`}
                       style={s.inputMulti}
                       initial={initialSeed}
+                      // 这一份的内容还没到手时先锁住：免得敲进去的字被随后重挂覆盖
+                      editable={initialLoadedKind === initialKind && !initialQ.isLoading}
                       onValue={(v) => {
                         initialRef.current = v;
                         setInitialDirty(v !== initialSavedRef.current);

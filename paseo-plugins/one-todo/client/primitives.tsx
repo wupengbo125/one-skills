@@ -12,6 +12,7 @@ type StableInputProps = {
   autoCapitalize?: "none" | "sentences" | "words" | "characters" | undefined;
   autoCorrect?: boolean;
   onFocus?: () => void;
+  editable?: boolean;
 };
 
 export const StableInput = memo(function StableInput({
@@ -24,6 +25,7 @@ export const StableInput = memo(function StableInput({
   autoCapitalize,
   autoCorrect,
   onFocus,
+  editable,
 }: StableInputProps) {
   const ref = useRef(initial);
   const handleChange = useCallback(
@@ -42,6 +44,7 @@ export const StableInput = memo(function StableInput({
       autoCapitalize={autoCapitalize}
       autoCorrect={autoCorrect}
       onFocus={onFocus}
+      editable={editable}
     />
   );
 });

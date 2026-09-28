@@ -407,8 +407,16 @@ export const reviewContinueRpc = defineRpc({
 export const reviewTemplateRpc = defineRpc({
   name: "todo.review_template",
   input: z.object({
-    // multi 赛马向导词 / single 评审向导词 / send 整改向导词 / initial 开场向导词
-    kind: z.enum(["multi", "single", "send", "initial"]),
+    // multi 赛马向导词 / single 评审向导词 / send 整改向导词
+    // initial 开场向导词（普通）/ initialRace 赛马开场向导词 / initialCommittee 委员会开场向导词
+    kind: z.enum([
+      "multi",
+      "single",
+      "send",
+      "initial",
+      "initialRace",
+      "initialCommittee",
+    ]),
     text: z.string().optional(),
   }),
   output: z.object({
@@ -416,6 +424,18 @@ export const reviewTemplateRpc = defineRpc({
     error: z.string().optional(),
   }),
 });
+
+// 开场向导词按模式分三份：普通 / 赛马 / 委员会。
+// 谁优先只有这一处说了算（赛马优先），界面挑哪份编辑、派马挑哪份拼，都走它，避免两边判得不一样
+export function initialKindOf(
+  race: boolean,
+  committee: boolean,
+): "initial" | "initialRace" | "initialCommittee" {
+  if (race) return "initialRace";
+  if (committee) return "initialCommittee";
+  return "initial";
+}
+
 export const removeWorktreeRpc = defineRpc({
   name: "todo.remove_worktree",
   input: z.object({

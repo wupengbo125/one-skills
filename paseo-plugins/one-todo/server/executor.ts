@@ -3,6 +3,7 @@ import type { PluginHandlerContext } from "@getpaseo/plugin/server";
 import {
   branchFromTitle,
   horseBySession,
+  initialKindOf,
   isHorseSession,
   isTerminalProvider,
   pendingSessions,
@@ -15,13 +16,17 @@ import { getTodo, listTodos, saveTodo } from "./store";
 import { savePreferences } from "./preferences";
 import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
-import { readOrSeedTemplateRaw } from "./review";
+import { readOrSeedTemplateRaw, type TplKind } from "./review";
 import { taskDocPath } from "./taskdoc";
 
-function formatInitialPrompt(basePrompt: string, wsId: string): string {
+function formatInitialPrompt(
+  basePrompt: string,
+  wsId: string,
+  kind: TplKind,
+): string {
   let initial = "";
   try {
-    initial = readOrSeedTemplateRaw("initial") || "";
+    initial = readOrSeedTemplateRaw(kind) || "";
   } catch {
     initial = "";
   }
@@ -131,6 +136,8 @@ export async function handleStartTodo(
   const race = base.raceMode ?? Boolean(input.race);
   // 委员会模式：同上，只一匹马，成员由它照技能派生
   const committee = base.committeeMode ?? Boolean(input.committee);
+  // 开场向导词三种模式各一份，按这一单的模式挑（跟界面走同一处判定）
+  const initialKind = initialKindOf(race, committee);
   const placementPatch = {
     projectId: input.projectId,
     projectName: input.projectName,
@@ -296,7 +303,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id),
+          formatInitialPrompt(prompt, ws.id, initialKind),
         );
         recordSession(i, launched);
         recordHome(i, {
@@ -353,7 +360,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id),
+            formatInitialPrompt(prompt, ws.id, initialKind),
           );
           recordSession(i, launched);
           // 这匹马住哪：它自己的分支工作区
@@ -399,7 +406,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id),
+            formatInitialPrompt(prompt, ws.id, initialKind),
           );
           recordSession(i, launched);
           // 几匹马都住这一个工作区：选 Worktree 就是那条 worktree
@@ -451,7 +458,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id),
+          formatInitialPrompt(prompt, ws.id, initialKind),
         );
         recordSession(i, launched);
         recordHome(i, {
