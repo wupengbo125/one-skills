@@ -308,6 +308,10 @@ const DEFAULT_SEND =
 const DEFAULT_INITIAL = `会话开始时，先记录一下 Git commit ID 到需求文档中。
 把上面的需求整理成平铺计划列给用户，并写到：{{docPath}}`;
 
+// 委员会那份多带一句：{{members}} 是唯一把两个成员递给技能的地方，缺了成员就传不过去
+const DEFAULT_INITIAL_COMMITTEE = `${DEFAULT_INITIAL}
+委员会两个成员用这两个：{{members}}，已经替你挑好了，不用自己挑。`;
+
 // 三份开场词跟其他 prompts 一样：仓库里各有一份，待遇完全相同，谁也不从谁派生
 const DEFAULT_TPL: Record<TplKind, string> = {
   multi: DEFAULT_MULTI,
@@ -315,7 +319,7 @@ const DEFAULT_TPL: Record<TplKind, string> = {
   send: DEFAULT_SEND,
   initial: DEFAULT_INITIAL,
   initialRace: DEFAULT_INITIAL,
-  initialCommittee: DEFAULT_INITIAL,
+  initialCommittee: DEFAULT_INITIAL_COMMITTEE,
 };
 
 // 写不进去就明说：悄悄吞掉会让人以为改动已经存上了

@@ -22,6 +22,7 @@ function formatInitialPrompt(
   basePrompt: string,
   wsId: string,
   kind: TplKind,
+  members: string,
 ): string {
   let initial = "";
   try {
@@ -34,6 +35,7 @@ function formatInitialPrompt(
   const extraText = initial
     .replace(/\{\{(docPath|taskDocPath)\}\}/g, docPath)
     .replace(/\{\{(id|workspaceId)\}\}/g, wsId)
+    .replace(/\{\{members\}\}/g, members)
     .trim();
   return extraText ? `${extraText}\n\n${basePrompt}` : basePrompt;
 }
@@ -197,28 +199,40 @@ export async function handleStartTodo(
     if (members.length !== 2) {
       return { ok: false, todo, error: "先给委员会指定两个成员（各选 Agent 和模型）" };
     }
+    if ((todo.skills ?? []).length === 0) {
+      return { ok: false, todo, error: "委员会模式要先选技能" };
+    }
+    // {{members}} 是两个成员唯一的通道：向导词里没有就明说，别让成员静默丢掉
+    let committeeTpl = "";
+    try {
+      committeeTpl = readOrSeedTemplateRaw("initialCommittee");
+    } catch {
+      committeeTpl = "";
+    }
+    if (!committeeTpl.includes("{{members}}")) {
+      return {
+        ok: false,
+        todo,
+        error: "委员会开场向导词里缺 {{members}}，两个成员传不到技能，先加回去",
+      };
+    }
   }
 
   const title = todo.title.trim();
-  // 委员会模式：强制带上委员会技能，并把这匹马的两个成员指定死，不让技能自己挑
-  const skillList = committee
-    ? Array.from(new Set([...(todo.skills ?? []), "paseo-committee"]))
-    : todo.skills ?? [];
+  // 技能就是界面技能框里选的那些，代码不替用户挑
+  const skillList = todo.skills ?? [];
   const skillPrefix =
     skillList.length > 0
       ? `[使用技能: ${skillList.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
       : "";
+  // 委员会两个成员写在委员会开场向导词的 {{members}} 里；台词归向导词，代码不管
   const memberText = members
     .map((m) => (m.model ? `${m.provider} / ${m.model}` : `${m.provider} / 默认`))
     .join("、");
-  const committeeNote = committee
-    ? `【委员会模式】用 paseo-committee 技能，两个成员指定为：${memberText}，不要让技能自己挑成员。\n` +
-      `派生成员都落在你自己这个工作区里，不要另开工作区。\n\n`
-    : "";
   const body = todo.prompt.trim()
     ? (title ? `${title}\n\n${todo.prompt.trim()}` : todo.prompt.trim())
     : title;
-  const prompt = skillPrefix + committeeNote + body;
+  const prompt = skillPrefix + body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
   // 只派没跑过的马：老马（标过 spawnedAt）的会话和 worktree 都不动
@@ -302,7 +316,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText),
         );
         recordSession(i, launched);
         recordHome(i, {
@@ -359,7 +373,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText),
           );
           recordSession(i, launched);
           // 这匹马住哪：它自己的分支工作区
@@ -405,7 +419,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText),
           );
           recordSession(i, launched);
           // 几匹马都住这一个工作区：选 Worktree 就是那条 worktree
@@ -457,7 +471,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText),
         );
         recordSession(i, launched);
         recordHome(i, {

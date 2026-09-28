@@ -512,3 +512,6 @@ export function isTerminalProvider(provider: string): boolean {
   const p = provider.trim().toLowerCase();
   return p === "antigravity cli" || p === "agy";
 }
+
+/** 委员会模式默认用的技能：界面替用户勾进技能框，发马时按技能框里选的走。 */
+export const COMMITTEE_SKILL = "paseo-committee";

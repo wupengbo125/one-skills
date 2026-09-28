@@ -39,6 +39,7 @@ import {
   branchFromTitle,
   firstHorse,
   initialKindOf,
+  COMMITTEE_SKILL,
   type AgentRef,
   type Todo,
   type TodoPreferences,
@@ -202,6 +203,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [initialDirty, setInitialDirty] = useState(false);
   const initialRef = useRef("");
   const initialSavedRef = useRef("");
+  // 技能框里那个 paseo-committee 是不是我们替用户勾的：是的话切走委员会时才撤
+  const committeeSkillAddedRef = useRef(false);
   // 开场向导词三种模式各一份，记"当前这份是哪一份、加载过了没"
   const [initialLoadedKind, setInitialLoadedKind] = useState("");
   // 没保存的草稿按模式各自留着：切模式不丢，切回来还在
@@ -271,6 +274,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     setInitialLoadedKind("");
     setInitialDirty(false);
     setTargetPickerOpen(false);
+    committeeSkillAddedRef.current = false;
   }, []);
   const [bindTarget, setBindTarget] = useState<Todo | null>(null);
   const [bindInput, setBindInput] = useState("");
@@ -934,11 +938,19 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     </View>
   );
 
+  // 切走委员会模式：只撤我们自己勾上的那个技能，用户自己选的一个不动（会复位"我们勾过"这个标记）
+  const dropAutoCommitteeSkill = (d: RunDraft): RunDraft => {
+    if (!committeeSkillAddedRef.current) return d;
+    committeeSkillAddedRef.current = false;
+    return { ...d, skills: d.skills.filter((x) => x !== COMMITTEE_SKILL) };
+  };
+
   function openDetail(t?: Todo, issue?: LiveIssue) {
     setPicker(null);
     setInitialView("collapsed");
     setInitialLoadedKind("");
     setInitialDirty(false);
+    committeeSkillAddedRef.current = false;
     const defaultAgent: AgentRef = preferences?.lastProvider
       ? { provider: preferences.lastProvider, model: preferences.lastModel }
       : { provider: "", model: "" };
@@ -994,6 +1006,16 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         ];
     d.agents = agents;
     d.skills = t?.skills ?? [];
+    // 老委员会单：技能以前是服务端硬塞的，库里没有，开弹层时补上，免得被"要先选技能"卡死。
+    // 跟点按钮那把尺子一样：只认技能列表，没装就不勾
+    if (
+      t?.committeeMode &&
+      !d.skills.includes(COMMITTEE_SKILL) &&
+      Boolean(skillsQ.data?.skills?.includes(COMMITTEE_SKILL))
+    ) {
+      d.skills = [...d.skills, COMMITTEE_SKILL];
+      committeeSkillAddedRef.current = true;
+    }
     d.baseBranch = t?.baseBranch || "main";
     d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
     runTitleRef.current = d.title;
@@ -2383,7 +2405,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 ]}
                 disabled={modeLocked}
                 onPress={() =>
-                  setRun({ ...run, race: false, committee: false })
+                  setRun({
+                    ...dropAutoCommitteeSkill(run),
+                    race: false,
+                    committee: false,
+                  })
                 }
               >
                 <Text
@@ -2398,14 +2424,24 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Pressable
                 style={[s.segBtn, s.seg, { flex: 1 }, run.committee && s.segOn]}
                 disabled={modeLocked}
-                onPress={() =>
+                onPress={() => {
+                  const known = skillsQ.data?.skills;
+                  // 只认技能列表：没装就不勾；已经在委员会里也不把用户删掉的勾回来
+                  const auto =
+                    !run.committee &&
+                    !run.skills.includes(COMMITTEE_SKILL) &&
+                    Boolean(known?.includes(COMMITTEE_SKILL));
+                  if (auto) committeeSkillAddedRef.current = true;
                   setRun({
                     ...run,
                     race: false,
                     committee: true,
                     agents: run.agents.slice(0, 1),
-                  })
-                }
+                    skills: auto
+                      ? [...run.skills, COMMITTEE_SKILL]
+                      : run.skills,
+                  });
+                }}
               >
                 <Text style={[s.segText, run.committee && s.segTextOn]}>
                   委员会
@@ -2416,7 +2452,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 disabled={modeLocked}
                 onPress={() =>
                   setRun({
-                    ...run,
+                    ...dropAutoCommitteeSkill(run),
                     race: true,
                     committee: false,
                     isolation: "worktree",
@@ -2635,7 +2671,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             {initialView !== "collapsed" ? (
               <>
                 <Text style={s.pathText}>
-                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）与 {"{{id}}"}（工作区ID）：
+                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）、{"{{id}}"}（工作区ID）与 {"{{members}}"}（委员会两个成员）：
                 </Text>
                 {initialQ.isLoading ? (
                   <Text style={s.empty}>读取中…</Text>
