@@ -1,5 +1,5 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
-import { finishTodoRpc, removeWorktreeRpc } from "./shared/todo";
+import { finishTodoRpc, removeWorktreeRpc, removeHorseRpc, resetTodoRpc } from "./shared/todo";
 import { listTodos } from "./server/store";
 import {
   addTodoRpc,
@@ -37,6 +37,7 @@ import {
   completeByAgentId,
   reviveByAgentId,
   handleFinishTodo,
+  handleResetTodo,
   handleStartTodo,
   stashWorkspaceProject,
 } from "./server/executor";
@@ -56,6 +57,7 @@ import {
   handleReviewVerdict,
   handleReviewTemplate,
   handleRemoveWorktree,
+  handleRemoveHorse,
 } from "./server/review";
 import {
   handleCreateIssue,
@@ -70,6 +72,7 @@ export default function contribute(server: PluginServerContext) {
   server.handle(removeTodoRpc, (input) => handleRemoveTodo(input));
   server.handle(startTodoRpc, (input, ctx) => handleStartTodo(input, ctx));
   server.handle(finishTodoRpc, (input, ctx) => handleFinishTodo(input, ctx));
+  server.handle(resetTodoRpc, (input, ctx) => handleResetTodo(input, ctx));
   server.handle(listProvidersRpc, (_input, ctx) => handleListProviders(ctx));
   server.handle(listModelsRpc, (input, ctx) => handleListModels(input, ctx));
   server.handle(listWorkspacesRpc, (_input, ctx) => handleListWorkspaces(ctx));
@@ -97,6 +100,9 @@ export default function contribute(server: PluginServerContext) {
   server.handle(reviewTemplateRpc, (input) => handleReviewTemplate(input));
   server.handle(removeWorktreeRpc, (input, ctx) =>
     handleRemoveWorktree(input, ctx),
+  );
+  server.handle(removeHorseRpc, (input, ctx) =>
+    handleRemoveHorse(input, ctx),
   );
 
   server.on("agent.turn_started", (event) => {

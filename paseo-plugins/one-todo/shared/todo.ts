@@ -211,6 +211,20 @@ export const finishTodoRpc = defineRpc({
   }),
 });
 
+export const resetTodoRpc = defineRpc({
+  name: "todo.reset",
+  input: z.object({ id: z.string() }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
+    // 这次关掉了几个工作区
+    closed: z.number(),
+    // 没关掉的工作区（名字，给用户看是哪个）
+    failed: z.array(z.string()),
+    error: z.string().optional(),
+  }),
+});
+
 export const startTodoRpc = defineRpc({
   name: "todo.start",
   input: z.object({
@@ -456,6 +470,21 @@ export const removeWorktreeRpc = defineRpc({
   input: z.object({
     id: z.string(),
     workspaceId: z.string(),
+  }),
+  output: z.object({
+    ok: z.boolean(),
+    todo: todoSchema.nullable(),
+    error: z.string().optional(),
+  }),
+});
+
+// 按匹马划掉名单里的一条（马的号认马：开跑时发一次、只增不减、不复用，会话号可能没记上）。
+// 只有它独占、且不是主工作区的工作区才顺手关，共用 / 主工作区只抹名单——幽灵马（真身早没了）就靠这条清。
+export const removeHorseRpc = defineRpc({
+  name: "todo.remove_horse",
+  input: z.object({
+    id: z.string(),
+    no: z.number().int(),
   }),
   output: z.object({
     ok: z.boolean(),

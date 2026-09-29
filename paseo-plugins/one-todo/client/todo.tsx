@@ -33,9 +33,11 @@ import {
   listTodosRpc,
   listWorkspacesRpc,
   removeTodoRpc,
+  resetTodoRpc,
   startTodoRpc,
   updateTodoRpc,
   removeWorktreeRpc,
+  removeHorseRpc,
   branchFromTitle,
   firstHorse,
   initialKindOf,
@@ -156,6 +158,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const updateTodo = useRpc(updateTodoRpc);
   const removeTodo = useRpc(removeTodoRpc);
   const finishTodo = useRpc(finishTodoRpc);
+  const resetTodo = useRpc(resetTodoRpc);
   const startTodo = useRpc(startTodoRpc);
   const listProviders = useRpc(listProvidersRpc);
   const listModels = useRpc(listModelsRpc);
@@ -172,6 +175,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const reviewContinue = useRpc(reviewContinueRpc);
   const reviewTemplate = useRpc(reviewTemplateRpc);
   const removeWorktree = useRpc(removeWorktreeRpc);
+  const removeHorse = useRpc(removeHorseRpc);
 
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>("todo");
   const [repoFilter, setRepoFilter] = useState<string>("");
@@ -571,6 +575,32 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     onError: (e: Error) => toast.error(e.message || "完成失败"),
   });
 
+  // 重置：把这单变回一个没跑过的待办，服务端先关掉这单名下的工作区
+  const resetM = useMutation({
+    mutationFn: (id: string) => resetTodo({ id }),
+    onSuccess: (res) => {
+      if (!res.ok) {
+        toast.error(res.error || "重置失败");
+        return;
+      }
+      if (res.failed.length > 0) {
+        toast.show(
+          `已重置，但有 ${res.failed.length} 个工作区没关掉：${res.failed.join("、")}`,
+        );
+      } else if (res.closed > 0) {
+        toast.show(`已重置，关掉 ${res.closed} 个工作区`, {
+          variant: "success",
+        });
+      } else {
+        toast.show("已重置", { variant: "success" });
+      }
+      // 这单的弹层开着就收掉，免得还显示旧名单
+      setRun((d) => (d && d.id === res.todo?.id ? null : d));
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "重置失败"),
+  });
+
   const delM = useMutation({
     mutationFn: (id: string) => removeTodo({ id }),
     onSuccess: () => {
@@ -591,7 +621,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         (runTodo.agents ?? []).some((a) => a.spawnedAt) ||
         Boolean(runTodo.workspaceId)),
   );
-  // 跑过的马只显示不给删；剩下的才是这次要派的新马
+  // 跑过的马（显示成一行一匹、可单独删）；剩下的才是这次要派的新马
   const spawnedList = run ? run.agents.filter((a) => a.spawnedAt) : [];
   const pendingAgents = run ? run.agents.filter((a) => !a.spawnedAt) : [];
   const maxHorseNo = run
@@ -890,6 +920,27 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       }
     },
     onError: (e: Error) => showArbMsg({ text: e.message || "删除失败", bad: true }),
+  });
+  // 跑任务弹层里按匹马划掉名单：按马的号认这一条（服务端：只有它独占且非主工作区才顺手关工作区）
+  const removeHorseM = useMutation({
+    mutationFn: (vars: { id: string; no: number }) => removeHorse(vars),
+    onSuccess: (res, vars) => {
+      if (res.ok) {
+        toast.show("已删除该马", { variant: "success" });
+        setRun((d) =>
+          d
+            ? {
+                ...d,
+                agents: d.agents.filter((a) => a.no !== vars.no),
+              }
+            : d,
+        );
+      } else {
+        toast.error(res.error || "删除失败");
+      }
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message || "删除失败"),
   });
   const allIssues: LiveIssue[] = issuesQ.data?.issues ?? [];
   const repos = issuesQ.data?.repos ?? [];
@@ -1322,23 +1373,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             </Pressable>
           </View>
 
-          {isFailed ? (
+          {isFailed && (t.workspaceId || jumpHorse) ? (
             <View style={[s.actions, { marginTop: 4 }]}>
-              {t.workspaceId || jumpHorse ? (
-                <Pressable
-                  style={s.btn}
-                  onPress={() =>
-                    statusM.mutate({ id: t.id, status: "running" })
-                  }
-                >
-                  <Text style={s.btnText}>重连</Text>
-                </Pressable>
-              ) : null}
               <Pressable
                 style={s.btn}
-                onPress={() => statusM.mutate({ id: t.id, status: "pending" })}
+                onPress={() => statusM.mutate({ id: t.id, status: "running" })}
               >
-                <Text style={s.btnText}>重置</Text>
+                <Text style={s.btnText}>重连</Text>
               </Pressable>
             </View>
           ) : null}
@@ -1466,6 +1507,19 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               >
                 <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
                   {t.pinned ? "取消置顶" : "置顶任务"}
+                </Text>
+              </Pressable>
+              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+              <Pressable
+                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setMenuTodo(null);
+                  resetM.mutate(t.id);
+                }}
+              >
+                <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+                  重置任务
                 </Text>
               </Pressable>
               <View style={{ height: 1, backgroundColor: theme.colors.border }} />
@@ -2748,14 +2802,37 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     spawnedList.length ? ` · 已跑 ${spawnedList.length} 匹` : ""
                   }，多个并行）`}
             </Text>
-            {spawnedList.length > 0 ? (
-              <Text style={s.empty}>
-                已跑过：{spawnedList
-                  .map((a) => `#${a.no ?? run.agents.indexOf(a) + 1} ${agentLabel(a)}`)
-                  .join(" · ")}
-                （跑过的不给删）
-              </Text>
-            ) : null}
+            {spawnedList.map((a) => {
+              const horseNo = a.no;
+              return (
+                <View
+                  key={horseNo ?? `s${run.agents.indexOf(a)}`}
+                  style={s.agentRow}
+                >
+                  <Text style={[s.chipText, { flex: 1 }]} numberOfLines={1}>
+                    {`#${horseNo ?? run.agents.indexOf(a) + 1} ${agentLabel(a)}`}
+                  </Text>
+                  <Pressable
+                    style={s.iconBtn}
+                    disabled={horseNo == null || removeHorseM.isPending}
+                    onPress={() => {
+                      if (horseNo != null)
+                        removeHorseM.mutate({ id: run.id, no: horseNo });
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: theme.colors.statusDanger,
+                        fontSize: 16,
+                        opacity: horseNo == null ? 0.3 : 1,
+                      }}
+                    >
+                      ✕
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
             {run.agents.map((a, i) => {
               if (a.spawnedAt) return null;
               return (

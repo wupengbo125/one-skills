@@ -24,6 +24,7 @@ import {
   horseBySession,
   reviewTemplateRpc,
   removeWorktreeRpc,
+  removeHorseRpc,
   type AgentRef,
   type Todo,
 } from "../shared/todo";
@@ -447,6 +448,50 @@ export async function handleRemoveWorktree(
     agents: (todo.agents ?? []).filter(
       (a) => a.workspaceId !== input.workspaceId,
     ),
+  });
+  return { ok: true, todo: updated };
+}
+
+/**
+ * 跑任务弹层里按匹马划掉名单：按马的号认马，只抹这一条。只有它独占、且不是
+ * 主工作区的工作区才顺手关（连分支一起）；共用 / 主工作区只抹名单，不动真身。
+ * 幽灵马（真身早没了）也走这条，抹掉名单即可，不影响别的马。
+ */
+export async function handleRemoveHorse(
+  input: RpcInput<typeof removeHorseRpc>,
+  { paseo }: PluginHandlerContext,
+): Promise<RpcOutput<typeof removeHorseRpc>> {
+  const todo = getTodo(input.id);
+  if (!todo) return { ok: false, todo: null, error: "待办不存在" };
+  const horses = todo.agents ?? [];
+  const idx = horses.findIndex((a) => a.no === input.no);
+  if (idx < 0) return { ok: false, todo, error: "未找到这匹马" };
+  const horse = horses[idx];
+  const wid = horse.workspaceId;
+  const shared = wid
+    ? horses.filter((a) => a.workspaceId === wid).length > 1
+    : false;
+
+  if (wid && wid !== todo.workspaceId && !shared) {
+    const repo = todo.worktreeRepo || todo.projectPath || todo.cwd;
+    if (repo && horse.branch) {
+      try {
+        await deleteBranches(repo, [horse.branch]);
+      } catch {
+        // ignore
+      }
+    }
+    try {
+      await paseo.workspaces.ref(wid).archive();
+    } catch {
+      // ignore
+    }
+  }
+
+  const remaining = horses.filter((_, i) => i !== idx);
+  const updated = saveTodo({
+    ...todo,
+    agents: remaining.length ? remaining : [{ provider: "", model: "" }],
   });
   return { ok: true, todo: updated };
 }

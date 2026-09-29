@@ -7,6 +7,7 @@ import {
   initialKindOf,
   isTerminalProvider,
   primaryAgent,
+  resetTodoRpc,
   startTodoRpc,
   type AgentRef,
   type Todo,
@@ -676,6 +677,85 @@ export async function handleFinishTodo(
     status: "done",
     finishedAt: new Date().toISOString(),
     error: undefined,
+  });
+  return { ok: true, todo: next, closed, failed };
+}
+
+/**
+ * 重置：把这单变回一个没跑过的待办。跑动痕迹全清（马名单、赛马模式、评审员、
+ * 发号进度、这单用的仓库、主工作区、报错、起止时间），状态回未开始；建单时填的
+ * 那份（标题、内容、项目、隔离、分支、技能、置顶、委员会成员）原样留着。
+ * 这单名下还活着的工作区先关掉，关不掉的跳过。
+ */
+export async function handleResetTodo(
+  input: RpcInput<typeof resetTodoRpc>,
+  { paseo }: PluginHandlerContext,
+): Promise<{
+  ok: boolean;
+  todo: Todo | null;
+  closed: number;
+  failed: string[];
+  error?: string;
+}> {
+  const todo = getTodo(input.id);
+  if (!todo) {
+    return { ok: false, todo: null, closed: 0, failed: [], error: "待办不存在" };
+  }
+
+  const ids = Array.from(
+    new Set(
+      [
+        todo.workspaceId,
+        ...(todo.agents ?? []).map((a) => a.workspaceId),
+        todo.review?.workspaceId,
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  // 名字先抄一份，关掉之后 list 里就查不到了
+  const names = new Map<string, string>();
+  try {
+    for (const w of (await paseo.workspaces.list()).entries ?? []) {
+      names.set(w.id, w.title || w.name || w.id);
+    }
+  } catch {
+    // 查不到名单就只用 id 报
+  }
+
+  let closed = 0;
+  const failed: string[] = [];
+  for (const id of ids) {
+    // 名单查得到又不在名单里 = 已经归档过了，算关过了
+    if (names.size > 0 && !names.has(id)) continue;
+    try {
+      await paseo.workspaces.ref(id).archive();
+      closed += 1;
+    } catch {
+      failed.push(names.get(id) ?? id);
+    }
+  }
+
+  // worktree 模式跑过之后 projectPath 会被改成那条 worktree 的目录，重置要还原成仓库
+  const projectPath =
+    todo.projectPath && todo.isolation === "worktree"
+      ? todo.worktreeRepo ?? todo.projectPath
+      : todo.projectPath;
+
+  const next = saveTodo({
+    ...todo,
+    status: "pending",
+    agents: [{ provider: "", model: "" }],
+    projectPath,
+    raceMode: undefined,
+    review: undefined,
+    autoReview: undefined,
+    nextNo: undefined,
+    worktreeRepo: undefined,
+    workspaceId: undefined,
+    workspaceName: undefined,
+    error: undefined,
+    startedAt: undefined,
+    finishedAt: undefined,
   });
   return { ok: true, todo: next, closed, failed };
 }
