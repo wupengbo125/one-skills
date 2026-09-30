@@ -2812,7 +2812,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             {initialView !== "collapsed" ? (
               <>
                 <Text style={s.pathText}>
-                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）、{"{{id}}"}（工作区ID）与 {"{{members}}"}（委员会两个成员）：
+                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）、{"{{id}}"}（工作区ID）、{"{{members}}"}（委员会两个成员）与 {"{{Skills}}"}（本单已选技能）：
                 </Text>
                 {initialQ.isLoading ? (
                   <Text style={s.empty}>读取中…</Text>

@@ -307,7 +307,8 @@ const DEFAULT_SEND =
   "【评审反馈与整改建议】以下为审阅结论。请评估可行性并排查技术风险，涉及架构与关键逻辑变更须经确认后推进，依此落实修正。";
 
 const DEFAULT_INITIAL = `会话开始时，先记录一下 Git commit ID 到需求文档中。
-把上面的需求整理成平铺计划列给用户，并写到：{{docPath}}`;
+把上面的需求整理成平铺计划列给用户，并写到：{{docPath}}
+[使用技能: {{Skills}}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]`;
 
 // 委员会那份多带一句：{{members}} 是唯一把两个成员递给技能的地方，缺了成员就传不过去
 const DEFAULT_INITIAL_COMMITTEE = `${DEFAULT_INITIAL}

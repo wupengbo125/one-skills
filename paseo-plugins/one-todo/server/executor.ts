@@ -24,6 +24,7 @@ function formatInitialPrompt(
   wsId: string,
   kind: TplKind,
   members: string,
+  skills: string[],
 ): string {
   let initial = "";
   try {
@@ -33,11 +34,21 @@ function formatInitialPrompt(
   }
   if (!initial.trim()) return basePrompt;
   const docPath = taskDocPath(wsId);
-  const extraText = initial
+  const skillText = skills.join(", ");
+  let tpl = initial
     .replace(/\{\{(docPath|taskDocPath)\}\}/g, docPath)
     .replace(/\{\{(id|workspaceId)\}\}/g, wsId)
-    .replace(/\{\{members\}\}/g, members)
-    .trim();
+    .replace(/\{\{members\}\}/g, members);
+  if (skillText) {
+    tpl = tpl.replace(/\{\{Skills\}\}/g, skillText);
+  } else {
+    // 没选技能：含 {{Skills}} 的那行整行丢掉，别剩「使用技能: 。」
+    tpl = tpl
+      .split("\n")
+      .filter((line) => !line.includes("{{Skills}}"))
+      .join("\n");
+  }
+  const extraText = tpl.trim();
   return extraText ? `${extraText}\n\n${basePrompt}` : basePrompt;
 }
 
@@ -220,12 +231,8 @@ export async function handleStartTodo(
   }
 
   const title = todo.title.trim();
-  // 技能就是界面技能框里选的那些，代码不替用户挑
+  // 技能就是界面技能框里选的那些，代码不替用户挑；开跑时只填进开场向导词的 {{Skills}} 空位，台词归向导词
   const skillList = todo.skills ?? [];
-  const skillPrefix =
-    skillList.length > 0
-      ? `[使用技能: ${skillList.join(", ")}。若未安装或未找到上述技能，必须立即向我反馈，不得擅自执行]\n\n`
-      : "";
   // 委员会两个成员写在委员会开场向导词的 {{members}} 里；台词归向导词，代码不管
   const memberText = members
     .map((m) => (m.model ? `${m.provider} / ${m.model}` : `${m.provider} / 默认`))
@@ -233,7 +240,7 @@ export async function handleStartTodo(
   const body = todo.prompt.trim()
     ? (title ? `${title}\n\n${todo.prompt.trim()}` : todo.prompt.trim())
     : title;
-  const prompt = skillPrefix + body;
+  const prompt = body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
   // 只派没跑过的马：老马（标过 spawnedAt）的会话和 worktree 都不动
@@ -317,7 +324,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind, memberText),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
         );
         recordSession(i, launched);
         recordHome(i, {
@@ -374,7 +381,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind, memberText),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
           );
           recordSession(i, launched);
           // 这匹马住哪：它自己的分支工作区
@@ -420,7 +427,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind, memberText),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
           );
           recordSession(i, launched);
           // 几匹马都住这一个工作区：选 Worktree 就是那条 worktree
@@ -472,7 +479,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind, memberText),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
         );
         recordSession(i, launched);
         recordHome(i, {
