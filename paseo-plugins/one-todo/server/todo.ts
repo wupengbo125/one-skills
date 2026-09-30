@@ -184,13 +184,12 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.nextNo !== undefined) next.nextNo = p.nextNo;
   if (p.extraPrompt !== undefined) next.extraPrompt = p.extraPrompt.trim() || undefined;
   if (p.status !== undefined) {
-    // 手动点成"进行中"也要记下开始时间，记的就是点的这一刻
-    const wasRunning = next.status === "running";
+    // 手动点成"进行中"、或点重连：开始时间只在本来没有的时候记一次，不覆盖已有的
     next.status = p.status;
     if (p.status === "running") {
       next.error = undefined;
       next.finishedAt = undefined;
-      if (!wasRunning || !next.startedAt) {
+      if (!next.startedAt) {
         next.startedAt = new Date().toISOString();
       }
     }

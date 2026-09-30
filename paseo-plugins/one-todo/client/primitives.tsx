@@ -72,7 +72,7 @@ const DOT = 5; // 所有点一样大
 const SPACING = DOT - 1; // 点挨着点，不留缝
 const HOUR_POINTS = 60; // 60 个普通点合成 1 个小时点
 const DAY_HOURS = 24; // 24 个小时点合成 1 个天点
-const CAP = 200; // 一圈装 200 节：这一轮攒到 200 个普通点就是首尾相撞（写死，跟卡片多大无关）
+const CAP = 220; // 一圈装 220 节：这一轮攒到 220 个普通点就是首尾相撞（写死，跟卡片多大无关）
 
 // 蛇的真实状态只存在"任务的开始时间"上：打开界面时从那一刻往后推一遍，
 // 每分钟长一个普通点；这一轮攒到 200 个普通点（CAP）就算首尾相撞，
@@ -115,6 +115,7 @@ export function RibbonSnake({
 
   const foodRef = useRef<number[]>([]);
   const headRef = useRef(0);
+  const eatenRef = useRef(0);
   const simRef = useRef<Sim>({ upto: 0, hour: 0, day: 0, normals: 0 });
   const simKeyRef = useRef("");
 
@@ -189,6 +190,7 @@ export function RibbonSnake({
         sim.hour = 0;
         sim.day = 0;
         sim.normals = 0;
+        eatenRef.current = 0;
         setEaten(0);
       }
       while (sim.upto < minute) {
@@ -196,24 +198,37 @@ export function RibbonSnake({
         sim.upto += 1;
       }
 
+      // 新点只落在空白弧里：蛇身占多长就避开多长；空白只剩一点也照放，那就瞬间被吃掉
+      const spot = (head: number) => {
+        const stepLen = SPACING / perimeter;
+        const bodyLen = Math.min(
+          CAP,
+          1 + sim.day + sim.hour + sim.normals + eatenRef.current,
+        );
+        const span = Math.min(0.98, Math.max(0, bodyLen - 1) * stepLen);
+        const p = head + Math.random() * (1 - span);
+        return ((p % 1) + 1) % 1;
+      };
+
       // 食物只在被吃掉时才换位置（唯一的触发点）；这里只负责开局摆第一个
       if (foodRef.current.length === 0) {
-        foodRef.current = [Math.random()];
+        foodRef.current = [spot(s)];
         setFoods(foodRef.current);
       }
 
-      // 吃到就立刻在别处补一个
+      // 吃到就立刻在别处空的地方补一个
       const prev = headRef.current;
       headRef.current = s;
       const crossed = (p: number) =>
         prev <= s ? p > prev && p <= s : p > prev || p <= s;
       if (foodRef.current.some(crossed)) {
         foodRef.current = foodRef.current.map((p) =>
-          crossed(p) ? Math.random() : p,
+          crossed(p) ? spot(s) : p,
         );
         setFoods(foodRef.current);
         // 吃一个身上立刻长一节（这条只在界面里算，重开界面就掉回按时间算的长度）
-        setEaten((n) => n + 1);
+        eatenRef.current += 1;
+        setEaten(eatenRef.current);
       }
 
       setView({ s, hour: sim.hour, day: sim.day, normals: sim.normals });
@@ -231,7 +246,12 @@ export function RibbonSnake({
   for (let i = 0; i < view.day; i++) body.push("day");
   for (let i = 0; i < view.hour; i++) body.push("hour");
   for (let i = 0; i < view.normals; i++) body.push("normal");
-  for (let i = 0; i < eaten; i++) body.push("normal");
+  // 吃出来的额外节数：一圈最多封顶到 CAP，满了就不再涨，免得无限叠在自己身上
+  const extra = Math.max(
+    0,
+    Math.min(eaten, CAP - 1 - view.day - view.hour - view.normals),
+  );
+  for (let i = 0; i < extra; i++) body.push("normal");
 
   const dot = (key: string, sAt: number, color: string) => {
     const pos = at(sAt);
