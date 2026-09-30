@@ -1679,9 +1679,12 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         >
           {/* 徽标单独一行钉死在右上角，不跟下面的图标抢宽度 */}
           <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
-            {t.status !== "pending" && t.branchTag === "main" ? (
+            {t.status !== "pending" &&
+            (t.branchTag === "local" ||
+              t.branchTag === "main" ||
+              (!t.branchTag && t.isolation === "local" && !t.raceMode)) ? (
               <View style={s.badge}>
-                <Text style={s.badgeText}>main</Text>
+                <Text style={s.badgeText}>🌲</Text>
               </View>
             ) : null}
             {t.pinned ? (

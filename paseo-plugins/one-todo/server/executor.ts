@@ -23,19 +23,6 @@ import { taskDocPath } from "./taskdoc";
 
 const execFileAsync = promisify(execFile);
 
-async function detectRunBranch(dir?: string, explicitBranch?: string): Promise<string | undefined> {
-  if (explicitBranch) return explicitBranch;
-  if (!dir) return undefined;
-  try {
-    const { stdout } = await execFileAsync("git", ["-C", dir, "branch", "--show-current"], {
-      encoding: "utf8",
-    });
-    return stdout.trim() || undefined;
-  } catch {
-    return undefined;
-  }
-}
-
 function formatInitialPrompt(
   basePrompt: string,
   wsId: string,
@@ -507,11 +494,11 @@ export async function handleStartTodo(
       }
     }
 
-    // 判断是否跑在 main 分支：显式分支（worktree）优先，无显式分支则检测当前目录 git 分支
-    const explicitBranch = homes.get(0)?.branch || (todo.agents ?? [])[0]?.branch;
-    const runDir = homes.get(0)?.dir || projectPath || todo.cwd;
-    const detectedBranch = await detectRunBranch(runDir, explicitBranch);
-    const branchTag = detectedBranch === "main" ? "main" : undefined;
+    // Local 模式（非 worktree 独立分支）即跑在主干，写入 local 标签
+    const isWorktreeBranch =
+      (todo.isolation ?? "local") === "worktree" &&
+      Boolean(homes.get(0)?.branch || (todo.agents ?? [])[0]?.branch);
+    const branchTag = !isWorktreeBranch && !race ? "local" : undefined;
 
     // 名单只有一份：新马连自己的会话和住处一起落进去，谁结束都认（不分批次）
     const next: Todo = {
@@ -689,7 +676,7 @@ export async function handleFinishTodo(
           if (status) {
             const files = status
               .split("\n")
-              .map((l) => l.trim())
+              .map((l: string) => l.trim())
               .filter(Boolean)
               .slice(0, 10);
             return {
