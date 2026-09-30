@@ -49,7 +49,8 @@ export const StableInput = memo(function StableInput({
   );
 });
 
-// 一条彩带的几档颜色：同一个色相，越往上越深（底色 → 蛇的点 → 小时点 → 天点）。
+// 一条彩带的几个颜色：底色和蛇的点都是莫兰迪（同一个色相，越靠前越深）；
+// 小时点用这条彩带的**反色**（色相转 180 度）再压深，跟彩带撞色、一眼能认出来。
 // 种子按黄金角错开色相，所以每条任务颜色都不一样，但都是同一种淡柔调子。
 export function morandiBand(seed: string | number) {
   const n =
@@ -61,8 +62,7 @@ export function morandiBand(seed: string | number) {
   return {
     band: at(74),
     snake: at(66),
-    hour: at(58),
-    day: at(48),
+    hour: `hsl(${(hue + 180) % 360}, 32%, 42%)`,
   };
 }
 
@@ -70,32 +70,30 @@ const LAP_MS = 60 * 1000; // 一圈 60 秒
 const MIN_MS = 60 * 1000; // 一个点 = 一分钟
 const DOT = 5; // 所有点一样大
 const SPACING = DOT - 1; // 点挨着点，不留缝
-const HOUR_POINTS = 60; // 60 个普通点合成 1 个小时点
-const DAY_HOURS = 24; // 24 个小时点合成 1 个天点
+const HOUR_POINTS = 60; // 60 个实点合成 1 个小时点
+const HOUR_CAP = 24; // 小时点最多 24 个（冗余：一般任务跑不到 24 小时）
 const CAP = 220; // 一圈装 220 节：虚点 + 实点攒到这个数就是首尾相撞（写死，跟卡片多大无关）
 const BASE = 150; // 蛇的本命长度：开跑就带着 150 个虚点，常驻、不记账
 
 // 蛇的真实状态只存在"任务的开始时间"上：打开界面时从那一刻往后推一遍，
 // 每分钟长一个实点；虚点（本命长度 BASE）只占位置不记账：
-// 它算进"绕满一圈是 220 节"里，但撞上时合成小时点/天点只数实点。
-type Sim = { upto: number; hour: number; day: number; normals: number };
+// 它算进"绕满一圈是 220 节"里，但撞上时合成小时点只数实点。
+type Sim = { upto: number; hour: number; normals: number };
 
 function advance(sim: Sim) {
   sim.normals += 1;
-  if (BASE + sim.normals + sim.hour + sim.day < CAP) return;
+  if (BASE + sim.normals + sim.hour < CAP) return;
   sim.hour += Math.floor(sim.normals / HOUR_POINTS);
   sim.normals %= HOUR_POINTS;
-  sim.day += Math.floor(sim.hour / DAY_HOURS);
-  sim.hour %= DAY_HOURS;
+  sim.hour = Math.min(sim.hour, HOUR_CAP); // 冗余：小时点封顶 24 个
   // 等级点加到把一圈占满（显示不下了）→ 重置，从 0 重算
-  if (BASE + sim.hour + sim.day >= CAP) {
+  if (BASE + sim.hour >= CAP) {
     sim.hour = 0;
-    sim.day = 0;
     sim.normals = 0;
   }
 }
 
-type Kind = "head" | "normal" | "hour" | "day";
+type Kind = "normal" | "hour";
 
 export function RibbonSnake({
   ribbon,
@@ -105,19 +103,16 @@ export function RibbonSnake({
   startedAt?: string;
 }) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  const [view, setView] = useState<{
-    s: number;
-    hour: number;
-    day: number;
-    normals: number;
-  }>({ s: 0, hour: 0, day: 0, normals: 0 });
+  const [view, setView] = useState<{ s: number; hour: number; normals: number }>(
+    { s: 0, hour: 0, normals: 0 },
+  );
   const [foods, setFoods] = useState<number[]>([]);
   const [eaten, setEaten] = useState(0);
 
   const foodRef = useRef<number[]>([]);
   const headRef = useRef(0);
   const eatenRef = useRef(0);
-  const simRef = useRef<Sim>({ upto: 0, hour: 0, day: 0, normals: 0 });
+  const simRef = useRef<Sim>({ upto: 0, hour: 0, normals: 0 });
   const simKeyRef = useRef("");
 
   // 点骑在带子中线上：容器边往里 1 像素（卡片自己那 1 像素的边也染成了彩带色）
@@ -189,7 +184,6 @@ export function RibbonSnake({
         simKeyRef.current = key;
         sim.upto = 0;
         sim.hour = 0;
-        sim.day = 0;
         sim.normals = 0;
         eatenRef.current = 0;
         setEaten(0);
@@ -204,7 +198,7 @@ export function RibbonSnake({
         const stepLen = SPACING / perimeter;
         const bodyLen = Math.min(
           CAP,
-          BASE + sim.day + sim.hour + sim.normals + eatenRef.current,
+          BASE + sim.hour + sim.normals + eatenRef.current,
         );
         const span = Math.min(0.98, Math.max(0, bodyLen - 1) * stepLen);
         const p = head + Math.random() * (1 - span);
@@ -232,7 +226,7 @@ export function RibbonSnake({
         setEaten(eatenRef.current);
       }
 
-      setView({ s, hour: sim.hour, day: sim.day, normals: sim.normals });
+      setView({ s, hour: sim.hour, normals: sim.normals });
     };
 
     tick();
@@ -240,21 +234,21 @@ export function RibbonSnake({
     return () => clearInterval(id);
   }, [perimeter, W, H, startedAt]);
 
-  const colorOf = (k: Kind) =>
-    k === "hour" ? ribbon.hour : k === "day" ? ribbon.day : ribbon.snake;
+  const colorOf = (k: Kind) => (k === "hour" ? ribbon.hour : ribbon.snake);
 
-  const body: Kind[] = ["head"];
-  // 本命长度：常驻的虚点，只占位置
-  for (let i = 0; i < BASE; i++) body.push("normal");
-  for (let i = 0; i < view.day; i++) body.push("day");
+  // 从前往后：小时点 → 实点 → 吃出来的额外节 → 150 个虚点。
+  // 不单独画蛇头，队伍第一个点就是头：有小点它就是反色的小时点，没有才是淡色。
+  const body: Kind[] = [];
   for (let i = 0; i < view.hour; i++) body.push("hour");
   for (let i = 0; i < view.normals; i++) body.push("normal");
   // 吃出来的额外节数：一圈最多封顶到 CAP，满了就不再涨，免得无限叠在自己身上
   const extra = Math.max(
     0,
-    Math.min(eaten, CAP - BASE - view.day - view.hour - view.normals),
+    Math.min(eaten, CAP - BASE - view.hour - view.normals),
   );
   for (let i = 0; i < extra; i++) body.push("normal");
+  // 本命长度：常驻的虚点，只占位置、不记账，排在尾巴那头
+  for (let i = 0; i < BASE; i++) body.push("normal");
 
   const dot = (key: string, sAt: number, color: string) => {
     const pos = at(sAt);
