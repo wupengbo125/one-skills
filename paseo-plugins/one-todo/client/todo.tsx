@@ -48,6 +48,7 @@ import {
 } from "../shared/todo";
 import { createStyles } from "./styles";
 import { morandiBand, RibbonSnake, StableInput } from "./primitives";
+import { onEscape } from "./web";
 import {
   agentLabel,
   emptyRun,
@@ -183,6 +184,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [importingRef, setImportingRef] = useState<string | null>(null);
   const [run, setRun] = useState<RunDraft | null>(null);
   const [menuTodo, setMenuTodo] = useState<Todo | null>(null);
+  // 菜单搬出卡片后要自己算位置：打开那一刻量出三点按钮和整个面板的位置，换算成面板内的坐标
+  const [menuAnchor, setMenuAnchor] = useState<{
+    top: number;
+    right: number;
+  } | null>(null);
+  const screenRef = useRef<any>(null);
+  const dotRefs = useRef<Record<string, any>>({});
   const [picker, setPicker] = useState<Picker>(null);
   const [search, setSearch] = useState("");
   const [formGen, setFormGen] = useState(0);
@@ -270,9 +278,21 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     }, 2000);
   }, []);
 
+  const closeMenu = useCallback(() => {
+    setMenuTodo(null);
+    setMenuAnchor(null);
+  }, []);
+
+  // 电脑端：按 Esc 也关菜单
+  useEffect(() => {
+    if (!menuTodo) return;
+    return onEscape(closeMenu);
+  }, [menuTodo, closeMenu]);
+
   const closeOverlays = useCallback(() => {
     if (holdTipTimer.current) clearTimeout(holdTipTimer.current);
     setHoldTip(false);
+    closeMenu();
     setRun(null);
     setPicker(null);
     setInitialView("collapsed");
@@ -280,7 +300,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     setInitialDirty(false);
     setTargetPickerOpen(false);
     committeeSkillAddedRef.current = false;
-  }, []);
+  }, [closeMenu]);
   const [bindTarget, setBindTarget] = useState<Todo | null>(null);
   const [bindInput, setBindInput] = useState("");
   const runTitleRef = useRef("");
@@ -991,6 +1011,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   };
 
   function openDetail(t?: Todo, issue?: LiveIssue) {
+    closeMenu();
     setPicker(null);
     setInitialView("collapsed");
     setInitialLoadedKind("");
@@ -1262,6 +1283,103 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   const runModalTitle = "开跑配置";
 
+  // 三点菜单的本体搬到面板浮层区了（和弹窗同一层），位置按三点按钮现量现算
+  function openMenu(t: Todo) {
+    if (menuTodo?.id === t.id) {
+      closeMenu();
+      return;
+    }
+    setMenuTodo(t);
+    setMenuAnchor(null);
+    const host = dotRefs.current[t.id];
+    const screen = screenRef.current;
+    if (!host?.measureInWindow || !screen?.measureInWindow) return;
+    screen.measureInWindow((sx: number, sy: number, sw: number) => {
+      host.measureInWindow((hx: number, hy: number, hw: number, hh: number) => {
+        setMenuAnchor({
+          top: hy - sy + hh + 4,
+          right: Math.max(4, sx + sw - (hx + hw)),
+        });
+      });
+    });
+  }
+
+  function renderTodoMenu(t: Todo) {
+    const isDone = t.status === "done";
+    return (
+      <>
+        {isDone ? (
+          // 取消完成不危险：点一下就行
+          <Pressable
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              closeMenu();
+              statusM.mutate({ id: t.id, status: "pending" });
+            }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+              取消完成
+            </Text>
+          </Pressable>
+        ) : (
+          // 标完成会关掉工作区：长按才生效
+          <HoldToLaunch
+            duration={800}
+            disabled={false}
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            textStyle={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}
+            label="完成任务"
+            onComplete={() => {
+              closeMenu();
+              finishM.mutate(t.id);
+            }}
+            onShortPress={() => toast.show("长按才算完成，会关掉它的工作区")}
+          />
+        )}
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <Pressable
+          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+          onPress={(e) => {
+            e.stopPropagation();
+            closeMenu();
+            editM.mutate({ id: t.id, patch: { pinned: !t.pinned } });
+          }}
+        >
+          <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+            {t.pinned ? "取消置顶" : "置顶任务"}
+          </Text>
+        </Pressable>
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <Pressable
+          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+          onPress={(e) => {
+            e.stopPropagation();
+            closeMenu();
+            resetM.mutate(t.id);
+          }}
+        >
+          <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+            重置任务
+          </Text>
+        </Pressable>
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <HoldToLaunch
+          duration={800}
+          disabled={false}
+          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+          textStyle={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}
+          label="删除任务"
+          onComplete={() => {
+            closeMenu();
+            delM.mutate(t.id);
+          }}
+          onShortPress={() => toast.show("长按才删除任务")}
+        />
+      </>
+    );
+  }
+
   function renderTodoCard(t: Todo) {
     const isRunning = t.status === "running";
     const isFailed = t.status === "failed";
@@ -1280,7 +1398,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           isFailed && s.cardFailed,
           isDone && s.cardDone,
           { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-          menuTodo?.id === t.id && { zIndex: 1000, elevation: 10 },
         ]}
       >
         {isRunning ? (
@@ -1444,6 +1561,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           ) : null}
           <Pressable
             accessibilityRole="button"
+            ref={(node) => {
+              dotRefs.current[t.id] = node;
+            }}
             style={{
               width: 28,
               height: 28,
@@ -1452,7 +1572,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             }}
             onPress={(e) => {
               e.stopPropagation();
-              setMenuTodo((curr) => (curr?.id === t.id ? null : t));
+              openMenu(t);
             }}
           >
             <Text style={{ fontSize: 18, color: theme.colors.foregroundMuted, fontWeight: "700", lineHeight: 18 }}>
@@ -1460,96 +1580,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             </Text>
           </Pressable>
           </View>
-          {menuTodo?.id === t.id ? (
-            <View
-              style={{
-                position: "absolute",
-                right: 0,
-                top: 54,
-                backgroundColor: theme.colors.surface1,
-                borderColor: theme.colors.border,
-                borderWidth: 1,
-                borderRadius: 8,
-                paddingVertical: 4,
-                minWidth: 110,
-                zIndex: 999,
-                elevation: 10,
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.25,
-                shadowRadius: 8,
-              }}
-            >
-              {isDone ? (
-                // 取消完成不危险：点一下就行
-                <Pressable
-                  style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    setMenuTodo(null);
-                    statusM.mutate({ id: t.id, status: "pending" });
-                  }}
-                >
-                  <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
-                    取消完成
-                  </Text>
-                </Pressable>
-              ) : (
-                // 标完成会关掉工作区：长按才生效
-                <HoldToLaunch
-                  duration={800}
-                  disabled={false}
-                  style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                  textStyle={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}
-                  label="完成任务"
-                  onComplete={() => {
-                    setMenuTodo(null);
-                    finishM.mutate(t.id);
-                  }}
-                  onShortPress={() => toast.show("长按才算完成，会关掉它的工作区")}
-                />
-              )}
-              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-              <Pressable
-                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setMenuTodo(null);
-                  editM.mutate({ id: t.id, patch: { pinned: !t.pinned } });
-                }}
-              >
-                <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
-                  {t.pinned ? "取消置顶" : "置顶任务"}
-                </Text>
-              </Pressable>
-              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-              <Pressable
-                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  setMenuTodo(null);
-                  resetM.mutate(t.id);
-                }}
-              >
-                <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
-                  重置任务
-                </Text>
-              </Pressable>
-              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-              <HoldToLaunch
-                duration={800}
-                disabled={false}
-                style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-                textStyle={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}
-                label="删除任务"
-                onComplete={() => {
-                  setMenuTodo(null);
-                  delM.mutate(t.id);
-                }}
-                onShortPress={() => toast.show("长按才删除任务")}
-              />
-            </View>
-          ) : null}
         </View>
       </View>
     );
@@ -2307,8 +2337,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const modalOpen = run !== null;
 
   return (
-    <View style={s.screen}>
-      <ScrollView contentContainerStyle={s.body}>
+    <View style={s.screen} ref={screenRef}>
+      <ScrollView
+        contentContainerStyle={s.body}
+        // 滚动时菜单跟着锚点漂，直接收掉
+        onScroll={closeMenu}
+        scrollEventThrottle={16}
+      >
         <View style={s.toolbar}>
           <View style={s.filters}>
             {(
@@ -2320,7 +2355,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Pressable
                 key={id}
                 style={[s.filterBtn, sourceFilter === id && s.filterOn]}
-                onPress={() => setSourceFilter(id)}
+                onPress={() => {
+                  closeMenu();
+                  setSourceFilter(id);
+                }}
               >
                 <Text
                   style={[s.filterText, sourceFilter === id && s.filterTextOn]}
@@ -2349,7 +2387,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           >
             <Pressable
               style={[s.repoFilter, !repoFilter && s.repoFilterOn]}
-              onPress={() => setRepoFilter("")}
+              onPress={() => {
+                closeMenu();
+                setRepoFilter("");
+              }}
             >
               <Text style={[s.repoText, !repoFilter && s.repoTextOn]}>
                 全部仓库
@@ -2359,7 +2400,10 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Pressable
                 key={r}
                 style={[s.repoFilter, repoFilter === r && s.repoFilterOn]}
-                onPress={() => setRepoFilter(r)}
+                onPress={() => {
+                  closeMenu();
+                  setRepoFilter(r);
+                }}
               >
                 <Text style={[s.repoText, repoFilter === r && s.repoTextOn]}>
                   {r}
@@ -2404,6 +2448,36 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           <Text style={s.err}>⚠ {issuesQ.data.error}</Text>
         ) : null}
       </ScrollView>
+
+      {/* 三点菜单的浮层区：一层透明背板接住"点外面"，菜单压在它上面 */}
+      {menuTodo && menuAnchor ? (
+        <View
+          style={{ position: "absolute", left: 0, top: 0, right: 0, bottom: 0 }}
+        >
+          <Pressable style={{ flex: 1 }} onPress={closeMenu} />
+          <View
+            style={{
+              position: "absolute",
+              top: menuAnchor.top,
+              right: menuAnchor.right,
+              backgroundColor: theme.colors.surface1,
+              borderColor: theme.colors.border,
+              borderWidth: 1,
+              borderRadius: 8,
+              paddingVertical: 4,
+              minWidth: 110,
+              zIndex: 999,
+              elevation: 10,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 8,
+            }}
+          >
+            {renderTodoMenu(menuTodo)}
+          </View>
+        </View>
+      ) : null}
 
       <Modal
         title={run ? (run.source === "issue" ? "配置 Issue 任务" : run.id ? "编辑待办" : "新建待办") : ""}
