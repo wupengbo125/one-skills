@@ -9,7 +9,7 @@ import {
 } from "@getpaseo/plugin/client/react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Animated } from "react-native";
@@ -147,6 +147,95 @@ function HoldToLaunch({
   );
 }
 
+// 气泡本体：深底白字圆角框（照抄"全军出击"的长按提示样式）
+function TipBubbleBox({ text }: { text: string }) {
+  return (
+    <View
+      style={{
+        backgroundColor: "rgba(20, 20, 25, 0.94)",
+        borderColor: "rgba(255, 255, 255, 0.16)",
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingVertical: 7,
+        paddingHorizontal: 14,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        elevation: 6,
+        maxWidth: 320,
+      }}
+    >
+      <Text
+        style={{
+          color: "#ffffff",
+          fontSize: 13,
+          fontWeight: "600",
+        }}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+// 提示气泡：样式照抄"全军出击"的长按提示，飘在按钮正上方
+function TipBubble({ text }: { text: string }) {
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        bottom: "100%",
+        marginBottom: 8,
+        left: 0,
+        right: 0,
+        alignItems: "center",
+        zIndex: 9999,
+      }}
+    >
+      <TipBubbleBox text={text} />
+    </View>
+  );
+}
+
+// 包住按钮：提示跟着这个按钮走；按钮没了（弹窗关掉、菜单收起）就落到全局层贴原位置
+function TipHost({
+  tipKey,
+  tipText,
+  onMount,
+  onPos,
+  children,
+  style,
+}: {
+  tipKey: string;
+  tipText: string | null;
+  onMount: (key: string, up: boolean) => void;
+  onPos: (key: string, x: number, y: number) => void;
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+}) {
+  const hostRef = useRef<any>(null);
+  useLayoutEffect(() => {
+    onMount(tipKey, true);
+    return () => onMount(tipKey, false);
+  }, [tipKey, onMount]);
+  // 挂载着就持续量位置：量的是按钮顶部中点（窗口坐标），供按钮消失后的全局层用
+  useLayoutEffect(() => {
+    const el = hostRef.current;
+    if (!el?.measureInWindow) return;
+    el.measureInWindow((x: number, y: number, w: number, h: number) => {
+      onPos(tipKey, x + (w || 0) / 2, y + (h || 0));
+    });
+  });
+  return (
+    <View ref={hostRef} style={[{ position: "relative" }, style]}>
+      {tipText != null ? <TipBubble text={tipText} /> : null}
+      {children}
+    </View>
+  );
+}
+
 export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const toast = useToast();
   const qc = useQueryClient();
@@ -278,6 +367,56 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     }, 2000);
   }, []);
 
+  // ---- 跟按钮的提示气泡：哪个按钮触发的提示，气泡就贴在哪个按钮上方 ----
+  const [tip, setTip] = useState<{ key: string; text: string } | null>(null);
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 每个 key 最近量到的按钮位置（窗口坐标，按钮顶部中点）
+  const tipPosRef = useRef<Record<string, { x: number; y: number }>>({});
+  // 哪些 key 的按钮还挂载着：挂着就贴按钮，没了就落全局层贴原位置
+  const tipHostsRef = useRef<Record<string, number>>({});
+  // 最近一次按压的按钮身份：mutation 回调弹出提示时按它找到该贴的按钮
+  const tipArmRef = useRef<string | null>(null);
+  const [, bumpTips] = useReducer((n: number) => n + 1, 0);
+  const screenOriginRef = useRef({ x: 0, y: 0 });
+
+  // 按钮按下时先登记自己的身份（onPress 开头调用）
+  const armTip = useCallback((key: string) => {
+    tipArmRef.current = key;
+  }, []);
+
+  const showTip = useCallback((text: string) => {
+    const key = tipArmRef.current;
+    if (!key) return;
+    setTip({ key, text });
+    if (tipTimer.current) clearTimeout(tipTimer.current);
+    tipTimer.current = setTimeout(() => {
+      setTip(null);
+    }, 2000);
+  }, []);
+
+  const onTipHostMount = useCallback((key: string, up: boolean) => {
+    tipHostsRef.current[key] = Math.max(
+      0,
+      (tipHostsRef.current[key] ?? 0) + (up ? 1 : -1),
+    );
+    bumpTips();
+  }, []);
+
+  const onTipHostPos = useCallback((key: string, x: number, y: number) => {
+    tipPosRef.current[key] = { x, y };
+  }, []);
+
+  const tipTextOf = (key: string) =>
+    tip && tip.key === key ? tip.text : null;
+
+  useLayoutEffect(() => {
+    const el = screenRef.current;
+    if (!el?.measureInWindow) return;
+    el.measureInWindow((x: number, y: number) => {
+      screenOriginRef.current = { x, y };
+    });
+  }, []);
+
   const closeMenu = useCallback(() => {
     setMenuTodo(null);
     setMenuAnchor(null);
@@ -377,23 +516,24 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   });
   const handleConfirmBind = useCallback(async () => {
     if (!bindTarget) return;
+    armTip("bind-confirm");
     const cleanNum = bindInput.replace(/\D/g, "");
     if (!cleanNum) {
-      toast.show("请输入待办编号（例如 44）", { variant: "info" });
+      showTip("请输入待办编号（例如 44）");
       return;
     }
     const seqNum = parseInt(cleanNum, 10);
     const all = todosQ.data?.todos ?? [];
     const source = all.find((item) => item.seq === seqNum);
     if (!source) {
-      toast.show(`未找到待办 #${seqNum}`, { variant: "info" });
+      showTip(`未找到待办 #${seqNum}`);
       return;
     }
     if (
       !(source.agents ?? []).some((a) => a.agentId || a.terminalId) &&
       !source.workspaceId
     ) {
-      toast.show(`待办 #${seqNum} 尚未关联任何会话或工作区`, { variant: "info" });
+      showTip(`待办 #${seqNum} 尚未关联任何会话或工作区`);
       return;
     }
     try {
@@ -421,33 +561,32 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       } else if (source.workspaceId) {
         navigation?.openWorkspace?.({ workspaceId: source.workspaceId });
       }
-      toast.show(`已继承 #${seqNum} 会话并跳转`, { variant: "success" });
+      showTip(`已继承 #${seqNum} 会话并跳转`);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      toast.show(`绑定失败: ${msg}`, { variant: "info" });
+      showTip(`绑定失败: ${msg}`);
     }
-  }, [bindTarget, bindInput, todosQ.data?.todos, updateTodo, invalidate, navigation, toast]);
-
+  }, [bindTarget, bindInput, todosQ.data?.todos, updateTodo, invalidate, navigation, showTip]);
   const addM = useMutation({
     mutationFn: (vars: Parameters<typeof addTodo>[0]) => addTodo(vars),
     onSuccess: (data) => {
-      toast.show("已保存", { variant: "success" });
+      showTip("已保存");
       invalidate();
       // update run.id if this was a new save so subsequent edits use editM
       if (data?.todo && !run?.id) setRun((d) => d ? { ...d, id: data.todo!.id } : d);
     },
-    onError: (e: Error) => toast.error(e.message || "保存失败"),
+    onError: (e: Error) => showTip(e.message || "保存失败"),
   });
 
   const createIssueM = useMutation({
     mutationFn: (vars: { repo: string; title: string; body: string }) =>
       createIssue(vars),
     onSuccess: () => {
-      toast.show("Issue 已创建", { variant: "success" });
+      showTip("Issue 已创建");
       closeOverlays();
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "创建 Issue 失败"),
+    onError: (e: Error) => showTip(e.message || "创建 Issue 失败"),
   });
 
   const editM = useMutation({
@@ -456,11 +595,16 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         id: vars.id,
         patch: vars.patch,
       }),
-    onSuccess: () => {
-      toast.show("已保存", { variant: "success" });
+    onSuccess: (_res, vars) => {
+      // 置顶/取消置顶走同一个通道：按改动内容说人话，别一律"已保存"
+      if (vars.patch.pinned !== undefined) {
+        showTip(vars.patch.pinned ? "已置顶" : "已取消置顶");
+      } else {
+        showTip("已保存");
+      }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "保存失败"),
+    onError: (e: Error) => showTip(e.message || "保存失败"),
   });
 
   const importIssueM = useMutation({
@@ -503,11 +647,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     },
     onMutate: (issue) => setImportingRef(`${issue.repo}#${issue.number}`),
     onSettled: () => setImportingRef(null),
-    onSuccess: () => {
-      toast.show("已存入待办", { variant: "success" });
+    onSuccess: (_res, issue) => {
+      showTip("已存入待办");
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "存入失败"),
+    onError: (e: Error) => showTip(e.message || "存入失败"),
   });
 
   const startM = useMutation({
@@ -545,15 +689,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     },
     onSuccess: (res) => {
       if (res.ok) {
-        toast.show("已开跑 🚀", { variant: "success" });
+        showTip("已开跑 🚀");
         setRun(null);
         setPicker(null);
       } else {
-        toast.error(res.error || "启动失败");
+        showTip(res.error || "启动失败");
       }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "启动失败"),
+    onError: (e: Error) => showTip(e.message || "启动失败"),
   });
 
   const statusM = useMutation({
@@ -574,19 +718,17 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     mutationFn: (id: string) => finishTodo({ id }),
     onSuccess: (res) => {
       if (res.failed.length > 0) {
-        toast.show(
+        showTip(
           `已标完成，但有 ${res.failed.length} 个工作区没关掉：${res.failed.join("、")}`,
         );
       } else if (res.closed > 0) {
-        toast.show(`已完成，关掉 ${res.closed} 个工作区`, {
-          variant: "success",
-        });
+        showTip(`已完成，关掉 ${res.closed} 个工作区`);
       } else {
-        toast.show("已完成", { variant: "success" });
+        showTip("已完成");
       }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "完成失败"),
+    onError: (e: Error) => showTip(e.message || "完成失败"),
   });
 
   // 重置：把这单变回一个没跑过的待办，服务端先关掉这单名下的工作区
@@ -594,31 +736,29 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     mutationFn: (id: string) => resetTodo({ id }),
     onSuccess: (res) => {
       if (!res.ok) {
-        toast.error(res.error || "重置失败");
+        showTip(res.error || "重置失败");
         return;
       }
       if (res.failed.length > 0) {
-        toast.show(
+        showTip(
           `已重置，但有 ${res.failed.length} 个工作区没关掉：${res.failed.join("、")}`,
         );
       } else if (res.closed > 0) {
-        toast.show(`已重置，关掉 ${res.closed} 个工作区`, {
-          variant: "success",
-        });
+        showTip(`已重置，关掉 ${res.closed} 个工作区`);
       } else {
-        toast.show("已重置", { variant: "success" });
+        showTip("已重置");
       }
       // 这单的弹层开着就收掉，免得还显示旧名单
       setRun((d) => (d && d.id === res.todo?.id ? null : d));
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "重置失败"),
+    onError: (e: Error) => showTip(e.message || "重置失败"),
   });
 
   const delM = useMutation({
     mutationFn: (id: string) => removeTodo({ id }),
     onSuccess: () => {
-      toast.show("已删除", { variant: "info" });
+      showTip("已删除");
       invalidate();
     },
   });
@@ -849,7 +989,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           text: initialRef.current,
           saved: initialSavedRef.current,
         };
-        toast.show(`${INITIAL_LABEL[prev]}开场向导词还没保存，先替你留着`);
+        showTip(`${INITIAL_LABEL[prev]}开场向导词还没保存，先替你留着`);
       }
       const draft = initialDraftsRef.current[initialKind];
       if (draft) {
@@ -880,16 +1020,16 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     mutationFn: (text: string) => reviewTemplate({ kind: initialKind, text }),
     onSuccess: (res) => {
       if (res.error || res.text === undefined) {
-        toast.error(res.error || "保存失败");
+        showTip(res.error || "保存失败");
         return;
       }
       delete initialDraftsRef.current[initialKind];
       initialSavedRef.current = res.text;
       setInitialSeed(res.text);
       setInitialDirty(false);
-      toast.show(`${initialLabel}开场向导词已保存`, { variant: "success" });
+      showTip(`${initialLabel}开场向导词已保存`);
     },
-    onError: (e: Error) => toast.error(e.message || "保存失败"),
+    onError: (e: Error) => showTip(e.message || "保存失败"),
   });
   const arbVerdictQ = useQuery({
     queryKey: ["todo-arb-verdict", arb?.id],
@@ -940,7 +1080,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     mutationFn: (vars: { id: string; no: number }) => removeHorse(vars),
     onSuccess: (res, vars) => {
       if (res.ok) {
-        toast.show("已删除该马", { variant: "success" });
+        showTip("已删除该马");
         setRun((d) =>
           d
             ? {
@@ -950,11 +1090,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             : d,
         );
       } else {
-        toast.error(res.error || "删除失败");
+        showTip(res.error || "删除失败");
       }
       invalidate();
     },
-    onError: (e: Error) => toast.error(e.message || "删除失败"),
+    onError: (e: Error) => showTip(e.message || "删除失败"),
   });
   const allIssues: LiveIssue[] = issuesQ.data?.issues ?? [];
   const repos = issuesQ.data?.repos ?? [];
@@ -1130,8 +1270,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   function onSaveDraft() {
     if (!run) return;
+    armTip("save-draft");
     const title = runTitleRef.current.trim() || run.title.trim();
-    if (!title) return toast.error("标题必填");
+    if (!title) return showTip("标题必填");
     const prompt = runPromptRef.current.trim();
     const agents = run.agents.filter((a) => a.provider.trim());
     setRun((d) => (d ? { ...d, title, prompt } : d));
@@ -1181,36 +1322,37 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   function onRun() {
     if (!run) return;
+    armTip("run-launch");
     const title = runTitleRef.current.trim() || run.title.trim();
     if (title) run.title = title;
-    if (!run.title.trim()) return toast.error("标题必填");
+    if (!run.title.trim()) return showTip("标题必填");
     const prompt = runPromptRef.current.trim();
     run.prompt = prompt;
     if (!run.agents.length || !run.agents.every((a) => a.provider.trim()))
-      return toast.error("每个 Agent 都要选 Provider");
+      return showTip("每个 Agent 都要选 Provider");
     if (!pendingAgents.length)
-      return toast.error("没有新马要派，先加一匹");
+      return showTip("没有新马要派，先加一匹");
     if (run.race) {
-      if (run.agents.length < 2) return toast.error("赛马至少 2 匹马");
+      if (run.agents.length < 2) return showTip("赛马至少 2 匹马");
       if (!run.projectId && !run.projectPath)
-        return toast.error("赛马要先选项目（Worktree 需要仓库）");
-      if (!run.newBranch.trim()) return toast.error("新建分支名不能为空");
+        return showTip("赛马要先选项目（Worktree 需要仓库）");
+      if (!run.newBranch.trim()) return showTip("新建分支名不能为空");
     }
     if (run.committee) {
-      if (run.agents.length !== 1) return toast.error("委员会只能一匹马");
+      if (run.agents.length !== 1) return showTip("委员会只能一匹马");
       if (
         (run.committeeMembers ?? []).filter((m) => m.provider.trim()).length !== 2
       )
-        return toast.error("先给委员会指定两个成员");
+        return showTip("先给委员会指定两个成员");
     }
     if (!run.workspaceId && !run.race) {
       if (!run.projectId && !run.projectPath) {
-        return toast.error("选一个项目");
+        return showTip("选一个项目");
       }
       if (run.isolation === "worktree" && !run.projectId && !run.projectPath)
-        return toast.error("Worktree 需要先选项目");
+        return showTip("Worktree 需要先选项目");
       if (run.isolation === "worktree" && !run.newBranch.trim())
-        return toast.error("新建分支名不能为空");
+        return showTip("新建分支名不能为空");
     }
     startM.mutate(run);
   }
@@ -1324,58 +1466,96 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </Pressable>
         ) : (
           // 标完成会关掉工作区：长按才生效
+          <TipHost
+            tipKey="menu-finish"
+            tipText={tipTextOf("menu-finish")}
+            onMount={onTipHostMount}
+            onPos={onTipHostPos}
+          >
+            <HoldToLaunch
+              duration={800}
+              disabled={false}
+              style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+              textStyle={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}
+              label="完成任务"
+              onComplete={() => {
+                armTip("menu-finish");
+                closeMenu();
+                finishM.mutate(t.id);
+              }}
+              onShortPress={() => {
+                armTip("menu-finish");
+                showTip("长按才算完成，会关掉它的工作区");
+              }}
+            />
+          </TipHost>
+        )}
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <TipHost
+          tipKey="pin"
+          tipText={tipTextOf("pin")}
+          onMount={onTipHostMount}
+          onPos={onTipHostPos}
+        >
+          <Pressable
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              armTip("pin");
+              closeMenu();
+              editM.mutate({ id: t.id, patch: { pinned: !t.pinned } });
+            }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+              {t.pinned ? "取消置顶" : "置顶任务"}
+            </Text>
+          </Pressable>
+        </TipHost>
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <TipHost
+          tipKey="menu-reset"
+          tipText={tipTextOf("menu-reset")}
+          onMount={onTipHostMount}
+          onPos={onTipHostPos}
+        >
+          <Pressable
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              armTip("menu-reset");
+              closeMenu();
+              resetM.mutate(t.id);
+            }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+              重置任务
+            </Text>
+          </Pressable>
+        </TipHost>
+        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
+        <TipHost
+          tipKey="menu-delete"
+          tipText={tipTextOf("menu-delete")}
+          onMount={onTipHostMount}
+          onPos={onTipHostPos}
+        >
           <HoldToLaunch
             duration={800}
             disabled={false}
             style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-            textStyle={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}
-            label="完成任务"
+            textStyle={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}
+            label="删除任务"
             onComplete={() => {
+              armTip("menu-delete");
               closeMenu();
-              finishM.mutate(t.id);
+              delM.mutate(t.id);
             }}
-            onShortPress={() => toast.show("长按才算完成，会关掉它的工作区")}
+            onShortPress={() => {
+              armTip("menu-delete");
+              showTip("长按才删除任务");
+            }}
           />
-        )}
-        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-        <Pressable
-          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-          onPress={(e) => {
-            e.stopPropagation();
-            closeMenu();
-            editM.mutate({ id: t.id, patch: { pinned: !t.pinned } });
-          }}
-        >
-          <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
-            {t.pinned ? "取消置顶" : "置顶任务"}
-          </Text>
-        </Pressable>
-        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-        <Pressable
-          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-          onPress={(e) => {
-            e.stopPropagation();
-            closeMenu();
-            resetM.mutate(t.id);
-          }}
-        >
-          <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
-            重置任务
-          </Text>
-        </Pressable>
-        <View style={{ height: 1, backgroundColor: theme.colors.border }} />
-        <HoldToLaunch
-          duration={800}
-          disabled={false}
-          style={{ paddingHorizontal: 12, paddingVertical: 10 }}
-          textStyle={{ fontSize: 13, color: theme.colors.statusDanger, fontWeight: "500" }}
-          label="删除任务"
-          onComplete={() => {
-            closeMenu();
-            delM.mutate(t.id);
-          }}
-          onShortPress={() => toast.show("长按才删除任务")}
-        />
+        </TipHost>
       </>
     );
   }
@@ -1414,33 +1594,39 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 style={{ flexDirection: "row", gap: 6, alignItems: "center" }}
               >
                 {t.seq ? (
-                  <Pressable
-                    style={[s.badge, { backgroundColor: theme.colors.surface1 }]}
-                    onPress={async (e) => {
-                      e.stopPropagation();
-                      if (t.status === "running") {
-                        // 进行中：只重置，不复制
-                        statusM.mutate({ id: t.id, status: "pending" });
-                        toast.show("已恢复未开始", { variant: "success" });
-                        return;
-                      }
-                      statusM.mutate({ id: t.id, status: "running" });
-                      const text = [
-                        `请执行待办任务 #${t.seq}《${t.title}》：`,
-                        t.prompt ? `【说明与要求】\n${t.prompt}` : "",
-                      ]
-                        .filter(Boolean)
-                        .join("\n");
-                      await copyText(text);
-                      toast.show("已复制指令并设为进行中", {
-                        variant: "success",
-                      });
-                    }}
+                  <TipHost
+                    tipKey={`seq:${t.id}`}
+                    tipText={tipTextOf(`seq:${t.id}`)}
+                    onMount={onTipHostMount}
+                    onPos={onTipHostPos}
                   >
-                    <Text style={[s.badgeText, { color: theme.colors.accent }]}>
-                      #{t.seq}
-                    </Text>
-                  </Pressable>
+                    <Pressable
+                      style={[s.badge, { backgroundColor: theme.colors.surface1 }]}
+                      onPress={async (e) => {
+                        e.stopPropagation();
+                        armTip(`seq:${t.id}`);
+                        if (t.status === "running") {
+                          // 进行中：只重置，不复制
+                          statusM.mutate({ id: t.id, status: "pending" });
+                          showTip("已恢复未开始");
+                          return;
+                        }
+                        statusM.mutate({ id: t.id, status: "running" });
+                        const text = [
+                          `请执行待办任务 #${t.seq}《${t.title}》：`,
+                          t.prompt ? `【说明与要求】\n${t.prompt}` : "",
+                        ]
+                          .filter(Boolean)
+                          .join("\n");
+                        await copyText(text);
+                        showTip("已复制指令并设为进行中");
+                      }}
+                    >
+                      <Text style={[s.badgeText, { color: theme.colors.accent }]}>
+                        #{t.seq}
+                      </Text>
+                    </Pressable>
+                  </TipHost>
                 ) : null}
                 <Text
                   style={[s.t, isDone && s.tDone, { flex: 1 }]}
@@ -1628,11 +1814,20 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </Pressable>
         </View>
         <View style={s.actions}>
-          <Pressable
-            style={[s.btn, !saved && s.btnPrimary]}
-            onPress={() => importIssueM.mutate(issue)}
-            disabled={saved || importing}
+          <TipHost
+            tipKey={`import:${ref}`}
+            tipText={tipTextOf(`import:${ref}`)}
+            onMount={onTipHostMount}
+            onPos={onTipHostPos}
           >
+            <Pressable
+              style={[s.btn, !saved && s.btnPrimary]}
+              onPress={() => {
+                armTip(`import:${ref}`);
+                importIssueM.mutate(issue);
+              }}
+              disabled={saved || importing}
+            >
             {!saved ? (
               <Icon
                 name="Plus"
@@ -1649,7 +1844,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             >
               {saved ? "已存入" : importing ? "存入中…" : "存入待办"}
             </Text>
-          </Pressable>
+            </Pressable>
+          </TipHost>
         </View>
       </View>
     );
@@ -2048,29 +2244,37 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                             </Text>
                           </Pressable>
                           {isWorktree ? (
-                            <HoldToLaunch
-                              duration={800}
-                              disabled={removeWorktreeM.isPending}
-                              style={{
-                                padding: 6,
-                                opacity: removeWorktreeM.isPending ? 0.4 : 0.8,
-                              }}
-                              textStyle={{
-                                color: theme.colors.statusDanger,
-                                fontSize: 15,
-                                fontWeight: "700",
-                              }}
-                              label="✕"
-                              onComplete={() =>
-                                removeWorktreeM.mutate({
-                                  id: arb.id,
-                                  workspaceId: c.workspaceId,
-                                })
-                              }
-                              onShortPress={() =>
-                                toast.show("长按才删掉这条候选")
-                              }
-                            />
+                            <TipHost
+                              tipKey={`remove-worktree:${idx}`}
+                              tipText={tipTextOf(`remove-worktree:${idx}`)}
+                              onMount={onTipHostMount}
+                              onPos={onTipHostPos}
+                            >
+                              <HoldToLaunch
+                                duration={800}
+                                disabled={removeWorktreeM.isPending}
+                                style={{
+                                  padding: 6,
+                                  opacity: removeWorktreeM.isPending ? 0.4 : 0.8,
+                                }}
+                                textStyle={{
+                                  color: theme.colors.statusDanger,
+                                  fontSize: 15,
+                                  fontWeight: "700",
+                                }}
+                                label="✕"
+                                onComplete={() =>
+                                  removeWorktreeM.mutate({
+                                    id: arb.id,
+                                    workspaceId: c.workspaceId,
+                                  })
+                                }
+                                onShortPress={() => {
+                                  armTip(`remove-worktree:${idx}`);
+                                  showTip("长按才删掉这条候选");
+                                }}
+                              />
+                            </TipHost>
                           ) : null}
                         </View>
                       );
@@ -2536,6 +2740,12 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={s.formSection}>
             <Text style={s.formSectionTitle}>模式 *</Text>
+            <TipHost
+              tipKey="mode-seg"
+              tipText={tipTextOf("mode-seg")}
+              onMount={onTipHostMount}
+              onPos={onTipHostPos}
+            >
             <View style={{ flexDirection: "row", gap: 8 }}>
               <Pressable
                 style={[
@@ -2545,13 +2755,14 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   !run.race && !run.committee && s.segOn,
                 ]}
                 disabled={modeLocked}
-                onPress={() =>
+                onPress={() => {
+                  armTip("mode-seg");
                   setRun({
                     ...dropAutoCommitteeSkill(run),
                     race: false,
                     committee: false,
-                  })
-                }
+                  });
+                }}
               >
                 <Text
                   style={[
@@ -2566,6 +2777,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 style={[s.segBtn, s.seg, { flex: 1 }, run.committee && s.segOn]}
                 disabled={modeLocked}
                 onPress={() => {
+                  armTip("mode-seg");
                   const known = skillsQ.data?.skills;
                   // 只认技能列表：没装就不勾；已经在委员会里也不把用户删掉的勾回来
                   const auto =
@@ -2591,18 +2803,20 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               <Pressable
                 style={[s.segBtn, s.seg, { flex: 1 }, run.race && s.segOn]}
                 disabled={modeLocked}
-                onPress={() =>
+                onPress={() => {
+                  armTip("mode-seg");
                   setRun({
                     ...dropAutoCommitteeSkill(run),
                     race: true,
                     committee: false,
                     isolation: "worktree",
-                  })
-                }
+                  });
+                }}
               >
                 <Text style={[s.segText, run.race && s.segTextOn]}>赛马</Text>
               </Pressable>
             </View>
+            </TipHost>
             <Text style={s.empty}>
               {run.committee
                 ? "委员会：只 1 匹马，可 Local 可 Worktree；另指定两个成员，由它派生"
@@ -2850,20 +3064,31 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       multiline
                     />
                     <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
-                      <Pressable
-                        style={[
-                          s.btn,
-                          (initialSaveM.isPending || !initialDirty) && {
-                            opacity: 0.5,
-                          },
-                        ]}
-                        disabled={initialSaveM.isPending || !initialDirty}
-                        onPress={() => initialSaveM.mutate(initialRef.current)}
+                      <TipHost
+                        tipKey="initial-save"
+                        tipText={tipTextOf("initial-save")}
+                        onMount={onTipHostMount}
+                        onPos={onTipHostPos}
+                        style={{ alignSelf: "flex-start" }}
                       >
-                        <Text style={s.btnText}>
-                          {initialSaveM.isPending ? "保存中…" : "保存"}
-                        </Text>
-                      </Pressable>
+                        <Pressable
+                          style={[
+                            s.btn,
+                            (initialSaveM.isPending || !initialDirty) && {
+                              opacity: 0.5,
+                            },
+                          ]}
+                          disabled={initialSaveM.isPending || !initialDirty}
+                          onPress={() => {
+                            armTip("initial-save");
+                            initialSaveM.mutate(initialRef.current);
+                          }}
+                        >
+                          <Text style={s.btnText}>
+                            {initialSaveM.isPending ? "保存中…" : "保存"}
+                          </Text>
+                        </Pressable>
+                      </TipHost>
                       <Pressable
                         style={[s.btn, { backgroundColor: theme.colors.surface2 }]}
                         onPress={() => setInitialView("preview")}
@@ -2899,24 +3124,33 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   <Text style={[s.chipText, { flex: 1 }]} numberOfLines={1}>
                     {`#${horseNo ?? run.agents.indexOf(a) + 1} ${agentLabel(a)}`}
                   </Text>
-                  <Pressable
-                    style={s.iconBtn}
-                    disabled={horseNo == null || removeHorseM.isPending}
-                    onPress={() => {
-                      if (horseNo != null)
-                        removeHorseM.mutate({ id: run.id, no: horseNo });
-                    }}
+                  <TipHost
+                    tipKey={`remove-horse:${horseNo}`}
+                    tipText={tipTextOf(`remove-horse:${horseNo}`)}
+                    onMount={onTipHostMount}
+                    onPos={onTipHostPos}
                   >
-                    <Text
-                      style={{
-                        color: theme.colors.statusDanger,
-                        fontSize: 16,
-                        opacity: horseNo == null ? 0.3 : 1,
+                    <Pressable
+                      style={s.iconBtn}
+                      disabled={horseNo == null || removeHorseM.isPending}
+                      onPress={() => {
+                        if (horseNo != null) {
+                          armTip(`remove-horse:${horseNo}`);
+                          removeHorseM.mutate({ id: run.id, no: horseNo });
+                        }
                       }}
                     >
-                      ✕
-                    </Text>
-                  </Pressable>
+                      <Text
+                        style={{
+                          color: theme.colors.statusDanger,
+                          fontSize: 16,
+                          opacity: horseNo == null ? 0.3 : 1,
+                        }}
+                      >
+                        ✕
+                      </Text>
+                    </Pressable>
+                  </TipHost>
                 </View>
               );
             })}
@@ -3026,15 +3260,30 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           ) : null}
 
               <View style={{ flexDirection: "row", gap: 10 }}>
-                <Pressable
-                  style={[s.saveBtn, { flex: 1, backgroundColor: theme.colors.surface2 }]}
-                  onPress={onSaveDraft}
-                  disabled={editM.isPending || addM.isPending}
+                <TipHost
+                  tipKey="save-draft"
+                  tipText={tipTextOf("save-draft")}
+                  onMount={onTipHostMount}
+                  onPos={onTipHostPos}
+                  style={{ flex: 1 }}
                 >
-                  <Text style={[s.saveText, { color: theme.colors.foreground }]}>
-                    {editM.isPending || addM.isPending ? "保存中…" : "保存"}
-                  </Text>
-                </Pressable>
+                  <Pressable
+                    style={[s.saveBtn, { width: "100%", backgroundColor: theme.colors.surface2 }]}
+                    onPress={onSaveDraft}
+                    disabled={editM.isPending || addM.isPending}
+                  >
+                    <Text style={[s.saveText, { color: theme.colors.foreground }]}>
+                      {editM.isPending || addM.isPending ? "保存中…" : "保存"}
+                    </Text>
+                  </Pressable>
+                </TipHost>
+                <TipHost
+                  tipKey="run-launch"
+                  tipText={tipTextOf("run-launch")}
+                  onMount={onTipHostMount}
+                  onPos={onTipHostPos}
+                  style={{ flex: 1 }}
+                >
                 <View style={{ flex: 1, position: "relative" }}>
                   {holdTip ? (
                     <View
@@ -3091,6 +3340,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     onShortPress={triggerHoldTip}
                   />
                 </View>
+                </TipHost>
               </View>
             </SheetScrollView>
           ) : null}
@@ -3612,16 +3862,46 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               >
                 <Text style={s.btnText}>取消</Text>
               </Pressable>
-              <Pressable
-                style={[s.btn, s.btnPrimary, { paddingHorizontal: 16, paddingVertical: 7 }]}
-                onPress={handleConfirmBind}
+              <TipHost
+                tipKey="bind-confirm"
+                tipText={tipTextOf("bind-confirm")}
+                onMount={onTipHostMount}
+                onPos={onTipHostPos}
               >
-                <Text style={[s.btnText, s.btnTextPrimary]}>确定并跳转</Text>
-              </Pressable>
+                <Pressable
+                  style={[s.btn, s.btnPrimary, { paddingHorizontal: 16, paddingVertical: 7 }]}
+                  onPress={handleConfirmBind}
+                >
+                  <Text style={[s.btnText, s.btnTextPrimary]}>确定并跳转</Text>
+                </Pressable>
+              </TipHost>
             </View>
           </View>
         </Modal.Content>
       </Modal>
+
+      {/* 兜底层：按钮已经消失（弹窗关掉、菜单收起、列表刷新）的提示，贴着按钮原来的位置显示 */}
+      {tip && !(tipHostsRef.current[tip.key] > 0) && tipPosRef.current[tip.key]
+        ? (() => {
+            const pos = tipPosRef.current[tip.key];
+            const origin = screenOriginRef.current;
+            return (
+              <View
+                pointerEvents="none"
+                style={{
+                  position: "absolute",
+                  left: pos.x - origin.x,
+                  top: pos.y - origin.y - 8,
+                  transform: [{ translateX: "-50%" }, { translateY: "-100%" }],
+                  zIndex: 99999,
+                  elevation: 999,
+                }}
+              >
+                <TipBubbleBox text={tip.text} />
+              </View>
+            );
+          })()
+        : null}
       </View>
     );
   }
