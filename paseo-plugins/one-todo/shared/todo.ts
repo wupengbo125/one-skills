@@ -97,6 +97,7 @@ export const todoSchema = z.object({
     pinned: z.boolean().optional(),
     autoReview: autoReviewSchema.optional(),
     extraPrompt: z.string().optional(),
+    branchTag: z.string().optional(),
   });
   export const preferencesSchema = z.object({
     lastProvider: z.string().optional(),
@@ -182,6 +183,7 @@ export const updateTodoRpc = defineRpc({
       // 完成不走这里：标完成会关掉任务名下的工作区，只能走 todo.finish
       status: z.enum(["pending", "running", "failed"]).optional(),
       pinned: z.boolean().optional(),
+      branchTag: z.string().optional(),
       autoReview: autoReviewSchema.optional(),
       extraPrompt: z.string().optional(),
       committee: z.boolean().optional(),

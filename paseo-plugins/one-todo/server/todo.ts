@@ -189,6 +189,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.worktreeRepo !== undefined) next.worktreeRepo = p.worktreeRepo;
   if (p.nextNo !== undefined) next.nextNo = p.nextNo;
   if (p.extraPrompt !== undefined) next.extraPrompt = p.extraPrompt.trim() || undefined;
+  if (p.branchTag !== undefined) next.branchTag = p.branchTag.trim() || undefined;
   if (p.status !== undefined) {
     // 手动点成"进行中"、或点重连：开始时间只在本来没有的时候记一次，不覆盖已有的
     next.status = p.status;
@@ -203,6 +204,7 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
       next.startedAt = undefined;
       next.finishedAt = undefined;
       next.error = undefined;
+      next.branchTag = undefined;
     }
     if (p.status === "failed") {
       next.finishedAt = new Date().toISOString();

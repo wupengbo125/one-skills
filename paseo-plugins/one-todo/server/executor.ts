@@ -1,3 +1,5 @@
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 import type { RpcInput } from "@getpaseo/plugin";
 import type { PluginHandlerContext } from "@getpaseo/plugin/server";
 import {
@@ -18,6 +20,21 @@ import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
 import { readOrSeedTemplateRaw, type TplKind } from "./review";
 import { taskDocPath } from "./taskdoc";
+
+const execFileAsync = promisify(execFile);
+
+async function detectRunBranch(dir?: string, explicitBranch?: string): Promise<string | undefined> {
+  if (explicitBranch) return explicitBranch;
+  if (!dir) return undefined;
+  try {
+    const { stdout } = await execFileAsync("git", ["-C", dir, "branch", "--show-current"], {
+      encoding: "utf8",
+    });
+    return stdout.trim() || undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 function formatInitialPrompt(
   basePrompt: string,
@@ -490,6 +507,12 @@ export async function handleStartTodo(
       }
     }
 
+    // 判断是否跑在 main 分支：显式分支（worktree）优先，无显式分支则检测当前目录 git 分支
+    const explicitBranch = homes.get(0)?.branch || (todo.agents ?? [])[0]?.branch;
+    const runDir = homes.get(0)?.dir || projectPath || todo.cwd;
+    const detectedBranch = await detectRunBranch(runDir, explicitBranch);
+    const branchTag = detectedBranch === "main" ? "main" : undefined;
+
     // 名单只有一份：新马连自己的会话和住处一起落进去，谁结束都认（不分批次）
     const next: Todo = {
       ...todo,
@@ -497,6 +520,7 @@ export async function handleStartTodo(
       raceMode: race,
       // 只在委员会这一单上留标记；普通 / 赛马成功启动不落 false 噪声
       ...(committee ? { committeeMode: true } : {}),
+      branchTag,
       // 这一批跑起来了：会话和住处记在那匹马自己身上，标上时间下次就知道是老马
       agents: refs.map((a, i) => {
         const launched = sessions.get(i);
@@ -763,6 +787,7 @@ export async function handleResetTodo(
     error: undefined,
     startedAt: undefined,
     finishedAt: undefined,
+    branchTag: undefined,
   });
   return { ok: true, todo: next, closed, failed };
 }

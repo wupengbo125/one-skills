@@ -128,3 +128,4 @@
 - 2026-09-30 18:34 [829e4c9b-ed47-4646-9d76-946d849182ae] one-todo 三点菜单支持点外部关闭：菜单搬出卡片+透明背板+锚点定位
 - 2026-09-30 18:42 [3069ff2b-e608-4cf5-8bca-f882d9ed012b] one-todo 白盒 {{Skills}}；写记忆SOP/宪法 ppp 定 worktree 不 push
 - 2026-09-30 20:40 [5f27e561-6dd1-43fc-ba9e-1329cd42314a] one-todo toast改贴按钮气泡：TipHost+armTip跟触发按钮，按钮没了贴原位，置顶提示已置顶
+- 2026-09-30 22:07 [a9bc9c58-5655-41ef-aae5-fae54a1a2e3e] one-todo：开跑写入main分支标签，待办卡片徽标区左侧渲染main
