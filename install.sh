@@ -1,6 +1,19 @@
 #!/usr/bin/env bash
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILLS_ROOT="${1:-$SCRIPT_DIR}"
+
+# 直装模式：bash install.sh --to <agent> [技能名...]
+#   不进菜单，直接把技能链给该 agent 的技能位。不点名技能 = 装仓库里全部技能。
+#   例：bash install.sh --to codebuddy           全部技能装给 codebuddy
+#       bash install.sh --to codebuddy one-plan  只装点名的技能
+DIRECT_AGENT=""
+DIRECT_SKILLS=()
+if [ "${1:-}" == "--to" ]; then
+    DIRECT_AGENT="${2:-}"
+    DIRECT_SKILLS=("${@:3}")
+    SKILLS_ROOT="$SCRIPT_DIR"
+else
+    SKILLS_ROOT="${1:-$SCRIPT_DIR}"
+fi
 
 [ -d "$SKILLS_ROOT" ] || { echo "错误: 无效的源目录 $SKILLS_ROOT"; exit 1; }
 
@@ -162,20 +175,22 @@ install_memory_hooks() {
     echo "✅ 记忆钩子安装完成：$n 个项目仓装 pre-commit，one-hippocampus 装 post-commit"
 }
 
-# 第一步：选择要安装/卸载的技能 (Skills)
-select_menu "第一步：选择要安装/卸载的技能 (Skills)" "multi" "${ITEM_LABELS[@]}"
-# select_menu 复用同一个全局变量，第二步会覆盖它，先存下来
-SELECTED_ITEMS=("${SELECTED_INDICES[@]}")
+if [ -z "$DIRECT_AGENT" ]; then
+    # 第一步：选择要安装/卸载的技能 (Skills)
+    select_menu "第一步：选择要安装/卸载的技能 (Skills)" "multi" "${ITEM_LABELS[@]}"
+    # select_menu 复用同一个全局变量，第二步会覆盖它，先存下来
+    SELECTED_ITEMS=("${SELECTED_INDICES[@]}")
 
-if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
-    echo "未勾选任何项目，取消操作。"
-    exit 0
+    if [ ${#SELECTED_ITEMS[@]} -eq 0 ]; then
+        echo "未勾选任何项目，取消操作。"
+        exit 0
+    fi
+
+    # 第二步：选择操作（安装 / 卸载）
+    select_menu "第二步：选择操作（安装 / 卸载）" "single" "${OPS_LABELS[@]}"
+    OP_IDX="${SELECTED_INDICES[0]}"
+    IFS='|' read -r _ OP_DIR <<< "${OPS[OP_IDX]}"
 fi
-
-# 第二步：选择操作（安装 / 卸载）
-select_menu "第二步：选择操作（安装 / 卸载）" "single" "${OPS_LABELS[@]}"
-OP_IDX="${SELECTED_INDICES[0]}"
-IFS='|' read -r _ OP_DIR <<< "${OPS[OP_IDX]}"
 
 # 全局分发目标表：一行一个 target，格式 "agent|kind|path"
 #   kind: skills-dir = 技能目录 / rules-file = 宪法规则文件
@@ -228,6 +243,34 @@ for t in "${TARGETS[@]}"; do
         rules-file) USER_GLOBAL_RULES+=("$path") ;;
     esac
 done
+
+# 直装：把技能链给指定 agent 的技能位就收工，不动钩子、.gitignore 与规则位
+if [ -n "$DIRECT_AGENT" ]; then
+    DIRECT_DIR=""
+    for t in "${TARGETS[@]}"; do
+        IFS='|' read -r agent kind path <<< "$t"
+        [ "$agent" == "$DIRECT_AGENT" ] && [ "$kind" == "skills-dir" ] && DIRECT_DIR="$path"
+    done
+    [ -n "$DIRECT_DIR" ] || { echo "错误: 没有这个 agent 的技能位: $DIRECT_AGENT"; exit 1; }
+
+    names=("${DIRECT_SKILLS[@]}")
+    if [ ${#names[@]} -eq 0 ]; then
+        for d in "$SKILLS_ROOT"/one-*; do
+            [ -d "$d" ] && names+=("$(basename "$d")")
+        done
+    fi
+
+    mkdir -p "$DIRECT_DIR"
+    n=0
+    for name in "${names[@]}"; do
+        [ -d "$SKILLS_ROOT/$name" ] || { echo "  跳过（仓库里没有）: $name"; continue; }
+        link "$SKILLS_ROOT/$name" "$DIRECT_DIR/$name"
+        echo "  已装: $name -> $DIRECT_DIR/$name"
+        n=$((n + 1))
+    done
+    echo "✅ 已给 $DIRECT_AGENT 装 $n 个技能，落在 $DIRECT_DIR"
+    exit 0
+fi
 
 gitignore_add() {
     for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
