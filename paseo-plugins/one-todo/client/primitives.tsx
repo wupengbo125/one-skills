@@ -49,7 +49,7 @@ export const StableInput = memo(function StableInput({
   );
 });
 
-// 一条彩带的两个颜色：底色是莫兰迪（低饱和、高明度），蛇的点比底色深一档。
+// 一条彩带的几档颜色：同一个色相，越往上越深（底色 → 蛇的点 → 小时点 → 天点）。
 // 种子按黄金角错开色相，所以每条任务颜色都不一样，但都是同一种淡柔调子。
 export function morandiBand(seed: string | number) {
   const n =
@@ -61,28 +61,41 @@ export function morandiBand(seed: string | number) {
   return {
     band: at(74),
     snake: at(66),
+    hour: at(58),
+    day: at(48),
   };
 }
 
 const LAP_MS = 60 * 1000; // 一圈 60 秒
-const FOODS_MAX = 3; // 一圈最多摆几个点
+const MIN_MS = 60 * 1000; // 一个点 = 一分钟
 const DOT = 5; // 所有点一样大
 const SPACING = DOT - 1; // 点挨着点，不留缝
+const HOUR_POINTS = 60; // 60 个普通点合成 1 个小时点
+const DAY_HOURS = 24; // 24 个小时点合成 1 个天点
+const CAP = 200; // 一圈装 200 节：这一轮攒到 200 个普通点就是首尾相撞（写死，跟卡片多大无关）
 
-// 第 i 圈摆几个点、摆在哪：按圈号算出来，所以重开界面、换个设备看到的都一样。
-function foodsOf(i: number) {
-  let x = ((i + 7) * 1103515245 + 12345) & 0x7fffffff;
-  const next = () => {
-    x = (x * 1103515245 + 12345) & 0x7fffffff;
-    return x / 0x7fffffff;
-  };
-  const n = 1 + Math.floor(next() * FOODS_MAX);
-  return Array.from({ length: n }, () => next());
+// 蛇的真实状态只存在"任务的开始时间"上：打开界面时从那一刻往后推一遍，
+// 每分钟长一个普通点；这一轮攒到 200 个普通点（CAP）就算首尾相撞，
+// 撞上时每 60 个普通点合成 1 个小时点、每 24 个小时点合成 1 个天点，身子缩回去接着长。
+type Sim = { upto: number; hour: number; day: number; normals: number };
+
+function advance(sim: Sim) {
+  sim.normals += 1;
+  if (sim.normals < CAP) return;
+  sim.hour += Math.floor(sim.normals / HOUR_POINTS);
+  sim.normals %= HOUR_POINTS;
+  sim.day += Math.floor(sim.hour / DAY_HOURS);
+  sim.hour %= DAY_HOURS;
+  // 等级点加到把一圈占满（显示不下了）→ 重置，从 0 重算
+  if (1 + sim.hour + sim.day >= CAP) {
+    sim.hour = 0;
+    sim.day = 0;
+    sim.normals = 0;
+  }
 }
 
-// 卡片边上的彩带 + 贪吃蛇。
-// 蛇身不存界面里：按任务的开始运行时间算，每分钟长一节，长满一圈（首尾相撞）折回 1 个点。
-// 所以重开界面、断线重连、换设备都对得上，不会归零。
+type Kind = "head" | "normal" | "hour" | "day";
+
 export function RibbonSnake({
   ribbon,
   startedAt,
@@ -91,12 +104,19 @@ export function RibbonSnake({
   startedAt?: string;
 }) {
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
-  const [now, setNow] = useState(() => Date.now());
+  const [view, setView] = useState<{
+    s: number;
+    hour: number;
+    day: number;
+    normals: number;
+  }>({ s: 0, hour: 0, day: 0, normals: 0 });
+  const [foods, setFoods] = useState<number[]>([]);
+  const [eaten, setEaten] = useState(0);
 
-  useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 100);
-    return () => clearInterval(id);
-  }, []);
+  const foodRef = useRef<number[]>([]);
+  const headRef = useRef(0);
+  const simRef = useRef<Sim>({ upto: 0, hour: 0, day: 0, normals: 0 });
+  const simKeyRef = useRef("");
 
   // 点骑在带子中线上：容器边往里 1 像素（卡片自己那 1 像素的边也染成了彩带色）
   const ink = 1;
@@ -116,40 +136,32 @@ export function RibbonSnake({
       if (perimeter <= 0) return { x: ink, y: ink };
       const a = (t: number) => (r > 0 ? t / r : 0);
       let t = (((s % 1) + 1) % 1) * perimeter;
-      // 上边：左 → 右
       if (t <= ws) return { x: ink + r + t, y: ink };
       t -= ws;
-      // 右上角
       if (t <= arc)
         return {
           x: W - ink - r + r * Math.sin(a(t)),
           y: ink + r - r * Math.cos(a(t)),
         };
       t -= arc;
-      // 右边：上 → 下
       if (t <= hs) return { x: W - ink, y: ink + r + t };
       t -= hs;
-      // 右下角
       if (t <= arc)
         return {
           x: W - ink - r + r * Math.cos(a(t)),
           y: H - ink - r + r * Math.sin(a(t)),
         };
       t -= arc;
-      // 下边：右 → 左
       if (t <= ws) return { x: W - ink - r - t, y: H - ink };
       t -= ws;
-      // 左下角
       if (t <= arc)
         return {
           x: ink + r - r * Math.sin(a(t)),
           y: H - ink - r + r * Math.cos(a(t)),
         };
       t -= arc;
-      // 左边：下 → 上
       if (t <= hs) return { x: ink, y: H - ink - r - t };
       t -= hs;
-      // 左上角
       return {
         x: ink + r - r * Math.cos(a(t)),
         y: ink + r - r * Math.sin(a(t)),
@@ -158,20 +170,70 @@ export function RibbonSnake({
     [ink, W, H, r, ws, hs, arc, perimeter],
   );
 
-  const startedMs = startedAt ? Date.parse(startedAt) : NaN;
-  const hasClock = Number.isFinite(startedMs);
-  const elapsed = hasClock ? Math.max(0, now - startedMs) : 0;
+  useEffect(() => {
+    if (perimeter <= 0 || !startedAt) return;
+    const startedMs = Date.parse(startedAt);
+    if (!Number.isFinite(startedMs)) return;
+    const key = `${startedAt}|${Math.round(W)}x${Math.round(H)}`;
 
-  // 每分钟长一节；长满一圈折回 1 个点
-  const cap = step > 0 ? Math.max(2, Math.floor(1 / step)) : 2;
-  const len = hasClock ? 1 + (Math.floor(elapsed / 60000) % cap) : 1;
+    const tick = () => {
+      const elapsed = Math.max(0, Date.now() - startedMs);
+      const minute = Math.floor(elapsed / MIN_MS);
+      const s = (elapsed % LAP_MS) / LAP_MS;
 
-  const s = hasClock ? (elapsed % LAP_MS) / LAP_MS : 0;
-  const foods = hasClock
-    ? foodsOf(Math.floor(elapsed / LAP_MS)).filter((p) => p > s)
-    : [];
+      // 从上次推到的分钟往前走：界面开着时一次只走一格，只有刚打开时要一路推过来
+      const sim = simRef.current;
+      if (simKeyRef.current !== key) {
+        simKeyRef.current = key;
+        sim.upto = 0;
+        sim.hour = 0;
+        sim.day = 0;
+        sim.normals = 0;
+        setEaten(0);
+      }
+      while (sim.upto < minute) {
+        advance(sim);
+        sim.upto += 1;
+      }
 
-  const dot = (key: string, sAt: number) => {
+      // 食物只在被吃掉时才换位置（唯一的触发点）；这里只负责开局摆第一个
+      if (foodRef.current.length === 0) {
+        foodRef.current = [Math.random()];
+        setFoods(foodRef.current);
+      }
+
+      // 吃到就立刻在别处补一个
+      const prev = headRef.current;
+      headRef.current = s;
+      const crossed = (p: number) =>
+        prev <= s ? p > prev && p <= s : p > prev || p <= s;
+      if (foodRef.current.some(crossed)) {
+        foodRef.current = foodRef.current.map((p) =>
+          crossed(p) ? Math.random() : p,
+        );
+        setFoods(foodRef.current);
+        // 吃一个身上立刻长一节（这条只在界面里算，重开界面就掉回按时间算的长度）
+        setEaten((n) => n + 1);
+      }
+
+      setView({ s, hour: sim.hour, day: sim.day, normals: sim.normals });
+    };
+
+    tick();
+    const id = setInterval(tick, 100);
+    return () => clearInterval(id);
+  }, [perimeter, W, H, startedAt]);
+
+  const colorOf = (k: Kind) =>
+    k === "hour" ? ribbon.hour : k === "day" ? ribbon.day : ribbon.snake;
+
+  const body: Kind[] = ["head"];
+  for (let i = 0; i < view.day; i++) body.push("day");
+  for (let i = 0; i < view.hour; i++) body.push("hour");
+  for (let i = 0; i < view.normals; i++) body.push("normal");
+  for (let i = 0; i < eaten; i++) body.push("normal");
+
+  const dot = (key: string, sAt: number, color: string) => {
     const pos = at(sAt);
     return (
       <View
@@ -183,7 +245,7 @@ export function RibbonSnake({
           width: DOT,
           height: DOT,
           borderRadius: DOT / 2,
-          backgroundColor: ribbon.snake,
+          backgroundColor: color,
         }}
       />
     );
@@ -214,10 +276,10 @@ export function RibbonSnake({
           shadowOffset: { width: 0, height: 0 },
         }}
       />
-      {size && perimeter > 0 ? (
+      {perimeter > 0 && startedAt ? (
         <>
-          {foods.map((p, i) => dot(`f${i}`, p))}
-          {Array.from({ length: len }, (_, i) => dot(`b${i}`, s - i * step))}
+          {foods.map((p, i) => dot(`f${i}`, p, ribbon.snake))}
+          {body.map((k, i) => dot(`b${i}`, view.s - i * step, colorOf(k)))}
         </>
       ) : null}
     </View>
