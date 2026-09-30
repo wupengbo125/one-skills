@@ -203,7 +203,10 @@ export const removeTodoRpc = defineRpc({
 
 export const finishTodoRpc = defineRpc({
   name: "todo.finish",
-  input: z.object({ id: z.string() }),
+  input: z.object({
+    id: z.string(),
+    force: z.boolean().optional(),
+  }),
   output: z.object({
     ok: z.boolean(),
     todo: todoSchema.nullable(),
@@ -212,6 +215,8 @@ export const finishTodoRpc = defineRpc({
     // 没关掉的工作区（名字，给用户看是哪个）
     failed: z.array(z.string()),
     error: z.string().optional(),
+    uncommitted: z.boolean().optional(),
+    uncommittedFiles: z.array(z.string()).optional(),
   }),
 });
 

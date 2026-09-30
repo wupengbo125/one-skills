@@ -664,12 +664,49 @@ export async function handleFinishTodo(
   closed: number;
   failed: string[];
   error?: string;
+  uncommitted?: boolean;
+  uncommittedFiles?: string[];
 }> {
   const todo = getTodo(input.id);
   if (!todo) {
     return { ok: false, todo: null, closed: 0, failed: [], error: "待办不存在" };
   }
 
+  // 检查未提交：非 force 时，若工作目录处于 main 分支且有未提交修改，拦截并询问
+  if (!input.force) {
+    const dir = todo.worktreeRepo || todo.projectPath || todo.cwd;
+    if (dir) {
+      try {
+        const { stdout: branchOut } = await execFileAsync("git", ["-C", dir, "branch", "--show-current"], {
+          encoding: "utf8",
+        });
+        const branch = branchOut.trim();
+        if (branch === "main" || branch === "master") {
+          const { stdout: statusOut } = await execFileAsync("git", ["-C", dir, "status", "--porcelain"], {
+            encoding: "utf8",
+          });
+          const status = statusOut.trim();
+          if (status) {
+            const files = status
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean)
+              .slice(0, 10);
+            return {
+              ok: false,
+              todo,
+              closed: 0,
+              failed: [],
+              uncommitted: true,
+              uncommittedFiles: files,
+            };
+          }
+        }
+      } catch {
+        // 非 git 仓库或执行异常忽略
+      }
+    }
+  }
   const ids = Array.from(
     new Set(
       [

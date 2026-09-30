@@ -192,8 +192,9 @@ function TipBubble({ text }: { text: string }) {
         position: "absolute",
         bottom: "100%",
         marginBottom: 8,
+        width: 280,
         left: "50%",
-        transform: [{ translateX: "-50%" }],
+        marginLeft: -140,
         alignItems: "center",
         zIndex: 9999,
       }}
@@ -228,8 +229,8 @@ function TipHost({
   useLayoutEffect(() => {
     const el = hostRef.current;
     if (!el?.measureInWindow) return;
-    el.measureInWindow((x: number, y: number, w: number, h: number) => {
-      onPos(tipKey, x + (w || 0) / 2, y + (h || 0));
+    el.measureInWindow((x: number, y: number, w: number, _h: number) => {
+      onPos(tipKey, x + (w || 0) / 2, y);
     });
   });
   return (
@@ -296,6 +297,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     title: string;
     reviewer: AgentRef;
   } | null>(null);
+  const [uncommittedConfirm, setUncommittedConfirm] = useState<{ id: string; files: string[] } | null>(null);
   const [sendSeed, setSendSeed] = useState("");
   const [sendView, setSendView] = useState<"collapsed" | "preview" | "edit">(
     "collapsed",
@@ -719,8 +721,17 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
   // 标完成：服务端先关掉这个任务名下的工作区，关完才标完成
   const finishM = useMutation({
-    mutationFn: (id: string) => finishTodo({ id }),
-    onSuccess: (res) => {
+    mutationFn: ({ id, force }: { id: string; force?: boolean }) =>
+      finishTodo({ id, force }),
+    onSuccess: (res, vars) => {
+      if (res.uncommitted) {
+        setUncommittedConfirm({
+          id: vars.id,
+          files: res.uncommittedFiles ?? [],
+        });
+        return;
+      }
+      setUncommittedConfirm(null);
       if (res.failed.length > 0) {
         showTip(
           `已标完成，但有 ${res.failed.length} 个工作区没关掉：${res.failed.join("、")}`,
@@ -1485,7 +1496,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               onComplete={() => {
                 armTip("menu-finish");
                 closeMenu();
-                finishM.mutate(t.id);
+                finishM.mutate({ id: t.id });
               }}
               onShortPress={() => {
                 armTip("menu-finish");
@@ -3771,6 +3782,77 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </View>
         </Modal.Content>
       </Modal>
+      <Modal
+        title="main 分支有未提交修改"
+        icon={<Icon name="AlertTriangle" size={18} color={theme.colors.statusWarning} />}
+        open={Boolean(uncommittedConfirm)}
+        onOpenChange={(open) => {
+          if (!open) setUncommittedConfirm(null);
+        }}
+      >
+        <Modal.Content>
+          <View style={{ gap: 14, paddingVertical: 4 }}>
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, lineHeight: 19 }}>
+              检测到当前待办运行在 <Text style={{ fontWeight: "700", color: theme.colors.accent }}>main</Text> 分支，且本地工作区有未提交的代码修改。
+            </Text>
+            {uncommittedConfirm?.files && uncommittedConfirm.files.length > 0 ? (
+              <View
+                style={{
+                  backgroundColor: theme.colors.surface0,
+                  borderRadius: 8,
+                  padding: 10,
+                  borderWidth: 1,
+                  borderColor: theme.colors.border,
+                  gap: 4,
+                }}
+              >
+                {uncommittedConfirm.files.map((file, i) => (
+                  <Text
+                    key={i}
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: 11,
+                      color: theme.colors.foregroundMuted,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {file}
+                  </Text>
+                ))}
+              </View>
+            ) : null}
+            <Text style={{ fontSize: 12, color: theme.colors.foregroundMuted, lineHeight: 17 }}>
+              是否仍然继续完成待办？（继续完成将正常关闭关联工作区并标记为已完成）
+            </Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-end", gap: 10, marginTop: 6 }}>
+              <Pressable
+                style={[s.btn, { paddingHorizontal: 16, paddingVertical: 8 }]}
+                onPress={() => setUncommittedConfirm(null)}
+              >
+                <Text style={s.btnText}>取消</Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  s.btn,
+                  s.btnPrimary,
+                  { paddingHorizontal: 16, paddingVertical: 8 },
+                  finishM.isPending && { opacity: 0.6 },
+                ]}
+                disabled={finishM.isPending}
+                onPress={() => {
+                  if (uncommittedConfirm) {
+                    finishM.mutate({ id: uncommittedConfirm.id, force: true });
+                  }
+                }}
+              >
+                <Text style={[s.btnText, s.btnTextPrimary]}>
+                  {finishM.isPending ? "处理中…" : "继续完成"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </Modal.Content>
+      </Modal>
 
       {/* 兜底层：按钮已经消失（弹窗关掉、菜单收起、列表刷新）的提示，贴着按钮原来的位置显示 */}
       {tip && !(tipHostsRef.current[tip.key] > 0) && tipPosRef.current[tip.key]
@@ -3782,9 +3864,11 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 pointerEvents="none"
                 style={{
                   position: "absolute",
-                  left: pos.x - origin.x,
+                  left: pos.x - origin.x - 140,
                   top: pos.y - origin.y - 8,
-                  transform: [{ translateX: "-50%" }, { translateY: "-100%" }],
+                  width: 280,
+                  transform: [{ translateY: "-100%" }],
+                  alignItems: "center",
                   zIndex: 99999,
                   elevation: 999,
                 }}
