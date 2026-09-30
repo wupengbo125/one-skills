@@ -1278,7 +1278,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           isRunning && s.cardRunning,
           isFailed && s.cardFailed,
           isDone && s.cardDone,
-          { flexDirection: "row", alignItems: "center", gap: 8 },
+          { flexDirection: "row", alignItems: "flex-start", gap: 8 },
           menuTodo?.id === t.id && { zIndex: 1000, elevation: 10 },
         ]}
       >
@@ -1353,18 +1353,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 >
                   {t.title}
                 </Text>
-                {t.pinned ? (
-                  <View style={[s.badge, { backgroundColor: theme.colors.accent }]}>
-                    <Text style={[s.badgeText, { color: theme.colors.accentForeground }]}>
-                      置顶
-                    </Text>
-                  </View>
-                ) : null}
-                <View style={s.badge}>
-                  <Text style={s.badgeText}>
-                    {t.source === "issue" ? "ISSUE" : "待办"}
-                  </Text>
-                </View>
               </View>
               <Text style={s.meta}>{metaLine(t)}</Text>
               {isFailed && t.error ? (
@@ -1388,11 +1376,27 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         <View
           style={{
             position: "relative",
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 2,
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: 4,
           }}
         >
+          {/* 徽标单独一行钉死在右上角，不跟下面的图标抢宽度 */}
+          <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+            {t.pinned ? (
+              <View style={[s.badge, { backgroundColor: theme.colors.accent }]}>
+                <Text style={[s.badgeText, { color: theme.colors.accentForeground }]}>
+                  置顶
+                </Text>
+              </View>
+            ) : null}
+            <View style={s.badge}>
+              <Text style={s.badgeText}>
+                {t.source === "issue" ? "ISSUE" : "待办"}
+              </Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
           {(isRunning || isFailed) && navigation ? (
             <Pressable
               accessibilityRole="button"
@@ -1477,12 +1481,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               ⋮
             </Text>
           </Pressable>
+          </View>
           {menuTodo?.id === t.id ? (
             <View
               style={{
                 position: "absolute",
                 right: 0,
-                top: 36,
+                top: 54,
                 backgroundColor: theme.colors.surface1,
                 borderColor: theme.colors.border,
                 borderWidth: 1,
