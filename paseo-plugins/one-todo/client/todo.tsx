@@ -47,7 +47,7 @@ import {
   type TodoPreferences,
 } from "../shared/todo";
 import { createStyles } from "./styles";
-import { PulsingPurpleDot, StableInput } from "./primitives";
+import { morandiBand, RibbonSnake, StableInput } from "./primitives";
 import {
   agentLabel,
   emptyRun,
@@ -548,13 +548,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     onError: (e: Error) => toast.error(e.message || "更新失败"),
   });
 
-  const toggleRunning = useCallback(
-    (t: Todo) => {
-      const next = t.status === "running" ? "pending" : "running";
-      statusM.mutate({ id: t.id, status: next });
-    },
-    [statusM],
-  );
   // 标完成：服务端先关掉这个任务名下的工作区，关完才标完成
   const finishM = useMutation({
     mutationFn: (id: string) => finishTodo({ id }),
@@ -1270,49 +1263,25 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     const agentCount = t.agents?.filter((a) => a.provider).length ?? 0;
     // 跳转认名单里第一匹开过会话的马（归档的马已经不在名单里了）
     const jumpHorse = firstHorse(t.agents);
+    // 进行中的彩带：每条任务的带子颜色都不一样
+    const ribbon = morandiBand(t.seq ?? t.id);
     return (
       <View
         key={t.id}
         style={[
           s.card,
-          isRunning && s.cardRunning,
+          isRunning && { borderColor: ribbon.band },
           isFailed && s.cardFailed,
           isDone && s.cardDone,
           { flexDirection: "row", alignItems: "flex-start", gap: 8 },
           menuTodo?.id === t.id && { zIndex: 1000, elevation: 10 },
         ]}
       >
+        {isRunning ? (
+          <RibbonSnake ribbon={ribbon} startedAt={t.startedAt} />
+        ) : null}
         <View style={{ flex: 1 }}>
           <View style={s.cardTop}>
-            {isDone ? (
-              // 取消完成不危险：随手点回去
-              <Pressable
-                accessibilityRole="button"
-                hitSlop={{ top: 16, bottom: 16, left: 16, right: 16 }}
-                style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
-                onPress={() => statusM.mutate({ id: t.id, status: "pending" })}
-              >
-                <View style={[s.check, s.checkDone]}>
-                  <Text style={{ color: "#fff", fontSize: 12, fontWeight: "700" }}>
-                    ✓
-                  </Text>
-                </View>
-              </Pressable>
-            ) : (
-              // 标完成会关掉工作区：长按才生效
-              <HoldToLaunch
-                duration={800}
-                disabled={false}
-                style={{ alignItems: "center", justifyContent: "flex-start", paddingRight: 4 }}
-                onComplete={() => finishM.mutate(t.id)}
-                onShortPress={() =>
-                  toast.show("长按才算完成，会关掉它的工作区")
-                }
-              >
-                <View style={s.check} />
-                {isRunning ? <PulsingPurpleDot /> : null}
-              </HoldToLaunch>
-            )}
             <Pressable
               style={s.main}
               onPress={() => openEdit(t)}
@@ -1326,7 +1295,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     style={[s.badge, { backgroundColor: theme.colors.surface1 }]}
                     onPress={async (e) => {
                       e.stopPropagation();
-                      toggleRunning(t);
+                      if (t.status === "running") {
+                        // 进行中：只重置，不复制
+                        statusM.mutate({ id: t.id, status: "pending" });
+                        toast.show("已恢复未开始", { variant: "success" });
+                        return;
+                      }
+                      statusM.mutate({ id: t.id, status: "running" });
                       const text = [
                         `请执行待办任务 #${t.seq}《${t.title}》：`,
                         t.prompt ? `【说明与要求】\n${t.prompt}` : "",
@@ -1334,12 +1309,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         .filter(Boolean)
                         .join("\n");
                       await copyText(text);
-                      toast.show(
-                        t.status === "running"
-                          ? `已复制指令并恢复未开始`
-                          : `已复制指令并设为进行中`,
-                        { variant: "success" },
-                      );
+                      toast.show("已复制指令并设为进行中", {
+                        variant: "success",
+                      });
                     }}
                   >
                     <Text style={[s.badgeText, { color: theme.colors.accent }]}>
@@ -1502,6 +1474,36 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 shadowRadius: 8,
               }}
             >
+              {isDone ? (
+                // 取消完成不危险：点一下就行
+                <Pressable
+                  style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    setMenuTodo(null);
+                    statusM.mutate({ id: t.id, status: "pending" });
+                  }}
+                >
+                  <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+                    取消完成
+                  </Text>
+                </Pressable>
+              ) : (
+                // 标完成会关掉工作区：长按才生效
+                <HoldToLaunch
+                  duration={800}
+                  disabled={false}
+                  style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+                  textStyle={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}
+                  label="完成任务"
+                  onComplete={() => {
+                    setMenuTodo(null);
+                    finishM.mutate(t.id);
+                  }}
+                  onShortPress={() => toast.show("长按才算完成，会关掉它的工作区")}
+                />
+              )}
+              <View style={{ height: 1, backgroundColor: theme.colors.border }} />
               <Pressable
                 style={{ paddingHorizontal: 12, paddingVertical: 10 }}
                 onPress={(e) => {

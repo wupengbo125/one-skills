@@ -77,28 +77,12 @@ export function createStyles(theme: Theme, compact: boolean, busy: boolean) {
       padding: 14,
       gap: 10,
     },
-    cardRunning: { borderColor: theme.colors.accent },
     cardFailed: { borderColor: theme.colors.statusDanger },
     cardDone: { opacity: 0.72 },
     cardTop: {
       flexDirection: "row" as const,
       alignItems: "flex-start" as const,
       gap: 12,
-    },
-    check: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: theme.colors.accent,
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
-      marginTop: 1,
-      backgroundColor: theme.colors.surface0,
-    },
-    checkDone: {
-      backgroundColor: theme.colors.statusSuccess,
-      borderColor: theme.colors.statusSuccess,
     },
     main: { flex: 1, gap: 6 },
     t: {
