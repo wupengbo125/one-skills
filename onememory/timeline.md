@@ -130,3 +130,4 @@
 - 2026-09-30 20:40 [5f27e561-6dd1-43fc-ba9e-1329cd42314a] one-todo toast改贴按钮气泡：TipHost+armTip跟触发按钮，按钮没了贴原位，置顶提示已置顶
 - 2026-09-30 22:46 [c600179a-89e8-44ef-8ed8-9d01d410b266] one-todo：修复小按钮提示竖向换行；main未提交标完成弹确认框
 - 2026-09-30 23:06 [a9bc9c58-5655-41ef-aae5-fae54a1a2e3e] one-todo：Local模式开跑定local标签，右上角徽标渲染松树🌲
+- 2026-09-30 23:31 [f4c8de84-e536-4640-921e-f181e9e664ea] one-audit-list更名one-audit-plan并简化为覆盖总结平铺计划文档；向导词名词对齐
