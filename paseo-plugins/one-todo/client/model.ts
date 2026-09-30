@@ -89,6 +89,18 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
   };
 }
 
+// 委员会两位委员的默认值兜底：全局没记过时，取最近一张存了完整两位的委员会单
+export function lastCommitteePair(todos: Todo[]): AgentRef[] | undefined {
+  const full = todos
+    .filter((t) => t.committeeMode)
+    .filter(
+      (t) =>
+        (t.committeeMembers ?? []).filter((m) => m.provider.trim()).length === 2,
+    );
+  full.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
+  return full[0]?.committeeMembers;
+}
+
 export function metaLine(t: Todo): string {
   const agents = t.agents?.filter((a) => a.provider) ?? [];
   const agentText =

@@ -52,6 +52,7 @@ import {
   agentLabel,
   emptyRun,
   isToday,
+  lastCommitteePair,
   metaLine,
   type LiveIssue,
   type PickItem,
@@ -1041,13 +1042,18 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     d.race = t?.raceMode ?? false;
     // 委员会模式：同样跑过不能改；两个成员配置默认沿用上次
     d.committee = t?.committeeMode ?? false;
-    // 两个成员留空：逼用户显式选，不默认塞同一个 provider/model
+    // 两个成员：老单用它自己存的；新单默认带全局默认里上次保存的两位（全局没记过就退回最近一张委员会单的两位）；都没有才留空逼用户显式选
+    const lastMembers = preferences?.lastCommitteeMembers?.length
+      ? preferences.lastCommitteeMembers
+      : lastCommitteePair(todos);
     d.committeeMembers = t?.committeeMembers?.length
       ? t.committeeMembers
-      : [
-          { provider: "", model: "" },
-          { provider: "", model: "" },
-        ];
+      : lastMembers?.length
+        ? lastMembers
+        : [
+            { provider: "", model: "" },
+            { provider: "", model: "" },
+          ];
     d.agents = agents;
     d.skills = t?.skills ?? [];
     // 老委员会单：技能以前是服务端硬塞的，库里没有，开弹层时补上，免得被"要先选技能"卡死。

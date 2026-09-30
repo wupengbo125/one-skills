@@ -106,6 +106,8 @@ export const todoSchema = z.object({
     lastProjectPath: z.string().optional(),
     lastIsolation: isolationSchema.optional(),
     lastSkills: z.array(z.string()).optional(),
+    // 上次保存的委员会两位委员：新建委员会单时默认带出来
+    lastCommitteeMembers: z.array(agentRefSchema).optional(),
   });
   export type TodoPreferences = z.infer<typeof preferencesSchema>;
 export type Todo = z.infer<typeof todoSchema>;
