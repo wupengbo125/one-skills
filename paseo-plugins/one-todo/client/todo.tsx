@@ -10,7 +10,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
-import type { StyleProp, ViewStyle } from "react-native";
+import type { StyleProp, TextStyle, ViewStyle } from "react-native";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { Animated } from "react-native";
 import {
@@ -164,14 +164,18 @@ function TipBubbleBox({ text }: { text: string }) {
         shadowRadius: 6,
         elevation: 6,
         maxWidth: 320,
+        alignSelf: "center",
       }}
     >
       <Text
-        style={{
-          color: "#ffffff",
-          fontSize: 13,
-          fontWeight: "600",
-        }}
+        style={[
+          {
+            color: "#ffffff",
+            fontSize: 13,
+            fontWeight: "600",
+          },
+          { whiteSpace: "nowrap" } as unknown as TextStyle,
+        ]}
       >
         {text}
       </Text>
@@ -188,8 +192,8 @@ function TipBubble({ text }: { text: string }) {
         position: "absolute",
         bottom: "100%",
         marginBottom: 8,
-        left: 0,
-        right: 0,
+        left: "50%",
+        transform: [{ translateX: "-50%" }],
         alignItems: "center",
         zIndex: 9999,
       }}
@@ -2426,46 +2430,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
 
           <View style={{ flexDirection: "row", gap: 10 }}>
             <View style={{ flex: 1, position: "relative" }}>
-              {needTaskTip ? (
-                <View
-                  pointerEvents="none"
-                  style={{
-                    position: "absolute",
-                    bottom: "100%",
-                    marginBottom: 8,
-                    left: 0,
-                    right: 0,
-                    alignItems: "center",
-                    zIndex: 9999,
-                  }}
-                >
-                  <View
-                    style={{
-                      backgroundColor: "rgba(20, 20, 25, 0.94)",
-                      borderColor: "rgba(255, 255, 255, 0.16)",
-                      borderWidth: 1,
-                      borderRadius: 8,
-                      paddingVertical: 7,
-                      paddingHorizontal: 14,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 6,
-                      elevation: 6,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: "#ffffff",
-                        fontSize: 13,
-                        fontWeight: "600",
-                      }}
-                    >
-                      请先填写需求详情
-                    </Text>
-                  </View>
-                </View>
-              ) : null}
+              {needTaskTip ? <TipBubble text="请先填写需求详情" /> : null}
               <Pressable
                 style={[
                   s.saveBtn,
@@ -3290,46 +3255,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   style={{ flex: 1 }}
                 >
                 <View style={{ flex: 1, position: "relative" }}>
-                  {holdTip ? (
-                    <View
-                      pointerEvents="none"
-                      style={{
-                        position: "absolute",
-                        bottom: "100%",
-                        marginBottom: 8,
-                        left: 0,
-                        right: 0,
-                        alignItems: "center",
-                        zIndex: 9999,
-                      }}
-                    >
-                      <View
-                        style={{
-                          backgroundColor: "rgba(20, 20, 25, 0.94)",
-                          borderColor: "rgba(255, 255, 255, 0.16)",
-                          borderWidth: 1,
-                          borderRadius: 8,
-                          paddingVertical: 7,
-                          paddingHorizontal: 14,
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 3 },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 6,
-                          elevation: 6,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            color: "#ffffff",
-                            fontSize: 13,
-                            fontWeight: "600",
-                          }}
-                        >
-                          请长按全军出击
-                        </Text>
-                      </View>
-                    </View>
-                  ) : null}
+                  {holdTip ? <TipBubble text="请长按全军出击" /> : null}
                   <HoldToLaunch
                     style={[s.saveBtn, { width: "100%" }]}
                     textStyle={s.saveText}
@@ -3762,46 +3688,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       </Text>
                     </Pressable>
                     <View style={{ position: "relative" }}>
-                      {copyTip ? (
-                        <View
-                          pointerEvents="none"
-                          style={{
-                            position: "absolute",
-                            bottom: "100%",
-                            marginBottom: 8,
-                            left: 0,
-                            right: 0,
-                            alignItems: "center",
-                            zIndex: 9999,
-                          }}
-                        >
-                          <View
-                            style={{
-                              backgroundColor: "rgba(20, 20, 25, 0.94)",
-                              borderColor: "rgba(255, 255, 255, 0.16)",
-                              borderWidth: 1,
-                              borderRadius: 8,
-                              paddingVertical: 6,
-                              paddingHorizontal: 12,
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: 2 },
-                              shadowOpacity: 0.25,
-                              shadowRadius: 4,
-                              elevation: 4,
-                            }}
-                          >
-                            <Text
-                              style={{
-                                color: "#ffffff",
-                                fontSize: 12,
-                                fontWeight: "600",
-                              }}
-                            >
-                              已复制
-                            </Text>
-                          </View>
-                        </View>
-                      ) : null}
+                      {copyTip ? <TipBubble text="已复制" /> : null}
                       <Pressable
                         style={[
                           s.outlineBtn,
