@@ -26,6 +26,7 @@ import {
   removeTodoRpc,
   startTodoRpc,
   updateTodoRpc,
+  listInitialPromptsRpc,
   type Todo,
   type TodoSource,
 } from "../shared/todo";
@@ -121,7 +122,11 @@ export function handleAddTodo(input: RpcInput<typeof addTodoRpc>): {
     committeeMembers: input.committeeMembers,
     status: "pending",
     createdAt: now,
+    initialPromptName: input.initialPromptName,
   };
+  if (input.initialPromptName) {
+    savePreferences({ lastInitialPromptName: input.initialPromptName });
+  }
   if (input.committeeMembers !== undefined) {
     savePreferences({ lastCommitteeMembers: input.committeeMembers });
   }
@@ -150,6 +155,12 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;
   if (p.issueUrl !== undefined) next.issueUrl = p.issueUrl || undefined;
+  if (p.initialPromptName !== undefined) {
+    next.initialPromptName = p.initialPromptName;
+    if (p.initialPromptName) {
+      savePreferences({ lastInitialPromptName: p.initialPromptName });
+    }
+  }
 
   const placementTouched =
     p.projectId !== undefined ||
@@ -321,6 +332,7 @@ export {
   createIssueRpc,
   fetchIssueRpc,
   reviewTemplateRpc,
+  listInitialPromptsRpc,
   listIssuesRpc,
   listModelsRpc,
   listProjectsRpc,

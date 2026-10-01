@@ -25,6 +25,7 @@ export type RunDraft = {
   issueRef?: string;
   issueUrl?: string;
   extraPrompt?: string;
+  initialPromptName?: string;
 };
 
 export type Picker =
@@ -40,8 +41,8 @@ export type Picker =
   | { kind: "project" }
   | { kind: "workspace" }
   | { kind: "skills" }
-  | { kind: "reviewer"; step: "provider" | "model"; provider: string };
-
+  | { kind: "reviewer"; step: "provider" | "model"; provider: string }
+  | { kind: "initialPrompt" };
 export type PickItem = {
   id: string;
   label: string;
@@ -86,6 +87,7 @@ export function emptyRun(id: string, title: string, prompt: string): RunDraft {
     race: false,
     committee: false,
     committeeMembers: [],
+    initialPromptName: "",
   };
 }
 

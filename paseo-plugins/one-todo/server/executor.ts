@@ -29,10 +29,11 @@ function formatInitialPrompt(
   kind: TplKind,
   members: string,
   skills: string[],
+  initialPromptName?: string,
 ): string {
   let initial = "";
   try {
-    initial = readOrSeedTemplateRaw(kind) || "";
+    initial = readOrSeedTemplateRaw(kind, initialPromptName) || "";
   } catch {
     initial = "";
   }
@@ -174,6 +175,7 @@ export async function handleStartTodo(
     input.agents ||
     input.prompt !== undefined ||
     input.skills !== undefined ||
+    input.initialPromptName !== undefined ||
     (committee && input.committeeMembers !== undefined) ||
     hasPlacementPatch
   ) {
@@ -183,6 +185,9 @@ export async function handleStartTodo(
         ...(input.agents ? { agents: input.agents } : {}),
         ...(input.prompt !== undefined ? { prompt: input.prompt } : {}),
         ...(input.skills !== undefined ? { skills: input.skills } : {}),
+        ...(input.initialPromptName !== undefined
+          ? { initialPromptName: input.initialPromptName }
+          : {}),
         ...(input.extraPrompt !== undefined ? { extraPrompt: input.extraPrompt } : {}),
         // 委员会标记不在这里落库：只随成功收尾写（跟 raceMode 一致），
         // 启动失败的工作区失效/报错不能把模式段锁死。
@@ -244,6 +249,10 @@ export async function handleStartTodo(
   const body = todo.prompt.trim()
     ? (title ? `${title}\n\n${todo.prompt.trim()}` : todo.prompt.trim())
     : title;
+  const initialPromptName =
+    !race && !committee
+      ? (input.initialPromptName ?? todo.initialPromptName)
+      : undefined;
   const prompt = body;
   const now = new Date().toISOString();
   const multi = refs.length > 1;
@@ -328,7 +337,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList, initialPromptName),
         );
         recordSession(i, launched);
         recordHome(i, {
@@ -385,7 +394,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList, initialPromptName),
           );
           recordSession(i, launched);
           // 这匹马住哪：它自己的分支工作区
@@ -431,7 +440,7 @@ export async function handleStartTodo(
             ws,
             fresh[i],
             multi ? `${title} #${noOf(i)}` : title,
-            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
+            formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList, initialPromptName),
           );
           recordSession(i, launched);
           // 几匹马都住这一个工作区：选 Worktree 就是那条 worktree
@@ -483,7 +492,7 @@ export async function handleStartTodo(
           ws,
           fresh[i],
           multi ? `${title} #${noOf(i)}` : title,
-          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList),
+          formatInitialPrompt(prompt, ws.id, initialKind, memberText, skillList, initialPromptName),
         );
         recordSession(i, launched);
         recordHome(i, {

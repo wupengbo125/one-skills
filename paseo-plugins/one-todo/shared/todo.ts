@@ -98,6 +98,7 @@ export const todoSchema = z.object({
     autoReview: autoReviewSchema.optional(),
     extraPrompt: z.string().optional(),
     branchTag: z.string().optional(),
+    initialPromptName: z.string().optional(),
   });
   export const preferencesSchema = z.object({
     lastProvider: z.string().optional(),
@@ -109,6 +110,7 @@ export const todoSchema = z.object({
     lastSkills: z.array(z.string()).optional(),
     // 上次保存的委员会两位委员：新建委员会单时默认带出来
     lastCommitteeMembers: z.array(agentRefSchema).optional(),
+    lastInitialPromptName: z.string().optional(),
   });
   export type TodoPreferences = z.infer<typeof preferencesSchema>;
 export type Todo = z.infer<typeof todoSchema>;
@@ -146,6 +148,7 @@ export const addTodoRpc = defineRpc({
     extraPrompt: z.string().optional(),
     committee: z.boolean().optional(),
     committeeMembers: z.array(agentRefSchema).optional(),
+    initialPromptName: z.string().optional(),
   }),
   output: z.object({ todo: todoSchema }),
 });
@@ -186,6 +189,7 @@ export const updateTodoRpc = defineRpc({
       branchTag: z.string().optional(),
       autoReview: autoReviewSchema.optional(),
       extraPrompt: z.string().optional(),
+      initialPromptName: z.string().optional(),
       committee: z.boolean().optional(),
       committeeMembers: z.array(agentRefSchema).optional(),
     }),
@@ -247,6 +251,7 @@ export const startTodoRpc = defineRpc({
       // 委员会模式：同上，另带两个派生成员配置
       committee: z.boolean().optional(),
       committeeMembers: z.array(agentRefSchema).optional(),
+      initialPromptName: z.string().optional(),
       ...todoPlacementFields,
   }),
   output: z.object({
@@ -455,10 +460,26 @@ export const reviewTemplateRpc = defineRpc({
       "initialRace",
       "initialCommittee",
     ]),
+    name: z.string().optional(),
     text: z.string().optional(),
   }),
   output: z.object({
     text: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+
+export const listInitialPromptsRpc = defineRpc({
+  name: "todo.list_initial_prompts",
+  input: z.object({}),
+  output: z.object({
+    prompts: z.array(
+      z.object({
+        name: z.string(),
+        text: z.string(),
+      }),
+    ),
+    selected: z.string().optional(),
     error: z.string().optional(),
   }),
 });

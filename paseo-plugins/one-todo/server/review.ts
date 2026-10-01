@@ -2,6 +2,7 @@ import { execFile } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   rmSync,
   statSync,
@@ -28,6 +29,8 @@ import {
   type AgentRef,
   type Todo,
 } from "../shared/todo";
+import { listInitialPromptsRpc } from "../shared/todo";
+import { getPreferences, savePreferences } from "./preferences";
 import { deleteBranches } from "./worktree";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { launchAgentOrTerminal, todoAgents } from "./executor";
@@ -325,7 +328,83 @@ const DEFAULT_TPL: Record<TplKind, string> = {
 };
 
 // 写不进去就明说：悄悄吞掉会让人以为改动已经存上了
-function writeTemplate(kind: TplKind, text: string): void {
+function initialPromptDir(): string {
+  const dir = join(promptDir(), "initial");
+  if (!existsSync(dir)) {
+    mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+}
+
+export function listInitialPromptsRaw(): Array<{ name: string; text: string }> {
+  const dir = initialPromptDir();
+  let entries: string[] = [];
+  try {
+    entries = readdirSync(dir).filter((f) => f.endsWith(".md"));
+  } catch {
+    entries = [];
+  }
+  if (entries.length === 0) {
+    let text = DEFAULT_INITIAL;
+    const oldPath = join(promptDir(), "开场向导词.md");
+    if (existsSync(oldPath)) {
+      try {
+        text = readFileSync(oldPath, "utf8");
+      } catch {}
+    }
+    const initialPath = join(dir, "开场向导词.md");
+    try {
+      writeFileSync(initialPath, text, "utf8");
+    } catch {}
+    return [{ name: "开场向导词", text }];
+  }
+
+  const list: Array<{ name: string; text: string }> = [];
+  for (const file of entries) {
+    const name = file.replace(/\.md$/, "");
+    try {
+      const text = readFileSync(join(dir, file), "utf8");
+      list.push({ name, text });
+    } catch {}
+  }
+  list.sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
+  return list;
+}
+
+export function readInitialPromptRaw(name?: string): string {
+  const list = listInitialPromptsRaw();
+  if (name) {
+    const found = list.find((p) => p.name === name);
+    if (found) return found.text;
+  }
+  const prefName = getPreferences().lastInitialPromptName;
+  if (prefName) {
+    const found = list.find((p) => p.name === prefName);
+    if (found) return found.text;
+  }
+  const def = list[0];
+  return def ? def.text : DEFAULT_INITIAL;
+}
+
+export function writeInitialPromptRaw(name: string, text: string): void {
+  const cleanName = name.trim().replace(/[\\/:*?"<>|]/g, "_");
+  if (!cleanName) throw new Error("前导词名称不能为空");
+  const dir = initialPromptDir();
+  const filePath = join(dir, `${cleanName}.md`);
+  try {
+    writeFileSync(filePath, text, "utf8");
+    savePreferences({ lastInitialPromptName: cleanName });
+  } catch (e) {
+    const why = e instanceof Error ? e.message : "未知原因";
+    throw new Error(`前导词「${cleanName}」保存失败（${why}）`);
+  }
+}
+
+function writeTemplate(kind: TplKind, text: string, name?: string): void {
+  if (kind === "initial") {
+    writeInitialPromptRaw(name || "开场向导词", text);
+    return;
+  }
   try {
     mkdirSync(promptDir(), { recursive: true });
     writeFileSync(templatePath(kind), text, "utf8");
@@ -337,7 +416,10 @@ function writeTemplate(kind: TplKind, text: string): void {
   }
 }
 
-export function readOrSeedTemplateRaw(kind: TplKind): string {
+export function readOrSeedTemplateRaw(kind: TplKind, name?: string): string {
+  if (kind === "initial") {
+    return readInitialPromptRaw(name);
+  }
   try {
     return readFileSync(templatePath(kind), "utf8");
   } catch {
@@ -386,7 +468,7 @@ export function handleReviewTemplate(
   const kind: TplKind = input.kind;
   if (input.text === undefined) {
     try {
-      return { text: readOrSeedTemplateRaw(kind) };
+      return { text: readOrSeedTemplateRaw(kind, input.name) };
     } catch (e) {
       return {
         error: e instanceof Error ? e.message : "模板找不到了，请重试",
@@ -398,10 +480,27 @@ export function handleReviewTemplate(
   const bad = checkTemplate(kind, text);
   if (bad) return { error: bad };
   try {
-    writeTemplate(kind, text);
+    writeTemplate(kind, text, input.name);
     return { text };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "保存失败，请重试" };
+  }
+}
+
+export function handleListInitialPrompts(): RpcOutput<typeof listInitialPromptsRpc> {
+  try {
+    const prompts = listInitialPromptsRaw();
+    const pref = getPreferences().lastInitialPromptName;
+    const selected =
+      pref && prompts.some((p) => p.name === pref)
+        ? pref
+        : prompts[0]?.name || "开场向导词";
+    return { prompts, selected };
+  } catch (e) {
+    return {
+      prompts: [],
+      error: e instanceof Error ? e.message : "读取前导词列表失败",
+    };
   }
 }
 export async function handleRemoveWorktree(

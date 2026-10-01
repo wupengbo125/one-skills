@@ -131,3 +131,4 @@
 - 2026-09-30 22:46 [c600179a-89e8-44ef-8ed8-9d01d410b266] one-todo：修复小按钮提示竖向换行；main未提交标完成弹确认框
 - 2026-09-30 23:06 [a9bc9c58-5655-41ef-aae5-fae54a1a2e3e] one-todo：Local模式开跑定local标签，右上角徽标渲染松树🌲
 - 2026-09-30 23:31 [f4c8de84-e536-4640-921e-f181e9e664ea] one-audit-list更名one-audit-plan并简化为覆盖总结平铺计划文档；向导词名词对齐
+- 2026-10-01 09:49 [feb29b77-3e40-4bab-a6b1-9b755041a005] one-todo：普通前导词多份，prompts/initial/ 独立管理，支持新增/切换/编辑

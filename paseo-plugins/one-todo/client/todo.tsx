@@ -22,6 +22,7 @@ import {
   reviewStartRpc,
   reviewVerdictRpc,
   reviewTemplateRpc,
+  listInitialPromptsRpc,
   createIssueRpc,
   fetchIssueRpc,
   finishTodoRpc,
@@ -270,6 +271,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const reviewAbort = useRpc(reviewAbortRpc);
   const reviewContinue = useRpc(reviewContinueRpc);
   const reviewTemplate = useRpc(reviewTemplateRpc);
+  const listInitialPrompts = useRpc(listInitialPromptsRpc);
   const removeWorktree = useRpc(removeWorktreeRpc);
   const removeHorse = useRpc(removeHorseRpc);
 
@@ -311,6 +313,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [initialDirty, setInitialDirty] = useState(false);
   const initialRef = useRef("");
   const initialSavedRef = useRef("");
+  const [showNewPrompt, setShowNewPrompt] = useState(false);
+  const [newPromptName, setNewPromptName] = useState("");
   // 技能框里那个 paseo-committee 是不是我们替用户勾的：是的话切走委员会时才撤
   const committeeSkillAddedRef = useRef(false);
   // 开场向导词三种模式各一份，记"当前这份是哪一份、加载过了没"
@@ -980,33 +984,48 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     Boolean(run?.race),
     Boolean(run?.committee),
   );
+  const isNormalMode = initialKind === "initial";
+  const initialListQ = useQuery({
+    queryKey: ["todo-initial-prompts-list"],
+    queryFn: () => listInitialPrompts({}),
+    enabled: Boolean(run && isNormalMode),
+  });
+  const activeInitialName = isNormalMode
+    ? (run?.initialPromptName || initialListQ.data?.selected || initialListQ.data?.prompts?.[0]?.name || "开场向导词")
+    : "";
+  const initialKey = isNormalMode ? `initial:${activeInitialName}` : initialKind;
   const initialLabel = INITIAL_LABEL[initialKind];
-  const initialKindRef = useRef(initialKind);
+  const initialKeyRef = useRef(initialKey);
   const initialQ = useQuery({
-    queryKey: ["todo-initial-prompt", initialKind],
-    queryFn: () => reviewTemplate({ kind: initialKind }),
+    queryKey: ["todo-initial-prompt", initialKind, activeInitialName],
+    queryFn: () =>
+      reviewTemplate({
+        kind: initialKind,
+        name: isNormalMode ? activeInitialName : undefined,
+      }),
     enabled: !!run,
   });
   useEffect(() => {
-    const prev = initialKindRef.current;
+    const prev = initialKeyRef.current;
     if (!run) {
       // 弹层关了：模式回普通不算"切模式"，草稿和未保存标记一并收干净
-      initialKindRef.current = initialKind;
+      initialKeyRef.current = initialKey;
       initialDraftsRef.current = {};
       if (initialDirty) setInitialDirty(false);
+      setShowNewPrompt(false);
       return;
     }
-    if (prev !== initialKind) {
-      initialKindRef.current = initialKind;
+    if (prev !== initialKey) {
+      initialKeyRef.current = initialKey;
       // 上一份还有没保存的改动：留成草稿，别让它静默没了
       if (initialDirty) {
         initialDraftsRef.current[prev] = {
           text: initialRef.current,
           saved: initialSavedRef.current,
         };
-        showTip(`${INITIAL_LABEL[prev]}开场向导词还没保存，先替你留着`);
+        showTip(`开场向导词还没保存，先替你留着`);
       }
-      const draft = initialDraftsRef.current[initialKind];
+      const draft = initialDraftsRef.current[initialKey];
       if (draft) {
         initialRef.current = draft.text;
         initialSavedRef.current = draft.saved;
@@ -1014,7 +1033,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         setInitialRev((n) => n + 1);
         setInitialDirty(true);
         // 这份就是草稿：标成已加载，别让下面的加载分支拿服务器原文盖掉
-        setInitialLoadedKind(initialKind);
+        setInitialLoadedKind(initialKey);
         return;
       }
       // 这份没草稿：先清空，等它自己的内容到了再填，免得把上一份的字写进这一份
@@ -1023,26 +1042,34 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       setInitialDirty(false);
     }
     const text = initialQ.data?.text;
-    if (text === undefined || initialLoadedKind === initialKind) return;
-    setInitialLoadedKind(initialKind);
+    if (text === undefined || initialLoadedKind === initialKey) return;
+    setInitialLoadedKind(initialKey);
     initialRef.current = text;
     initialSavedRef.current = text;
     setInitialSeed(text);
     setInitialRev((n) => n + 1);
     setInitialDirty(false);
-  }, [initialQ.data, initialKind, initialLoadedKind, initialDirty, run]);
+  }, [initialQ.data, initialKey, initialLoadedKind, initialDirty, run]);
   const initialSaveM = useMutation({
-    mutationFn: (text: string) => reviewTemplate({ kind: initialKind, text }),
-    onSuccess: (res) => {
+    mutationFn: (vars: { text: string; name?: string }) =>
+      reviewTemplate({
+        kind: initialKind,
+        name: isNormalMode ? (vars.name || activeInitialName) : undefined,
+        text: vars.text,
+      }),
+    onSuccess: (res, vars) => {
       if (res.error || res.text === undefined) {
         showTip(res.error || "保存失败");
         return;
       }
-      delete initialDraftsRef.current[initialKind];
+      const targetName = isNormalMode ? (vars.name || activeInitialName) : undefined;
+      const key = targetName ? `initial:${targetName}` : initialKind;
+      delete initialDraftsRef.current[key];
       initialSavedRef.current = res.text;
       setInitialSeed(res.text);
       setInitialDirty(false);
-      showTip(`${initialLabel}开场向导词已保存`);
+      qc.invalidateQueries({ queryKey: ["todo-initial-prompts-list"] });
+      showTip(`${targetName ? `「${targetName}」` : initialLabel}开场向导词已保存`);
     },
     onError: (e: Error) => showTip(e.message || "保存失败"),
   });
@@ -1244,6 +1271,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     }
     d.baseBranch = t?.baseBranch || "main";
     d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
+    d.initialPromptName =
+      t?.initialPromptName || preferences?.lastInitialPromptName || "开场向导词";
     runTitleRef.current = d.title;
     runPromptRef.current = d.prompt;
     setSearch("");
@@ -1308,6 +1337,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           baseBranch: run.baseBranch,
           newBranch: run.newBranch,
           extraPrompt: run.extraPrompt,
+          initialPromptName: run.initialPromptName || (isNormalMode ? activeInitialName : undefined),
           // 模式标记跟着保存走（锁不再看它，不会锁死）；成员只在委员会下存
           committee: Boolean(run.committee),
           ...(run.committee ? { committeeMembers: run.committeeMembers } : {}),
@@ -1328,6 +1358,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         extraPrompt: run.extraPrompt,
         committee: Boolean(run.committee),
         ...(run.committee ? { committeeMembers: run.committeeMembers } : {}),
+        initialPromptName: run.initialPromptName || (isNormalMode ? activeInitialName : undefined),
         source: run.source || "todo",
         issueRef: run.issueRef,
         issueUrl: run.issueUrl,
@@ -3009,6 +3040,132 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             )}
             {initialView !== "collapsed" ? (
               <>
+                {isNormalMode ? (
+                  <View style={{ marginBottom: 8, gap: 8 }}>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                      <Pressable
+                        style={[s.chip, { flex: 1 }]}
+                        onPress={() => {
+                          setSearch("");
+                          setPicker(
+                            picker?.kind === "initialPrompt"
+                              ? null
+                              : { kind: "initialPrompt" },
+                          );
+                        }}
+                      >
+                        <Text style={s.chipText} numberOfLines={1}>
+                          {`前导词: ${activeInitialName}`}
+                        </Text>
+                        <Text
+                          style={{
+                            color: theme.colors.foregroundMuted,
+                            fontSize: 14,
+                          }}
+                        >
+                          {picker?.kind === "initialPrompt" ? "▲" : "▼"}
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        style={[
+                          s.btn,
+                          {
+                            backgroundColor: theme.colors.surface2,
+                            paddingHorizontal: 12,
+                          },
+                        ]}
+                        onPress={() => {
+                          setShowNewPrompt((v) => !v);
+                          setNewPromptName("");
+                        }}
+                      >
+                        <Text
+                          style={[s.btnText, { color: theme.colors.foreground }]}
+                        >
+                          {showNewPrompt ? "取消" : "+ 新增"}
+                        </Text>
+                      </Pressable>
+                    </View>
+
+                    {showNewPrompt ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                        }}
+                      >
+                        <StableInput
+                          key="new-prompt-name-input"
+                          style={[s.input, { flex: 1 }]}
+                          initial={newPromptName}
+                          onValue={setNewPromptName}
+                          placeholder="新前导词名称…"
+                          placeholderTextColor={theme.colors.foregroundMuted}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                        <Pressable
+                          style={[
+                            s.btn,
+                            !newPromptName.trim() && { opacity: 0.5 },
+                          ]}
+                          disabled={!newPromptName.trim()}
+                          onPress={() => {
+                            const trimmed = newPromptName.trim();
+                            if (!trimmed) return showTip("前导词名称不能为空");
+                            const exists = (
+                              initialListQ.data?.prompts ?? []
+                            ).some((p) => p.name === trimmed);
+                            if (exists) return showTip("已存在同名前导词");
+                            initialSaveM.mutate({
+                              name: trimmed,
+                              text: initialRef.current || "",
+                            });
+                            setRun((d) =>
+                              d ? { ...d, initialPromptName: trimmed } : d,
+                            );
+                            setShowNewPrompt(false);
+                            setNewPromptName("");
+                            setInitialView("edit");
+                          }}
+                        >
+                          <Text style={s.btnText}>创建</Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
+
+                    {picker?.kind === "initialPrompt" ? (
+                      <View style={s.inlinePicker}>
+                        {initialListQ.isLoading ? (
+                          <Text style={s.empty}>加载前导词列表中…</Text>
+                        ) : (
+                          renderPickList(
+                            (initialListQ.data?.prompts ?? []).map((p) => ({
+                              id: p.name,
+                              label: p.name,
+                              selected: activeInitialName === p.name,
+                            })),
+                            (item) => {
+                              if (initialDirty) {
+                                initialDraftsRef.current[
+                                  `initial:${activeInitialName}`
+                                ] = {
+                                  text: initialRef.current,
+                                  saved: initialSavedRef.current,
+                                };
+                              }
+                              setRun((d) =>
+                                d ? { ...d, initialPromptName: item.id } : d,
+                              );
+                              setPicker(null);
+                            },
+                          )
+                        )}
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
                 <Text style={s.pathText}>
                   开场向导词模板，支持 {"{{docPath}}"}（文档路径）、{"{{id}}"}（工作区ID）、{"{{members}}"}（委员会两个成员）与 {"{{Skills}}"}（本单已选技能）：
                 </Text>
@@ -3034,11 +3191,13 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                 ) : (
                   <>
                     <StableInput
-                      key={`initial-tpl-${initialKind}-${initialRev}`}
+                      key={`initial-tpl-${initialKey}-${initialRev}`}
                       style={s.inputMulti}
                       initial={initialSeed}
                       // 这一份的内容还没到手时先锁住：免得敲进去的字被随后重挂覆盖
-                      editable={initialLoadedKind === initialKind && !initialQ.isLoading}
+                      editable={
+                        initialLoadedKind === initialKey && !initialQ.isLoading
+                      }
                       onValue={(v) => {
                         initialRef.current = v;
                         setInitialDirty(v !== initialSavedRef.current);
@@ -3047,7 +3206,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                       placeholderTextColor={theme.colors.foregroundMuted}
                       multiline
                     />
-                    <View style={{ flexDirection: "row", gap: 8, marginTop: 6 }}>
+                    <View
+                      style={{ flexDirection: "row", gap: 8, marginTop: 6 }}
+                    >
                       <TipHost
                         tipKey="initial-save"
                         tipText={tipTextOf("initial-save")}
@@ -3065,7 +3226,12 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                           disabled={initialSaveM.isPending || !initialDirty}
                           onPress={() => {
                             armTip("initial-save");
-                            initialSaveM.mutate(initialRef.current);
+                            initialSaveM.mutate({
+                              text: initialRef.current,
+                              name: isNormalMode
+                                ? activeInitialName
+                                : undefined,
+                            });
                           }}
                         >
                           <Text style={s.btnText}>
@@ -3074,10 +3240,18 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         </Pressable>
                       </TipHost>
                       <Pressable
-                        style={[s.btn, { backgroundColor: theme.colors.surface2 }]}
+                        style={[
+                          s.btn,
+                          { backgroundColor: theme.colors.surface2 },
+                        ]}
                         onPress={() => setInitialView("preview")}
                       >
-                        <Text style={[s.btnText, { color: theme.colors.foreground }]}>
+                        <Text
+                          style={[
+                            s.btnText,
+                            { color: theme.colors.foreground },
+                          ]}
+                        >
                           预览
                         </Text>
                       </Pressable>
