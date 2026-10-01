@@ -461,10 +461,12 @@ export const reviewTemplateRpc = defineRpc({
       "initialCommittee",
     ]),
     name: z.string().optional(),
+    newName: z.string().optional(),
     text: z.string().optional(),
   }),
   output: z.object({
     text: z.string().optional(),
+    name: z.string().optional(),
     error: z.string().optional(),
   }),
 });
@@ -480,6 +482,17 @@ export const listInitialPromptsRpc = defineRpc({
       }),
     ),
     selected: z.string().optional(),
+    error: z.string().optional(),
+  }),
+});
+
+export const deleteInitialPromptRpc = defineRpc({
+  name: "todo.delete_initial_prompt",
+  input: z.object({
+    name: z.string(),
+  }),
+  output: z.object({
+    ok: z.boolean(),
     error: z.string().optional(),
   }),
 });

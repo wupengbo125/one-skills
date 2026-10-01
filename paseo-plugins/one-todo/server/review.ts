@@ -24,12 +24,13 @@ import {
   branchFromTitle,
   horseBySession,
   reviewTemplateRpc,
+  listInitialPromptsRpc,
+  deleteInitialPromptRpc,
   removeWorktreeRpc,
   removeHorseRpc,
   type AgentRef,
   type Todo,
 } from "../shared/todo";
-import { listInitialPromptsRpc } from "../shared/todo";
 import { getPreferences, savePreferences } from "./preferences";
 import { deleteBranches } from "./worktree";
 import { getTodo, listTodos, saveTodo } from "./store";
@@ -386,20 +387,50 @@ export function readInitialPromptRaw(name?: string): string {
   return def ? def.text : DEFAULT_INITIAL;
 }
 
-export function writeInitialPromptRaw(name: string, text: string): void {
-  const cleanName = name.trim().replace(/[\\/:*?"<>|]/g, "_");
-  if (!cleanName) throw new Error("前导词名称不能为空");
+export function writeInitialPromptRaw(
+  name: string,
+  text: string,
+  newName?: string,
+): string {
+  const cleanOld = name.trim().replace(/[\\/:*?"<>|]/g, "_");
+  const targetName = (newName && newName.trim()) ? newName.trim().replace(/[\\/:*?"<>|]/g, "_") : cleanOld;
+  if (!targetName) throw new Error("前导词名称不能为空");
   const dir = initialPromptDir();
-  const filePath = join(dir, `${cleanName}.md`);
+  const newFilePath = join(dir, `${targetName}.md`);
   try {
-    writeFileSync(filePath, text, "utf8");
-    savePreferences({ lastInitialPromptName: cleanName });
+    writeFileSync(newFilePath, text, "utf8");
+    if (cleanOld && cleanOld !== targetName) {
+      const oldFilePath = join(dir, `${cleanOld}.md`);
+      if (existsSync(oldFilePath)) {
+        try { rmSync(oldFilePath); } catch {}
+      }
+    }
+    savePreferences({ lastInitialPromptName: targetName });
+    return targetName;
   } catch (e) {
     const why = e instanceof Error ? e.message : "未知原因";
-    throw new Error(`前导词「${cleanName}」保存失败（${why}）`);
+    throw new Error(`前导词「${targetName}」保存失败（${why}）`);
   }
 }
 
+export function deleteInitialPromptRaw(name: string): void {
+  const cleanName = name.trim().replace(/[\\/:*?"<>|]/g, "_");
+  if (!cleanName) return;
+  const dir = initialPromptDir();
+  const filePath = join(dir, `${cleanName}.md`);
+  if (existsSync(filePath)) {
+    try {
+      rmSync(filePath);
+    } catch (e) {
+      const why = e instanceof Error ? e.message : "未知原因";
+      throw new Error(`删除前导词「${cleanName}」失败（${why}）`);
+    }
+  }
+  const remaining = listInitialPromptsRaw();
+  savePreferences({
+    lastInitialPromptName: remaining[0]?.name || "开场向导词",
+  });
+}
 function writeTemplate(kind: TplKind, text: string, name?: string): void {
   if (kind === "initial") {
     writeInitialPromptRaw(name || "开场向导词", text);
@@ -468,7 +499,10 @@ export function handleReviewTemplate(
   const kind: TplKind = input.kind;
   if (input.text === undefined) {
     try {
-      return { text: readOrSeedTemplateRaw(kind, input.name) };
+      return {
+        text: readOrSeedTemplateRaw(kind, input.name),
+        name: input.name,
+      };
     } catch (e) {
       return {
         error: e instanceof Error ? e.message : "模板找不到了，请重试",
@@ -480,8 +514,16 @@ export function handleReviewTemplate(
   const bad = checkTemplate(kind, text);
   if (bad) return { error: bad };
   try {
-    writeTemplate(kind, text, input.name);
-    return { text };
+    if (kind === "initial") {
+      const savedName = writeInitialPromptRaw(
+        input.name || "开场向导词",
+        text,
+        input.newName,
+      );
+      return { text, name: savedName };
+    }
+    writeTemplate(kind, text);
+    return { text, name: input.name };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "保存失败，请重试" };
   }
@@ -500,6 +542,24 @@ export function handleListInitialPrompts(): RpcOutput<typeof listInitialPromptsR
     return {
       prompts: [],
       error: e instanceof Error ? e.message : "读取前导词列表失败",
+    };
+  }
+}
+
+export function handleDeleteInitialPrompt(
+  input: RpcInput<typeof deleteInitialPromptRpc>,
+): RpcOutput<typeof deleteInitialPromptRpc> {
+  try {
+    const list = listInitialPromptsRaw();
+    if (list.length <= 1) {
+      return { ok: false, error: "至少需要保留一份前导词" };
+    }
+    deleteInitialPromptRaw(input.name);
+    return { ok: true };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "删除失败",
     };
   }
 }

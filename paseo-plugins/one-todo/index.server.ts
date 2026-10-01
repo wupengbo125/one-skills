@@ -1,5 +1,5 @@
 import type { PluginServerContext } from "@getpaseo/plugin/server";
-import { finishTodoRpc, removeWorktreeRpc, removeHorseRpc, resetTodoRpc, listInitialPromptsRpc } from "./shared/todo";
+import { finishTodoRpc, removeWorktreeRpc, removeHorseRpc, resetTodoRpc, listInitialPromptsRpc, deleteInitialPromptRpc } from "./shared/todo";
 import { listTodos } from "./server/store";
 import {
   addTodoRpc,
@@ -57,6 +57,7 @@ import {
   handleReviewVerdict,
   handleReviewTemplate,
   handleListInitialPrompts,
+  handleDeleteInitialPrompt,
   handleRemoveWorktree,
   handleRemoveHorse,
 } from "./server/review";
@@ -100,6 +101,7 @@ export default function contribute(server: PluginServerContext) {
   );
   server.handle(reviewTemplateRpc, (input) => handleReviewTemplate(input));
   server.handle(listInitialPromptsRpc, () => handleListInitialPrompts());
+  server.handle(deleteInitialPromptRpc, (input) => handleDeleteInitialPrompt(input));
   server.handle(removeWorktreeRpc, (input, ctx) =>
     handleRemoveWorktree(input, ctx),
   );

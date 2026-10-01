@@ -23,6 +23,7 @@ import {
   reviewVerdictRpc,
   reviewTemplateRpc,
   listInitialPromptsRpc,
+  deleteInitialPromptRpc,
   createIssueRpc,
   fetchIssueRpc,
   finishTodoRpc,
@@ -49,7 +50,7 @@ import {
 } from "../shared/todo";
 import { createStyles } from "./styles";
 import { morandiBand, RibbonSnake, StableInput } from "./primitives";
-import { onEscape } from "./web";
+import { onEscape, confirmDialog } from "./web";
 import {
   agentLabel,
   emptyRun,
@@ -272,6 +273,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const reviewContinue = useRpc(reviewContinueRpc);
   const reviewTemplate = useRpc(reviewTemplateRpc);
   const listInitialPrompts = useRpc(listInitialPromptsRpc);
+  const deleteInitialPrompt = useRpc(deleteInitialPromptRpc);
   const removeWorktree = useRpc(removeWorktreeRpc);
   const removeHorse = useRpc(removeHorseRpc);
 
@@ -313,9 +315,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const [initialDirty, setInitialDirty] = useState(false);
   const initialRef = useRef("");
   const initialSavedRef = useRef("");
+  const [initialTitle, setInitialTitle] = useState("");
   const [showNewPrompt, setShowNewPrompt] = useState(false);
   const [newPromptName, setNewPromptName] = useState("");
-  // 技能框里那个 paseo-committee 是不是我们替用户勾的：是的话切走委员会时才撤
   const committeeSkillAddedRef = useRef(false);
   // 开场向导词三种模式各一份，记"当前这份是哪一份、加载过了没"
   const [initialLoadedKind, setInitialLoadedKind] = useState("");
@@ -1049,12 +1051,14 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     setInitialSeed(text);
     setInitialRev((n) => n + 1);
     setInitialDirty(false);
-  }, [initialQ.data, initialKey, initialLoadedKind, initialDirty, run]);
+    if (isNormalMode) setInitialTitle(activeInitialName);
+  }, [initialQ.data, initialKey, initialLoadedKind, initialDirty, run, activeInitialName, isNormalMode]);
   const initialSaveM = useMutation({
-    mutationFn: (vars: { text: string; name?: string }) =>
+    mutationFn: (vars: { text: string; name?: string; newName?: string }) =>
       reviewTemplate({
         kind: initialKind,
         name: isNormalMode ? (vars.name || activeInitialName) : undefined,
+        newName: isNormalMode ? (vars.newName || initialTitle.trim()) : undefined,
         text: vars.text,
       }),
     onSuccess: (res, vars) => {
@@ -1062,16 +1066,41 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         showTip(res.error || "保存失败");
         return;
       }
-      const targetName = isNormalMode ? (vars.name || activeInitialName) : undefined;
-      const key = targetName ? `initial:${targetName}` : initialKind;
+      const finalName = res.name || vars.newName || vars.name || activeInitialName;
+      const key = isNormalMode ? `initial:${finalName}` : initialKind;
       delete initialDraftsRef.current[key];
+      if (vars.name && vars.name !== finalName) {
+        delete initialDraftsRef.current[`initial:${vars.name}`];
+      }
       initialSavedRef.current = res.text;
       setInitialSeed(res.text);
       setInitialDirty(false);
+      if (isNormalMode && finalName !== activeInitialName) {
+        setRun((d) => (d ? { ...d, initialPromptName: finalName } : d));
+      }
       qc.invalidateQueries({ queryKey: ["todo-initial-prompts-list"] });
-      showTip(`${targetName ? `「${targetName}」` : initialLabel}开场向导词已保存`);
+      showTip(`${isNormalMode ? `「${finalName}」` : initialLabel}开场向导词已保存`);
     },
     onError: (e: Error) => showTip(e.message || "保存失败"),
+  });
+  const initialDeleteM = useMutation({
+    mutationFn: (name: string) => deleteInitialPrompt({ name }),
+    onSuccess: (res, name) => {
+      if (!res.ok) {
+        showTip(res.error || "删除失败");
+        return;
+      }
+      showTip(`前导词「${name}」已删除`);
+      delete initialDraftsRef.current[`initial:${name}`];
+      qc.invalidateQueries({ queryKey: ["todo-initial-prompts-list"] });
+      const remaining = (initialListQ.data?.prompts || []).filter(
+        (p) => p.name !== name,
+      );
+      if (remaining.length > 0) {
+        setRun((d) => (d ? { ...d, initialPromptName: remaining[0].name } : d));
+      }
+    },
+    onError: (e: Error) => showTip(e.message || "删除失败"),
   });
   const arbVerdictQ = useQuery({
     queryKey: ["todo-arb-verdict", arb?.id],
@@ -1174,11 +1203,21 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     onPress: () => void,
     right?: React.ReactNode,
   ) => (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-      <Pressable style={[s.chip, { flex: 1 }]} onPress={onPress}>
-        <Text style={s.chipText} numberOfLines={1}>
+    <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 2 }}>
+      <Pressable
+        style={{ flexDirection: "row", alignItems: "center", gap: 6, flex: 1 }}
+        onPress={onPress}
+      >
+        <Text
+          style={{
+            color: theme.colors.foregroundMuted,
+            fontSize: 12,
+          }}
+        >
+          {open ? "▼" : "▶"}
+        </Text>
+        <Text style={s.formSectionTitle} numberOfLines={1}>
           {text}
-          {open ? "  ▲" : "  ▼"}
         </Text>
       </Pressable>
       {right}
@@ -3036,131 +3075,166 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               `${initialLabel}开场向导词${initialDirty ? "（已修改未保存）" : ""}`,
               initialView !== "collapsed",
               () =>
-                setInitialView(initialView === "collapsed" ? "preview" : "collapsed"),
+                setInitialView(
+                  initialView === "collapsed" ? "preview" : "collapsed",
+                ),
             )}
+
             {initialView !== "collapsed" ? (
               <>
                 {isNormalMode ? (
-                  <View style={{ marginBottom: 8, gap: 8 }}>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                      <Pressable
-                        style={[s.chip, { flex: 1 }]}
-                        onPress={() => {
-                          setSearch("");
-                          setPicker(
-                            picker?.kind === "initialPrompt"
-                              ? null
-                              : { kind: "initialPrompt" },
-                          );
-                        }}
-                      >
-                        <Text style={s.chipText} numberOfLines={1}>
-                          {`前导词: ${activeInitialName}`}
-                        </Text>
-                        <Text
-                          style={{
-                            color: theme.colors.foregroundMuted,
-                            fontSize: 14,
-                          }}
-                        >
-                          {picker?.kind === "initialPrompt" ? "▲" : "▼"}
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          s.btn,
-                          {
-                            backgroundColor: theme.colors.surface2,
-                            paddingHorizontal: 12,
-                          },
-                        ]}
-                        onPress={() => {
-                          setShowNewPrompt((v) => !v);
-                          setNewPromptName("");
-                        }}
-                      >
-                        <Text
-                          style={[s.btnText, { color: theme.colors.foreground }]}
-                        >
-                          {showNewPrompt ? "取消" : "+ 新增"}
-                        </Text>
-                      </Pressable>
-                    </View>
-
-                    {showNewPrompt ? (
-                      <View
-                        style={{
+                  <View style={{ marginBottom: 8 }}>
+                    <Pressable
+                      style={[
+                        s.chip,
+                        {
                           flexDirection: "row",
                           alignItems: "center",
-                          gap: 8,
+                          justifyContent: "space-between",
+                        },
+                      ]}
+                      onPress={() => {
+                        setSearch("");
+                        setPicker(
+                          picker?.kind === "initialPrompt"
+                            ? null
+                            : { kind: "initialPrompt" },
+                        );
+                      }}
+                    >
+                      <Text style={s.chipText} numberOfLines={1}>
+                        {`前导词: ${activeInitialName}`}
+                      </Text>
+                      <Text
+                        style={{
+                          color: theme.colors.foregroundMuted,
+                          fontSize: 14,
                         }}
                       >
-                        <StableInput
-                          key="new-prompt-name-input"
-                          style={[s.input, { flex: 1 }]}
-                          initial={newPromptName}
-                          onValue={setNewPromptName}
-                          placeholder="新前导词名称…"
-                          placeholderTextColor={theme.colors.foregroundMuted}
-                          autoCapitalize="none"
-                          autoCorrect={false}
-                        />
-                        <Pressable
-                          style={[
-                            s.btn,
-                            !newPromptName.trim() && { opacity: 0.5 },
-                          ]}
-                          disabled={!newPromptName.trim()}
-                          onPress={() => {
-                            const trimmed = newPromptName.trim();
-                            if (!trimmed) return showTip("前导词名称不能为空");
-                            const exists = (
-                              initialListQ.data?.prompts ?? []
-                            ).some((p) => p.name === trimmed);
-                            if (exists) return showTip("已存在同名前导词");
-                            initialSaveM.mutate({
-                              name: trimmed,
-                              text: initialRef.current || "",
-                            });
-                            setRun((d) =>
-                              d ? { ...d, initialPromptName: trimmed } : d,
-                            );
-                            setShowNewPrompt(false);
-                            setNewPromptName("");
-                            setInitialView("edit");
-                          }}
-                        >
-                          <Text style={s.btnText}>创建</Text>
-                        </Pressable>
-                      </View>
-                    ) : null}
+                        {picker?.kind === "initialPrompt" ? "▲" : "▼"}
+                      </Text>
+                    </Pressable>
 
                     {picker?.kind === "initialPrompt" ? (
-                      <View style={s.inlinePicker}>
+                      <View style={[s.inlinePicker, { gap: 6, marginTop: 6 }]}>
                         {initialListQ.isLoading ? (
                           <Text style={s.empty}>加载前导词列表中…</Text>
                         ) : (
-                          renderPickList(
-                            (initialListQ.data?.prompts ?? []).map((p) => ({
-                              id: p.name,
-                              label: p.name,
-                              selected: activeInitialName === p.name,
-                            })),
-                            (item) => {
-                              if (initialDirty) {
-                                initialDraftsRef.current[
-                                  `initial:${activeInitialName}`
-                                ] = {
-                                  text: initialRef.current,
-                                  saved: initialSavedRef.current,
-                                };
-                              }
-                              setRun((d) =>
-                                d ? { ...d, initialPromptName: item.id } : d,
-                              );
-                              setPicker(null);
-                            },
-                          )
+                          <>
+                            {renderPickList(
+                              (initialListQ.data?.prompts ?? []).map((p) => ({
+                                id: p.name,
+                                label: p.name,
+                                selected: activeInitialName === p.name,
+                              })),
+                              (item) => {
+                                if (initialDirty) {
+                                  initialDraftsRef.current[
+                                    `initial:${activeInitialName}`
+                                  ] = {
+                                    text: initialRef.current,
+                                    saved: initialSavedRef.current,
+                                  };
+                                }
+                                setRun((d) =>
+                                  d ? { ...d, initialPromptName: item.id } : d,
+                                );
+                                setInitialTitle(item.id);
+                                setPicker(null);
+                                setShowNewPrompt(false);
+                              },
+                            )}
+                            {showNewPrompt ? (
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  marginTop: 4,
+                                }}
+                              >
+                                <StableInput
+                                  key="new-prompt-name-input"
+                                  style={[s.input, { flex: 1 }]}
+                                  initial={newPromptName}
+                                  onValue={setNewPromptName}
+                                  placeholder="新前导词名称…"
+                                  placeholderTextColor={theme.colors.foregroundMuted}
+                                  autoCapitalize="none"
+                                  autoCorrect={false}
+                                />
+                                <Pressable
+                                  style={[
+                                    s.btn,
+                                    !newPromptName.trim() && { opacity: 0.5 },
+                                  ]}
+                                  disabled={!newPromptName.trim()}
+                                  onPress={() => {
+                                    const trimmed = newPromptName.trim();
+                                    if (!trimmed) return showTip("前导词名称不能为空");
+                                    const exists = (
+                                      initialListQ.data?.prompts ?? []
+                                    ).some((p) => p.name === trimmed);
+                                    if (exists) return showTip("已存在同名前导词");
+                                    initialSaveM.mutate({
+                                      name: trimmed,
+                                      text: initialRef.current || "",
+                                    });
+                                    setRun((d) =>
+                                      d ? { ...d, initialPromptName: trimmed } : d,
+                                    );
+                                    setInitialTitle(trimmed);
+                                    setShowNewPrompt(false);
+                                    setNewPromptName("");
+                                    setPicker(null);
+                                    setInitialView("edit");
+                                  }}
+                                >
+                                  <Text style={s.btnText}>创建</Text>
+                                </Pressable>
+                                <Pressable
+                                  style={[
+                                    s.btn,
+                                    { backgroundColor: theme.colors.surface2 },
+                                  ]}
+                                  onPress={() => setShowNewPrompt(false)}
+                                >
+                                  <Text
+                                    style={[
+                                      s.btnText,
+                                      { color: theme.colors.foreground },
+                                    ]}
+                                  >
+                                    取消
+                                  </Text>
+                                </Pressable>
+                              </View>
+                            ) : (
+                              <Pressable
+                                style={[
+                                  s.btn,
+                                  {
+                                    backgroundColor: theme.colors.surface2,
+                                    alignSelf: "flex-start",
+                                    marginTop: 4,
+                                  },
+                                ]}
+                                onPress={() => {
+                                  setShowNewPrompt(true);
+                                  setNewPromptName("");
+                                }}
+                              >
+                                <Text
+                                  style={[
+                                    s.btnText,
+                                    { color: theme.colors.foreground },
+                                  ]}
+                                >
+                                  + 新增前导词
+                                </Text>
+                              </Pressable>
+                            )}
+                          </>
                         )}
                       </View>
                     ) : null}
@@ -3190,24 +3264,74 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   </>
                 ) : (
                   <>
+                    {isNormalMode ? (
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 8,
+                          marginBottom: 6,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: theme.colors.foregroundMuted,
+                          }}
+                        >
+                          标题:
+                        </Text>
+                        <StableInput
+                          key={`initial-title-${activeInitialName}`}
+                          style={[
+                            s.input,
+                            {
+                              flex: 1,
+                              paddingVertical: 4,
+                              paddingHorizontal: 8,
+                            },
+                          ]}
+                          initial={initialTitle || activeInitialName}
+                          onValue={(v) => {
+                            setInitialTitle(v);
+                            setInitialDirty(
+                              v.trim() !== activeInitialName ||
+                                initialRef.current !== initialSavedRef.current,
+                            );
+                          }}
+                          placeholder="前导词标题…"
+                          placeholderTextColor={theme.colors.foregroundMuted}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                      </View>
+                    ) : null}
                     <StableInput
                       key={`initial-tpl-${initialKey}-${initialRev}`}
                       style={s.inputMulti}
                       initial={initialSeed}
-                      // 这一份的内容还没到手时先锁住：免得敲进去的字被随后重挂覆盖
                       editable={
                         initialLoadedKind === initialKey && !initialQ.isLoading
                       }
                       onValue={(v) => {
                         initialRef.current = v;
-                        setInitialDirty(v !== initialSavedRef.current);
+                        setInitialDirty(
+                          v !== initialSavedRef.current ||
+                            (isNormalMode &&
+                              initialTitle.trim() !== activeInitialName),
+                        );
                       }}
                       placeholder="开场向导词模板，支持 {{docPath}} 与 {{id}} 变量…"
                       placeholderTextColor={theme.colors.foregroundMuted}
                       multiline
                     />
                     <View
-                      style={{ flexDirection: "row", gap: 8, marginTop: 6 }}
+                      style={{
+                        flexDirection: "row",
+                        gap: 8,
+                        marginTop: 6,
+                        alignItems: "center",
+                      }}
                     >
                       <TipHost
                         tipKey="initial-save"
@@ -3231,6 +3355,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                               name: isNormalMode
                                 ? activeInitialName
                                 : undefined,
+                              newName: isNormalMode
+                                ? initialTitle.trim()
+                                : undefined,
                             });
                           }}
                         >
@@ -3239,6 +3366,35 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                           </Text>
                         </Pressable>
                       </TipHost>
+                      {isNormalMode &&
+                      (initialListQ.data?.prompts?.length ?? 0) > 1 ? (
+                        <Pressable
+                          style={[
+                            s.btn,
+                            { backgroundColor: theme.colors.surface2 },
+                            initialDeleteM.isPending && { opacity: 0.5 },
+                          ]}
+                          disabled={initialDeleteM.isPending}
+                          onPress={() => {
+                            if (
+                              confirmDialog(
+                                `确定要删除前导词「${activeInitialName}」吗？`,
+                              )
+                            ) {
+                              initialDeleteM.mutate(activeInitialName);
+                            }
+                          }}
+                        >
+                          <Text
+                            style={[
+                              s.btnText,
+                              { color: theme.colors.statusDanger },
+                            ]}
+                          >
+                            {initialDeleteM.isPending ? "删除中…" : "删除"}
+                          </Text>
+                        </Pressable>
+                      ) : null}
                       <Pressable
                         style={[
                           s.btn,

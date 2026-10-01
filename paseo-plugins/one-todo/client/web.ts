@@ -5,6 +5,7 @@ declare const window: {
   open(url: string, target: string, features: string): unknown;
   addEventListener(type: "keydown", handler: (e: { key?: string }) => void): void;
   removeEventListener(type: "keydown", handler: (e: { key?: string }) => void): void;
+  confirm?(message: string): boolean;
 };
 
 /**
@@ -25,4 +26,9 @@ export async function openExternal(url: string): Promise<void> {
     return;
   }
   await Linking.openURL(url);
+}
+
+export function confirmDialog(message: string): boolean {
+  if (Platform.OS !== "web") return true;
+  return typeof window.confirm === "function" ? window.confirm(message) : true;
 }
