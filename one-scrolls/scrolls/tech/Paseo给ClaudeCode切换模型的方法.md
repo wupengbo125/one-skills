@@ -1,6 +1,6 @@
 # Paseo 给 Claude Code 切换模型的方法
 
-Paseo 默认使用 ACP 协议拉起 `claude`。通过在 `~/.paseo/config.json` 中配置 `env` 环境变量，将官方模型槽位强制重定向为指定代理或自定义模型。
+Paseo 内置集成 Claude Agent SDK（非 ACP 协议，切勿配 `extends: "acp"` 与 `--acp`）。通过在 `~/.paseo/config.json` 的 `agents.providers.claude` 中配置 `env` 环境变量，即可将官方模型槽位强制重定向为指定代理与自定义模型。
 
 ---
 
@@ -10,16 +10,10 @@ Paseo 默认使用 ACP 协议拉起 `claude`。通过在 `~/.paseo/config.json` 
 
 ## 2. 配置内容
 
-在 `agents.providers.claude` 中添加 `extends: "acp"` 与环境变量：
+在 `agents.providers.claude` 中直接注入 `env`：
 
 ```json
 "claude": {
-  "extends": "acp",
-  "label": "Claude Code",
-  "command": [
-    "claude",
-    "--acp"
-  ],
   "env": {
     "ANTHROPIC_BASE_URL": "http://100.77.177.59:20128",
     "ANTHROPIC_AUTH_TOKEN": "sk-5e2af274e0e4e907-8a950e-46823488",

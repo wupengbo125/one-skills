@@ -132,6 +132,6 @@
 - 2026-09-30 23:06 [a9bc9c58-5655-41ef-aae5-fae54a1a2e3e] one-todo：Local模式开跑定local标签，右上角徽标渲染松树🌲
 - 2026-09-30 23:31 [f4c8de84-e536-4640-921e-f181e9e664ea] one-audit-list更名one-audit-plan并简化为覆盖总结平铺计划文档；向导词名词对齐
 - 2026-10-01 10:24 [feb29b77-3e40-4bab-a6b1-9b755041a005] one-todo：普通前导词增删改与重命名，折叠栏改纯文本标题
-- 2026-10-02 16:52 [17b2f8db-a191-44f4-bdc1-474419e7c57e] 新增卷轴 Paseo给ClaudeCode切换模型的方法，配置 Claude ACP 代理环境变量
 - 2026-10-02 17:12 [65759fbf-6cd9-409b-afbc-b88538ae6e1d] one-todo：普通开场词折叠栏标题按选中项动态显示对应开场词
 - 2026-10-02 17:11 [ad146406-694e-4749-ada9-b11c53a1641b] 清理 Antigravity ACP：移除配置、删库与缓存、清理 one-todo 兼容
+- 2026-10-02 16:52 [17b2f8db-a191-44f4-bdc1-474419e7c57e] 新增卷轴 Paseo给ClaudeCode切换模型的方法，配置 Claude 内置 Provider 环境变量
