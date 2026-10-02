@@ -40,3 +40,17 @@ paseo reload
 - `ANTHROPIC_AUTH_TOKEN`: 对应的 API Key。
 - `ANTHROPIC_MODEL`: 默认模型。
 - `ANTHROPIC_DEFAULT_SONNET_MODEL` / `ANTHROPIC_DEFAULT_OPUS_MODEL` / `ANTHROPIC_DEFAULT_HAIKU_MODEL`: 覆盖 Paseo 界面选择官方模型时的实际请求目标。
+
+---
+
+## 5. 极简一键切换脚本
+
+已在 `dotfiles/bin/claudee` 增加 `-p` / `--paseo` 参数：
+
+```bash
+# 交互式选单并写入 Paseo 配置（自动 reload，不启动终端 Claude）：
+claudee -p
+
+# 直接指定序号写入 Paseo 配置：
+claudee -p 9
+```

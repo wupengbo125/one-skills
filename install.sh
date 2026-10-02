@@ -201,6 +201,7 @@ TARGETS=(
     "pi|rules-file|$HOME/.pi/agent/AGENTS.md"
     "gemini|rules-file|$HOME/.gemini/config/AGENTS.md"
     "gemini|rules-file|$HOME/.gemini/GEMINI.md"
+    "claude|skills-dir|$HOME/.claude/skills"
     "claude|rules-file|$HOME/.claude/CLAUDE.md"
     "cursor|rules-file|$HOME/.cursor/AGENTS.md"
     "opencode|rules-file|$HOME/.config/opencode/AGENTS.md"
