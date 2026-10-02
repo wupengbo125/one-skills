@@ -62,16 +62,12 @@ export async function resolveProviderField(
   provider: string,
   model?: string,
 ): Promise<string> {
-  const actual =
-    provider.trim().toLowerCase() === "antigravity acp"
-      ? "antigravity"
-      : provider;
   if (model) {
-    if (model.startsWith(actual + "/")) return model;
-    return `${actual}/${model}`;
+    if (model.startsWith(provider + "/")) return model;
+    return `${provider}/${model}`;
   }
   try {
-    const res = await paseo.providers.listModels(actual);
+    const res = await paseo.providers.listModels(provider);
     const selectable = (res.models ?? []).filter(
       (m) => m.isSelectable !== false,
     );

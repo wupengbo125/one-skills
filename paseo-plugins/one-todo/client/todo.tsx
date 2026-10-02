@@ -992,12 +992,26 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     queryFn: () => listInitialPrompts({}),
     enabled: Boolean(run && isNormalMode),
   });
+  const validInitialName =
+    run?.initialPromptName &&
+    (!initialListQ.data?.prompts?.length ||
+      initialListQ.data.prompts.some((p) => p.name === run.initialPromptName))
+      ? run.initialPromptName
+      : undefined;
   const activeInitialName = isNormalMode
-    ? (run?.initialPromptName || initialListQ.data?.selected || initialListQ.data?.prompts?.[0]?.name || "开场向导词")
+    ? (validInitialName ||
+        initialListQ.data?.selected ||
+        initialListQ.data?.prompts?.[0]?.name ||
+        "开场向导词")
     : "";
   const initialKey = isNormalMode ? `initial:${activeInitialName}` : initialKind;
   const initialLabel = INITIAL_LABEL[initialKind];
   const initialKeyRef = useRef(initialKey);
+  const initialHeading = isNormalMode
+    ? (activeInitialName.includes("开场") || activeInitialName.includes("向导")
+        ? activeInitialName
+        : `${activeInitialName} 开场词`.trim())
+    : `${initialLabel}开场向导词`;
   const initialQ = useQuery({
     queryKey: ["todo-initial-prompt", initialKind, activeInitialName],
     queryFn: () =>
@@ -1311,7 +1325,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     d.baseBranch = t?.baseBranch || "main";
     d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
     d.initialPromptName =
-      t?.initialPromptName || preferences?.lastInitialPromptName || "开场向导词";
+      t?.initialPromptName || preferences?.lastInitialPromptName || "";
     runTitleRef.current = d.title;
     runPromptRef.current = d.prompt;
     setSearch("");
@@ -3072,7 +3086,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           </View>
           <View style={s.formSection}>
             {collapseRow(
-              `${initialLabel}开场向导词${initialDirty ? "（已修改未保存）" : ""}`,
+              `${initialHeading}${initialDirty ? "（已修改未保存）" : ""}`,
               initialView !== "collapsed",
               () =>
                 setInitialView(

@@ -252,7 +252,7 @@ export async function handleListProviders({ paseo }: PluginHandlerContext) {
     const providers = (res.providers ?? [])
       .filter((p) => p.available)
       .map((p) => ({
-        id: p.provider === "antigravity" ? "antigravity acp" : p.provider,
+        id: p.provider,
         available: p.available,
       }));
     if (!providers.some((p) => p.id === "antigravity cli")) {
@@ -272,10 +272,8 @@ export async function handleListModels(
   if (provider === "antigravity cli" || provider === "agy") {
     return { models: AGY_MODELS };
   }
-  const realProvider =
-    provider === "antigravity acp" ? "antigravity" : input.provider;
   try {
-    const res = await paseo.providers.listModels(realProvider);
+    const res = await paseo.providers.listModels(input.provider);
     const models = (res.models ?? [])
       .filter((m) => m.isSelectable !== false)
       .map((m) => ({

@@ -32,6 +32,8 @@ Scroll Index
   - **核心解决**：Paseo 终端模式运行 Agent（如 Anti Gravity CLI）实现“运行中（working）”与“回复完成等待Review（idle+finished 自动触发 attention 徽标）”两态精准感知；涵盖环境变量机制、hooks.json 钩子配置与避坑要点。
 
 
+- [Paseo给ClaudeCode切换模型的方法](./tech/Paseo给ClaudeCode切换模型的方法.md)
+  - **核心解决**：Paseo 拉起 Claude Code (ACP) 时通过 `~/.paseo/config.json` 注入环境变量，强制将官方模型（Sonnet/Opus/Haiku）重定向为自定义模型与 API 代理端点。
 ---
 
 ## 🧘 2. Mindset
