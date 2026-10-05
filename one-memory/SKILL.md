@@ -1,6 +1,6 @@
 ---
 name: one-memory
-description: "海马记忆仓记忆系统：读写 AI 记忆。查记忆、查偏好、查流水、看画像，写流水、记偏好、记规则。涉及用户喜好/习惯/历史决策时查用；用户行为指令、纠正或批评/指责 AI（'以后都…'、'不要再…'、'你怎么又…'、'我说过…'、'不对'）时按范围分流写入对应 rules.md。"
+description: "海马记忆仓记忆系统：读写 AI 记忆。查记忆、查偏好、查流水、看画像，写流水"
 argument-hint: "read-memory | write-memory | write-rules, 以及可选内容"
 ---
 
