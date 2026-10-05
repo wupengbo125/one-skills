@@ -25,7 +25,8 @@ one-skills/
 ├── one-memory/     海马记忆仓记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/
 ├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
-├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/python-structure.md
+├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/{review,worker-brief}.md
+├── one-python-structure/    # Python 三件套规范（禁自动触发）：SKILL.md
 ├── one-harness-lite/      轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 扩展）
 ├── one-implement/ 极简实现流程：SKILL.md pi-extension/index.ts package.json（Pi 扩展）
 ├── one-blueprint/           # 业务蓝图：SKILL.md + BLUEPRINT-TEMPLATE.md
@@ -63,6 +64,7 @@ one-skills/
 | one-ebbiii | 自动："艾宾浩斯" | 闪卡 CRUD：`Bearer $EBBIII_API_TOKEN`，答案 ≤200 字，先查重 | HTTP `${EBBIII_BASE_URL:-http://localhost:3000}/api/v1/cards` |
 | one-book-notes | 自动："记到《书名》" | 追加 `## YYYY-MM-DD` 到固定文件并 git push | one-llmwiki/raw |
 | one-awesome-design | 自动：UI 设计 | 按 reference/ 规范实现（现仅 apple-design.md） | — |
+| one-python-structure | 仅显式调用 | Python 工具项目标准三件套规范与初始化流程（script.py + .env/config.yaml + readme.md） | — |
 
 意图分流模式：SKILL.md 只做路由表，命中后 Agent 只读对应的一个 `references/*.md` 再执行。
 

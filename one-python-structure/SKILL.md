@@ -1,3 +1,10 @@
+---
+name: one-python-structure
+description: "Python 工具项目标准三件套规范与初始化流程"
+argument-hint: "目标路径或项目需求"
+disable-model-invocation: true
+---
+
 # Python 工具项目标准三件套规范
 
 根据用户指令，在指定目录下初始化或构建标准的 Python 工具子项目。

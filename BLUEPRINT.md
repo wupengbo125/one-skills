@@ -29,6 +29,8 @@
   平铺开发计划并以最小化最简代码实现需求，杜绝发散与多余改动
 - [one-harness/](one-harness/)
   - 提供规范化的重型研发协作流程，涵盖架构设计、编码实现、多维审查与交付闸门
+- [one-python-structure/](one-python-structure/)
+  - 初始化与约束标准 Python 工具项目三件套（脚本、自适应配置、全小写 readme）
 - [one-refactor-implement-cp/](one-refactor-implement-cp/)
   - 采用物理代码拷贝而非凭空重写的防御式重构流程，杜绝幻觉破坏
 - [one-handoff/](one-handoff/)

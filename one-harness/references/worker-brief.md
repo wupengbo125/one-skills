@@ -14,6 +14,3 @@
 - 拒绝防御性代码：环境已知、文件必存时直接操作，不写多余 `try-catch`。
 - 拒绝多层兜底：不写"A 不行试 B"；直接用正统 A，挂了修 A。
 - 优先 `~/` 绝对路径。
-
-## Python 三件套
-涉及 Python 子项目时按需读 `references/python-structure.md`。
