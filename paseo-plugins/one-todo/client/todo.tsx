@@ -992,14 +992,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     queryFn: () => listInitialPrompts({}),
     enabled: Boolean(run && isNormalMode),
   });
-  const validInitialName =
-    run?.initialPromptName &&
-    (!initialListQ.data?.prompts?.length ||
-      initialListQ.data.prompts.some((p) => p.name === run.initialPromptName))
-      ? run.initialPromptName
-      : undefined;
   const activeInitialName = isNormalMode
-    ? (validInitialName ||
+    ? (run?.initialPromptName ||
         initialListQ.data?.selected ||
         initialListQ.data?.prompts?.[0]?.name ||
         "开场向导词")
@@ -1072,7 +1066,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       reviewTemplate({
         kind: initialKind,
         name: isNormalMode ? (vars.name || activeInitialName) : undefined,
-        newName: isNormalMode ? (vars.newName || initialTitle.trim()) : undefined,
+        newName: isNormalMode ? vars.newName : undefined,
         text: vars.text,
       }),
     onSuccess: (res, vars) => {
@@ -1093,6 +1087,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         setRun((d) => (d ? { ...d, initialPromptName: finalName } : d));
       }
       qc.invalidateQueries({ queryKey: ["todo-initial-prompts-list"] });
+      qc.invalidateQueries({ queryKey: ["todo-initial-prompt"] });
       showTip(`${isNormalMode ? `「${finalName}」` : initialLabel}开场向导词已保存`);
     },
     onError: (e: Error) => showTip(e.message || "保存失败"),
