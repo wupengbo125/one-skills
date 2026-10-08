@@ -137,3 +137,4 @@
 - 2026-10-02 21:06 [17b2f8db-a191-44f4-bdc1-474419e7c57e] 更新卷轴 Paseo给ClaudeCode切换模型的方法，补充 claudee -p 快捷指令
 - 2026-10-05 10:14 [bf9a363d-02b0-4641-afc3-a4e9bc386c78] one-todo：修复普通模式新增前导词失败及列表缓存回弹
 - 2026-10-05 22:30 [ac77dffa-ab0b-4395-8f7e-5fbd444c3c21] 新建 one-python-structure 技能，从 one-harness 中移除 Python 规范
+- 2026-10-08 22:12 [3cec82f8-938f-4cb8-843c-7a529b1434e8] 新建 one-paseo-review，one-implement 接入复查闭环
