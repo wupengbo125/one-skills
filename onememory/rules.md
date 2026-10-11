@@ -111,3 +111,11 @@ Lore Bloom 摄入工作流：raw 根即收件箱
   - 资料直接丢 raw/ 根目录，不分类不建子目录；ingest 只扫根目录
   - 摄入后原文移到 raw/ingested/YYYY-MM/，内容不改不删，移动即标记
   - 知识层 lorebloom/ 由 AI 自动归类，新领域先问用户
+
+CodeBuddy 宪法只认 CODEBUDDY.md，rules/ 那条不生效
+- Date: 2026-10-10
+- Category: Troubleshooting & Debugging
+- Instructions:
+  - 宪法放 `~/.codebuddy/CODEBUDDY.md` 软链，别放 `rules/`（rules 那条不加载）
+  - 实测同一份内容：rules/ 软链读不到，CODEBUDDY.md 软链正常注入
+  - 判是否生效用 headless 跑干净临时目录问内容，别看文件在不在

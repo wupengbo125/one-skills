@@ -38,6 +38,27 @@ link() {
     ln -sfn "$src" "$dst"
 }
 
+# 清理断链：只删「指向本仓库但目标已不存在」的软链。
+# 技能改名或删除后旧名会残留断链，菜单里已选不到它，只能靠这一步回收。
+# 只看顶层且只动指向 $SKILLS_ROOT 的链，别处来源的软链一概不碰。
+PRUNED=0
+prune_stale_links() {
+    local d t target
+    for d in "$@"; do
+        [ -d "$d" ] || continue
+        while IFS= read -r t; do
+            target="$(readlink "$t")"
+            case "$target" in
+                "$SKILLS_ROOT"/*)
+                    rm -f "$t"
+                    PRUNED=$((PRUNED + 1))
+                    echo "  已清理断链: $t"
+                    ;;
+            esac
+        done < <(find "$d" -maxdepth 1 -xtype l 2>/dev/null)
+    done
+}
+
 # 通用 ANSI 交互菜单函数 (支持单选 single 与 多选 multi)
 SELECTED_INDICES=()
 select_menu() {
@@ -270,6 +291,8 @@ if [ -n "$DIRECT_AGENT" ]; then
         n=$((n + 1))
     done
     echo "✅ 已给 $DIRECT_AGENT 装 $n 个技能，落在 $DIRECT_DIR"
+    prune_stale_links "$DIRECT_DIR"
+    [ "$PRUNED" -gt 0 ] && echo "🧹 已清理 $PRUNED 条断链"
     exit 0
 fi
 
@@ -352,6 +375,10 @@ apply_selection() {
 processed=0
 
 apply_selection "$OP_DIR"
+
+# 对账：不管装还是卸，收尾都清一遍断链（技能改名/删除留下的旧名）
+prune_stale_links "${USER_GLOBAL_DIRS[@]}"
+[ "$PRUNED" -gt 0 ] && echo "🧹 已清理 $PRUNED 条断链"
 
 # 勾选了记忆钩子：单独执行安装
 [ "${HOOKS_WANTED:-0}" == "1" ] && { install_memory_hooks; processed=$((processed + 1)); }

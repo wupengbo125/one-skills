@@ -138,3 +138,4 @@
 - 2026-10-05 10:14 [bf9a363d-02b0-4641-afc3-a4e9bc386c78] one-todo：修复普通模式新增前导词失败及列表缓存回弹
 - 2026-10-05 22:30 [ac77dffa-ab0b-4395-8f7e-5fbd444c3c21] 新建 one-python-structure 技能，从 one-harness 中移除 Python 规范
 - 2026-10-08 22:12 [3cec82f8-938f-4cb8-843c-7a529b1434e8] 新建 one-paseo-review，one-implement 接入复查闭环
+- 2026-10-10 22:23 [2c7467a9-e5f4-4c7e-be4d-e95d42c82b5d] install.sh 断链清理;建 CODEBUDDY.md 软链修宪法未注入;matt 装全27
