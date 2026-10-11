@@ -148,7 +148,7 @@ if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
     ITEMS+=("rule|agents|[规则文件] AGENTS 规则 (one-agents.md)|$SCRIPT_DIR/one-agents.md")
 fi
 
-ITEMS+=("gitignore|gitignore|[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)|-")
+ITEMS+=("gitignore|gitignore|[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .pi)|-")
 
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
@@ -267,7 +267,7 @@ if [ -n "$DIRECT_AGENT" ]; then
 fi
 
 gitignore_add() {
-    for ig in ".agents/" ".claude/" ".ua/" ".pi/"; do
+    for ig in ".agents/" ".claude/" ".pi/"; do
         if [ -f "./.gitignore" ]; then
             grep -qF "$ig" "./.gitignore" || echo "$ig" >> "./.gitignore"
         else
@@ -278,7 +278,7 @@ gitignore_add() {
 
 gitignore_del() {
     [ -f "./.gitignore" ] || return 0
-    for ig in "\.agents" "\.claude" "\.ua" "\.pi"; do
+    for ig in "\.agents" "\.claude" "\.pi"; do
         sed -i "/^$ig/d" "./.gitignore"
     done
 }
@@ -310,10 +310,10 @@ apply_selection() {
                 # 忽略配置只作用于当前项目
                 if [ "$direction" == "link" ]; then
                     gitignore_add
-                    echo "已在 .gitignore 中添加 .agents/ .claude/ .ua/ .pi/ 忽略"
+                    echo "已在 .gitignore 中添加 .agents/ .claude/ .pi/ 忽略"
                 else
                     gitignore_del
-                    [ -f "./.gitignore" ] && echo "已从 .gitignore 中移除 .agents .claude .ua .pi 忽略"
+                    [ -f "./.gitignore" ] && echo "已从 .gitignore 中移除 .agents .claude .pi 忽略"
                 fi
                 processed=$((processed + 1))
                 ;;

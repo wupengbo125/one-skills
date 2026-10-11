@@ -35,7 +35,6 @@ import { getPreferences, savePreferences } from "./preferences";
 import { deleteBranches } from "./worktree";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { launchAgentOrTerminal, todoAgents } from "./executor";
-import { primaryAgent } from "../shared/todo";
 import { readTaskDoc } from "./taskdoc";
 
 const execFileAsync = promisify(execFile);
@@ -303,7 +302,7 @@ const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问�
 
 规则：
 1. 目标只读：只能看和用只读 git 命令，禁止任何改动。
-2. 需求里写了起点提交 ID 的，本轮改动 = 从那次提交之后的一切（含未提交）；没写起点的，先看 status 再看 diff：没提交的都算本轮，已提交的看提交时间和提交信息判断哪些属于本轮，必要时和基线 {{base}} 比。
+2. 本轮改动 = 未提交的改动：先 git status 看未提交与未跟踪文件，再用 git diff HEAD（含未跟踪）看全量未提交差异；已经提交的不算本轮。
 3. 按需求逐项核对，再按标准看质量与风险。
 4. 结果写入 {{verdictFile}}：首行「结论: 通过」或「结论: 不通过」，下面只列问题（标阻塞/建议）和一句话理由。写完把结果全文贴在回复里，全部控制在十五行以内。`;
 
@@ -462,6 +461,11 @@ export function readOrSeedTemplateRaw(kind: TplKind, name?: string): string {
     }
     return raw;
   }
+}
+
+/** 自动那套前导词：按名字认，名字带 review 的才走自动评审（放马时才有轮数控件）。 */
+export function initialPromptIsAutoReview(name?: string): boolean {
+  return Boolean(name && name.toLowerCase().includes("review"));
 }
 
 const TEMPLATE_LABEL: Record<TplKind, string> = {
@@ -871,10 +875,12 @@ function autoRoundsLeft(todo: Todo): boolean {
   return auto.maxRounds < 0 || auto.roundsUsed < auto.maxRounds;
 }
 
-function defaultReviewer(todo: Todo): AgentRef {
+/** 自动起评的评审员：本待办上次的，其次全局上次的；都没有就不评（不退回马的 provider）。 */
+function defaultReviewer(todo: Todo): AgentRef | undefined {
   const chosen = todo.review?.reviewer;
   if (chosen?.provider) return chosen;
-  return primaryAgent(todoAgents(todo));
+  const last = getPreferences().lastReviewer;
+  return last?.provider ? last : undefined;
 }
 
 /** 马跑完了：开着自动就替用户发起评审（需求取目标马的需求清单）。 */
@@ -903,12 +909,17 @@ export async function autoStartReview(
     stopAuto(todo, "没有需求文档，自动停了，等你手动发起");
     return;
   }
+  const reviewer = defaultReviewer(todo);
+  if (!reviewer) {
+    stopAuto(todo, "没有评审员，自动停了，先手动发起评审选定一个");
+    return;
+  }
   const res = await handleReviewStart(
     {
       id: todo.id,
       kind: "single",
       task,
-      reviewer: defaultReviewer(todo),
+      reviewer,
       ...(targetAgentId ? { targetAgentId } : {}),
     },
     { paseo },
@@ -920,6 +931,24 @@ export async function autoStartReview(
   noteAuto(getTodo(todo.id) ?? todo, `自动发起第 ${auto.roundsUsed + 1} 轮评审`, {
     phase: "reviewing",
   });
+}
+
+/** 评审通过：通知干活马把本轮改动提交，工作区回干净，当下一轮基线。 */
+async function tellHorseToCommit(todo: Todo): Promise<void> {
+  const arb = todo.review;
+  const horse = arb?.targetAgentId
+    ? horseBySession(todo.agents, arb.targetAgentId)
+    : undefined;
+  if (!horse?.agentId && !horse?.terminalId) return;
+  try {
+    await sendToSession(
+      horse.agentId,
+      horse.terminalId,
+      "评审通过，没有建议。请把本轮改动 git 提交（一次提交，写清这次做了什么）。",
+    );
+  } catch {
+    // 通知发不出去就不拦收工
+  }
 }
 
 /** 评审出结果了：自动决定发回还是收工。 */
@@ -945,9 +974,10 @@ export async function autoAdvanceReview(
         ...auto,
         maxRounds: 0,
         phase: undefined,
-        note: "评审通过、没有建议，自动停",
+        note: "评审通过、没有建议，已让它提交，自动停",
       },
     });
+    await tellHorseToCommit(todo);
     return;
   }
   if (!autoRoundsLeft(todo)) {
@@ -1049,6 +1079,8 @@ export async function handleReviewStart(
   }
   const kind: ReviewKind = input.kind;
   const now = new Date().toISOString();
+  // 记下这次用的评审员：下次自动起评就认它（不再退回马的 provider）
+  if (input.reviewer?.provider) savePreferences({ lastReviewer: input.reviewer });
   // 发起没成：没有额外工作区要回收，只在待办身上把这次评审记成失败
   const startFailed = (
     error: string,

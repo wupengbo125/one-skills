@@ -675,6 +675,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           skills: d.skills,
           prompt: d.prompt,
           extraPrompt: d.extraPrompt,
+          autoRounds: d.autoRounds ?? 0,
           workspaceId: d.workspaceId,
           workspaceName: d.workspaceName,
           race: Boolean(d.race),
@@ -688,6 +689,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         skills: d.skills,
         prompt: d.prompt,
         extraPrompt: d.extraPrompt,
+        autoRounds: d.autoRounds ?? 0,
         projectId: d.projectId,
         projectName: d.projectName,
         projectPath: d.projectPath,
@@ -807,15 +809,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const arbTodo: Todo | undefined = arb
     ? todos.find((t) => t.id === arb.id)
     : undefined;
-  const auto = arbTodo?.autoReview;
-  const setAuto = (patch: Partial<NonNullable<Todo["autoReview"]>>) => {
-    if (!arbTodo) return;
-    const base = arbTodo.autoReview ?? { maxRounds: 0, roundsUsed: 0 };
-    editM.mutate({
-      id: arbTodo.id,
-      patch: { autoReview: { ...base, ...patch } },
-    });
-  };
   const arbDirsQ = useQuery({
     queryKey: ["todo-arb-dirs", arb?.id],
     queryFn: () => reviewDirs({ id: arb!.id }),
@@ -998,6 +991,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
         initialListQ.data?.prompts?.[0]?.name ||
         "开场向导词")
     : "";
+  // 自动那套前导词按名字认：名字带 review 的才带自动评审
+  const autoCapable = isNormalMode && activeInitialName.includes("review");
   const initialKey = isNormalMode ? `initial:${activeInitialName}` : initialKind;
   const initialLabel = INITIAL_LABEL[initialKind];
   const initialKeyRef = useRef(initialKey);
@@ -1321,6 +1316,9 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     d.newBranch = t?.newBranch?.trim() || (title ? branchFromTitle(title) : "");
     d.initialPromptName =
       t?.initialPromptName || preferences?.lastInitialPromptName || "";
+    d.autoRounds =
+      t?.autoReview?.maxRounds ??
+      (d.initialPromptName.includes("review") ? 3 : 0);
     runTitleRef.current = d.title;
     runPromptRef.current = d.prompt;
     setSearch("");
@@ -2057,46 +2055,6 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               ) : null}
             </View>
           ) : null}
-
-          <View style={s.formSection}>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <Text style={s.pathText}>自动评审轮数</Text>
-              {[0, 1, 2, 3, -1].map((n) => (
-                <Pressable
-                  key={n}
-                  style={[
-                    s.segBtn,
-                    { flexShrink: 0, minWidth: 36, paddingHorizontal: 8, paddingVertical: 4 },
-                    (auto?.maxRounds ?? 0) === n && s.segOn,
-                  ]}
-                  onPress={() =>
-                    setAuto({
-                      maxRounds: n,
-                      roundsUsed: 0,
-                      phase: "horse",
-                      note: undefined,
-                    })
-                  }
-                >
-                  <Text
-                    style={
-                      (auto?.maxRounds ?? 0) === n
-                        ? s.segTextOn
-                        : s.segText
-                    }
-                  >
-                    {n === -1 ? "不限" : n}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          </View>
 
           <View style={s.formSection}>
             <Text style={s.formSectionTitle}>评审员 *</Text>
@@ -3146,7 +3104,15 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                                   };
                                 }
                                 setRun((d) =>
-                                  d ? { ...d, initialPromptName: item.id } : d,
+                                  d
+                                    ? {
+                                        ...d,
+                                        initialPromptName: item.id,
+                                        autoRounds: item.id.includes("review")
+                                          ? 3
+                                          : 0,
+                                      }
+                                    : d,
                                 );
                                 setInitialTitle(item.id);
                                 setPicker(null);
@@ -3247,6 +3213,47 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                         )}
                       </View>
                     ) : null}
+                  </View>
+                ) : null}
+                {autoCapable ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                      marginTop: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text style={s.pathText}>自动评审轮数</Text>
+                    {[0, 3, 5, 10, -1].map((n) => (
+                      <Pressable
+                        key={n}
+                        style={[
+                          s.segBtn,
+                          {
+                            flexShrink: 0,
+                            minWidth: 36,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                          },
+                          (run?.autoRounds ?? 0) === n && s.segOn,
+                        ]}
+                        onPress={() =>
+                          setRun((d) => (d ? { ...d, autoRounds: n } : d))
+                        }
+                      >
+                        <Text
+                          style={
+                            (run?.autoRounds ?? 0) === n
+                              ? s.segTextOn
+                              : s.segText
+                          }
+                        >
+                          {n === -1 ? "不限" : n}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </View>
                 ) : null}
                 <Text style={s.pathText}>

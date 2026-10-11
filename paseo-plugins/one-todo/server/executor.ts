@@ -12,13 +12,18 @@ import {
   resetTodoRpc,
   startTodoRpc,
   type AgentRef,
+  type AutoReview,
   type Todo,
 } from "../shared/todo";
 import { getTodo, listTodos, saveTodo } from "./store";
 import { savePreferences } from "./preferences";
 import { handleUpdateTodo } from "./todo";
 import { deleteBranches } from "./worktree";
-import { readOrSeedTemplateRaw, type TplKind } from "./review";
+import {
+  readOrSeedTemplateRaw,
+  initialPromptIsAutoReview,
+  type TplKind,
+} from "./review";
 import { taskDocPath } from "./taskdoc";
 
 const execFileAsync = promisify(execFile);
@@ -139,6 +144,18 @@ async function resolveProjectPath(
   }
 }
 
+// 自动评审轮数落成待办字段：轮数没变就保留已跑轮数，变了才清零重算
+function buildAutoReview(
+  prev: Todo["autoReview"],
+  rounds: number,
+): AutoReview {
+  return {
+    maxRounds: rounds,
+    roundsUsed: prev?.maxRounds === rounds ? (prev.roundsUsed ?? 0) : 0,
+    phase: "horse",
+  };
+}
+
 export async function handleStartTodo(
   input: RpcInput<typeof startTodoRpc>,
   { paseo }: PluginHandlerContext,
@@ -166,12 +183,18 @@ export async function handleStartTodo(
   const hasPlacementPatch = Object.values(placementPatch).some(
     (v) => v !== undefined,
   );
+  // 自动评审只管普通模式，且所选前导词得是自动那套（名字带 review）；否则强制关
+  const autoEligible =
+    !race &&
+    !committee &&
+    initialPromptIsAutoReview(input.initialPromptName ?? base.initialPromptName);
   let todo = base;
   if (
     input.agents ||
     input.prompt !== undefined ||
     input.skills !== undefined ||
     input.initialPromptName !== undefined ||
+    input.autoRounds !== undefined ||
     (committee && input.committeeMembers !== undefined) ||
     hasPlacementPatch
   ) {
@@ -185,6 +208,14 @@ export async function handleStartTodo(
           ? { initialPromptName: input.initialPromptName }
           : {}),
         ...(input.extraPrompt !== undefined ? { extraPrompt: input.extraPrompt } : {}),
+        ...(input.autoRounds !== undefined
+          ? {
+              autoReview: buildAutoReview(
+                base.autoReview,
+                autoEligible ? input.autoRounds : 0,
+              ),
+            }
+          : {}),
         // 委员会标记不在这里落库：只随成功收尾写（跟 raceMode 一致），
         // 启动失败的工作区失效/报错不能把模式段锁死。
         // 成员配置也只在委员会模式下写，普通待办不留空成员

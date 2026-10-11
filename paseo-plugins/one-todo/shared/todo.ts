@@ -103,6 +103,8 @@ export const todoSchema = z.object({
   export const preferencesSchema = z.object({
     lastProvider: z.string().optional(),
     lastModel: z.string().optional(),
+    // 上次用过的评审员：自动起评没人可选时用它，不退回马的 provider
+    lastReviewer: agentRefSchema.optional(),
     lastProjectId: z.string().optional(),
     lastProjectName: z.string().optional(),
     lastProjectPath: z.string().optional(),
@@ -252,6 +254,8 @@ export const startTodoRpc = defineRpc({
       committee: z.boolean().optional(),
       committeeMembers: z.array(agentRefSchema).optional(),
       initialPromptName: z.string().optional(),
+      // 自动评审轮数：0=关，-1=不限，>0=上限。只有会写需求文档的前导词才生效
+      autoRounds: z.number().int().optional(),
       ...todoPlacementFields,
   }),
   output: z.object({

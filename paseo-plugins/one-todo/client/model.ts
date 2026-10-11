@@ -26,6 +26,8 @@ export type RunDraft = {
   issueUrl?: string;
   extraPrompt?: string;
   initialPromptName?: string;
+  // 自动评审轮数：0=关，-1=不限，>0=上限（只跟会写需求文档的前导词配对）
+  autoRounds?: number;
 };
 
 export type Picker =
