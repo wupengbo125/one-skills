@@ -290,7 +290,7 @@ const DEFAULT_MULTI = `你是评审员。同一需求由多匹马在不同 workt
 1. 候选只读：只能看和用只读 git 命令，禁止任何改动。
 2. 需求里写了起点提交 ID 的，本轮改动 = 从那次提交之后的一切（含未提交）；没写起点的，先看 status 再看 diff：没提交的都算本轮，已提交的看提交时间和提交信息判断哪些属于本轮，必要时和基线 {{base}} 比。
 3. 先按需求判对错，再按标准横向比。
-4. 结果写入 {{verdictFile}}：首行「胜者: <编号>」，下面每匹马两三句点评+一句改进建议。写完把结果全文贴在回复里，全部控制在十五行以内。`;
+4. 结果写入 {{review}}：首行「胜者: <编号>」，下面每匹马两三句点评+一句改进建议。写完把结果全文贴在回复里，全部控制在十五行以内。`;
 
 const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问题并给出改进建议。
 
@@ -304,7 +304,7 @@ const DEFAULT_SINGLE = `你是评审员。评审下面这份实现，指出问�
 1. 目标只读：只能看和用只读 git 命令，禁止任何改动。
 2. 本轮改动 = 未提交的改动：先 git status 看未提交与未跟踪文件，再用 git diff HEAD（含未跟踪）看全量未提交差异；已经提交的不算本轮。
 3. 按需求逐项核对，再按标准看质量与风险。
-4. 结果写入 {{verdictFile}}：首行「结论: 通过」或「结论: 不通过」，下面只列问题（标阻塞/建议）和一句话理由。写完把结果全文贴在回复里，全部控制在十五行以内。`;
+4. 结果写入 {{review}}：首行「结论: 通过」或「结论: 不通过」，下面只列问题（标阻塞/建议）和一句话理由。写完把结果全文贴在回复里，全部控制在十五行以内。`;
 
 const DEFAULT_SEND =
   "【评审反馈与整改建议】以下为审阅结论。请评估可行性并排查技术风险，涉及架构与关键逻辑变更须经确认后推进，依此落实修正。";
@@ -484,8 +484,8 @@ function checkTemplate(kind: TplKind, part: string): string | undefined {
   if (kind === "send" || kind.startsWith("initial")) return undefined;
   if (!part.includes("{{task}}")) return `${name}模板缺少 {{task}} 空位`;
   if (!part.includes("{{targets}}")) return `${name}模板缺少 {{targets}} 空位`;
-  if (!part.includes("{{verdictFile}}")) {
-    return `${name}模板缺少 {{verdictFile}} 空位`;
+  if (!part.includes("{{review}}")) {
+    return `${name}模板缺少 {{review}} 空位`;
   }
   return undefined;
 }
@@ -782,7 +782,7 @@ function assembleReviewPrompt(
       task,
       targets: list,
       base: todo.baseBranch?.trim() || "main",
-      verdictFile: verdictPath(todo.title, verdictName),
+      review: verdictPath(todo.title, verdictName),
     }) + NO_EDIT_SUFFIX;
   return { prompt, verdictName };
 }
@@ -1049,7 +1049,7 @@ export async function handleReviewStart(
   input: RpcInput<typeof reviewStartRpc>,
   { paseo }: PluginHandlerContext,
 ): Promise<RpcOutput<typeof reviewStartRpc>> {
-  const todo = getTodo(input.id);
+  let todo = getTodo(input.id);
   if (!todo) return { ok: false, todo: null, error: "待办不存在" };
   if (todo.review?.status === "running") {
     return {
@@ -1057,6 +1057,17 @@ export async function handleReviewStart(
       todo,
       error: "评审进行中",
     };
+  }
+  // 手动发起：把界面选的轮数写进当前循环预算，跟放马那份互不相干
+  if (input.autoRounds !== undefined) {
+    todo = saveTodo({
+      ...todo,
+      autoReview: {
+        maxRounds: input.autoRounds,
+        roundsUsed: 0,
+        phase: "reviewing",
+      },
+    });
   }
   const arb = todo.review;
   const reviewerChanged =
@@ -1087,6 +1098,10 @@ export async function handleReviewStart(
     ok: false,
     todo: saveTodo({
       ...todo,
+      // 手动发起失败：预算别留在「评审中」，不然马下回合又会自动拉评审
+      ...(input.autoRounds !== undefined && todo.autoReview
+        ? { autoReview: { ...todo.autoReview, phase: undefined } }
+        : {}),
       review: {
         kind,
         reviewer: input.reviewer as AgentRef,

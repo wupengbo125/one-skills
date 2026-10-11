@@ -152,6 +152,8 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     savePreferences({ lastCommitteeMembers: p.committeeMembers });
   }
   if (p.autoReview !== undefined) next.autoReview = p.autoReview;
+  if (p.dispatchRounds !== undefined) next.dispatchRounds = p.dispatchRounds;
+  if (p.manualRounds !== undefined) next.manualRounds = p.manualRounds;
   if (p.source !== undefined) next.source = defaultSource(p.source);
   if (p.issueRef !== undefined) next.issueRef = p.issueRef || undefined;
   if (p.issueUrl !== undefined) next.issueUrl = p.issueUrl || undefined;

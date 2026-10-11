@@ -96,6 +96,10 @@ export const todoSchema = z.object({
     skills: z.array(z.string()).optional(),
     pinned: z.boolean().optional(),
     autoReview: autoReviewSchema.optional(),
+    // 放马时选的轮数：只做记忆和回填，跟 autoReview 互不覆盖
+    dispatchRounds: z.number().int().min(-1).optional(),
+    // 审核界面选的轮数：手动发起审核时的循环预算
+    manualRounds: z.number().int().min(-1).optional(),
     extraPrompt: z.string().optional(),
     branchTag: z.string().optional(),
     initialPromptName: z.string().optional(),
@@ -190,6 +194,8 @@ export const updateTodoRpc = defineRpc({
       pinned: z.boolean().optional(),
       branchTag: z.string().optional(),
       autoReview: autoReviewSchema.optional(),
+      dispatchRounds: z.number().int().min(-1).optional(),
+      manualRounds: z.number().int().min(-1).optional(),
       extraPrompt: z.string().optional(),
       initialPromptName: z.string().optional(),
       committee: z.boolean().optional(),
@@ -401,6 +407,8 @@ export const reviewStartRpc = defineRpc({
     task: z.string().optional(),
     // 审的是哪匹马：它的会话号。不传就不指定
     targetAgentId: z.string().optional(),
+    // 手动发起时的循环预算：审核界面轮数控件写的
+    autoRounds: z.number().int().min(-1).optional(),
   }),
   output: z.object({
     ok: z.boolean(),

@@ -210,6 +210,7 @@ export async function handleStartTodo(
               autoReview: buildAutoReview(
                 autoEligible ? input.autoRounds : 0,
               ),
+              dispatchRounds: autoEligible ? input.autoRounds : 0,
             }
           : {}),
         // 委员会标记不在这里落库：只随成功收尾写（跟 raceMode 一致），

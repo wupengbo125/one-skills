@@ -1125,6 +1125,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       task?: string;
       reviewer: AgentRef;
       targetAgentId?: string;
+      autoRounds?: number;
     }) => reviewStart(vars),
     onSuccess: (res) => {
       if (res.ok) {
@@ -1317,8 +1318,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
     d.initialPromptName =
       t?.initialPromptName || preferences?.lastInitialPromptName || "";
     d.autoRounds =
-      t?.autoReview?.maxRounds ??
-      (d.initialPromptName.includes("review") ? 3 : 0);
+      t?.dispatchRounds ??
+      (d.initialPromptName.includes("review") ? 10 : 0);
     runTitleRef.current = d.title;
     runPromptRef.current = d.prompt;
     setSearch("");
@@ -2057,6 +2058,45 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
           ) : null}
 
           <View style={s.formSection}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <Text style={s.pathText}>自动评审轮数</Text>
+              {[0, 3, 5, 10, -1].map((n) => (
+                <Pressable
+                  key={n}
+                  style={[
+                    s.segBtn,
+                    { flexShrink: 0, minWidth: 36, paddingHorizontal: 8, paddingVertical: 4 },
+                    (arbTodo?.manualRounds ?? 10) === n && s.segOn,
+                  ]}
+                  onPress={() =>
+                    arbTodo &&
+                    editM.mutate({
+                      id: arbTodo.id,
+                      patch: { manualRounds: n },
+                    })
+                  }
+                >
+                  <Text
+                    style={
+                      (arbTodo?.manualRounds ?? 10) === n
+                        ? s.segTextOn
+                        : s.segText
+                    }
+                  >
+                    {n === -1 ? "不限" : n}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+
+          <View style={s.formSection}>
             <Text style={s.formSectionTitle}>评审员 *</Text>
             <Pressable
               style={s.chip}
@@ -2433,7 +2473,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             {tplView !== "collapsed" ? (
               <>
                 <Text style={s.pathText}>
-                  空位：{"{{task}}"}需求 {"{{targets}}"}候选 {"{{base}}"}基线 {"{{verdictFile}}"}结果路径
+                  空位：{"{{task}}"}需求 {"{{targets}}"}候选 {"{{base}}"}基线 {"{{review}}"}结果路径
                 </Text>
                 {tplView === "preview" ? (
                   <>
@@ -2517,6 +2557,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                     kind: mode,
                     task: arbTaskRef.current,
                     reviewer: arb.reviewer,
+                    autoRounds: arbTodo?.manualRounds ?? 10,
                     ...(!isMulti && cands[selectedTargetIdx]?.agentId
                       ? { targetAgentId: cands[selectedTargetIdx].agentId }
                       : {}),
@@ -3109,7 +3150,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                                         ...d,
                                         initialPromptName: item.id,
                                         autoRounds: item.id.includes("review")
-                                          ? 3
+                                          ? 10
                                           : 0,
                                       }
                                     : d,
