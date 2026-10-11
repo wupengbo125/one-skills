@@ -806,9 +806,10 @@ function verdictPassed(text: string): boolean {
 function stopAuto(todo: Todo, note: string): Todo {
   const auto = todo.autoReview;
   if (!auto) return todo;
+  // 只标停，不清轮数：数字是这单的预算，留着给下次开跑用
   return saveTodo({
     ...todo,
-    autoReview: { ...auto, maxRounds: 0, note },
+    autoReview: { ...auto, phase: undefined, note },
   });
 }
 
@@ -864,9 +865,10 @@ export function turnTouchedCode(timeline: readonly unknown[]): boolean {
   return tools.some((n) => !READ_ONLY_TOOLS.has(n));
 }
 
-/** 自动开着吗：轮数 0 = 关着，-1 = 不限，>0 = 有上限 */
+/** 自动开着吗：轮数 0 = 关着，-1 = 不限，>0 = 有上限；phase 没了 = 这轮已经停了 */
 export function autoOn(todo: Todo): boolean {
-  return (todo.autoReview?.maxRounds ?? 0) !== 0;
+  const auto = todo.autoReview;
+  return !!auto && auto.maxRounds !== 0 && auto.phase !== undefined;
 }
 
 function autoRoundsLeft(todo: Todo): boolean {
@@ -906,7 +908,7 @@ export async function autoStartReview(
   const docKey = hit?.workspaceId ?? todo.workspaceId;
   const task = readTaskDoc(docKey) ?? "";
   if (!task) {
-    stopAuto(todo, "没有需求文档，自动停了，等你手动发起");
+    noteAuto(todo, "还没有需求文档，这轮先不评，等下一轮");
     return;
   }
   const reviewer = defaultReviewer(todo);
@@ -972,7 +974,6 @@ export async function autoAdvanceReview(
       ...todo,
       autoReview: {
         ...auto,
-        maxRounds: 0,
         phase: undefined,
         note: "评审通过、没有建议，已让它提交，自动停",
       },
@@ -995,17 +996,14 @@ export async function autoAdvanceReview(
     roundsUsed: used,
     phase: "horse",
   };
+  let stopNote = `已自动发回第 ${used} 轮，等它改完再评`;
   if (passed) {
-    // 已经通过：建议发回让它改，但不再自动拉下一轮
-    patch.maxRounds = 0;
+    patch.phase = undefined;
+    stopNote = "评审已通过，建议已发回让它改，自动停";
   } else if (auto.maxRounds > 0 && used >= auto.maxRounds) {
-    patch.maxRounds = 0;
+    patch.phase = undefined;
+    stopNote = `已自动跑满 ${used} 轮，停了`;
   }
-  const stopNote = passed
-    ? "评审已通过，建议已发回让它改，自动停"
-    : patch.maxRounds === 0
-      ? `已自动跑满 ${used} 轮，停了`
-      : `已自动发回第 ${used} 轮，等它改完再评`;
   saveTodo({
     ...now,
     autoReview: { ...now.autoReview!, ...patch, note: stopNote },

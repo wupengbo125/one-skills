@@ -144,14 +144,11 @@ async function resolveProjectPath(
   }
 }
 
-// 自动评审轮数落成待办字段：轮数没变就保留已跑轮数，变了才清零重算
-function buildAutoReview(
-  prev: Todo["autoReview"],
-  rounds: number,
-): AutoReview {
+// 自动评审轮数落成待办字段：每次开跑预算重置，已用次数清 0
+function buildAutoReview(rounds: number): AutoReview {
   return {
     maxRounds: rounds,
-    roundsUsed: prev?.maxRounds === rounds ? (prev.roundsUsed ?? 0) : 0,
+    roundsUsed: 0,
     phase: "horse",
   };
 }
@@ -211,7 +208,6 @@ export async function handleStartTodo(
         ...(input.autoRounds !== undefined
           ? {
               autoReview: buildAutoReview(
-                base.autoReview,
                 autoEligible ? input.autoRounds : 0,
               ),
             }
