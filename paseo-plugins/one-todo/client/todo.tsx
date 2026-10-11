@@ -3257,7 +3257,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                   </View>
                 ) : null}
                 <Text style={s.pathText}>
-                  开场向导词模板，支持 {"{{docPath}}"}（文档路径）、{"{{id}}"}（工作区ID）、{"{{members}}"}（委员会两个成员）与 {"{{Skills}}"}（本单已选技能）：
+                  开场向导词模板，支持 {"{{plan}}"}（平铺计划文档路径）、{"{{id}}"}（工作区ID）、{"{{members}}"}（委员会两个成员）与 {"{{Skills}}"}（本单已选技能）：
                 </Text>
                 {initialQ.isLoading ? (
                   <Text style={s.empty}>读取中…</Text>
@@ -3337,7 +3337,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
                               initialTitle.trim() !== activeInitialName),
                         );
                       }}
-                      placeholder="开场向导词模板，支持 {{docPath}} 与 {{id}} 变量…"
+                      placeholder="开场向导词模板，支持 {{plan}} 与 {{id}} 变量…"
                       placeholderTextColor={theme.colors.foregroundMuted}
                       multiline
                     />

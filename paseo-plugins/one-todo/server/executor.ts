@@ -46,7 +46,7 @@ function formatInitialPrompt(
   const docPath = taskDocPath(wsId);
   const skillText = skills.join(", ");
   let tpl = initial
-    .replace(/\{\{(docPath|taskDocPath)\}\}/g, docPath)
+    .replace(/\{\{plan\}\}/g, docPath)
     .replace(/\{\{(id|workspaceId)\}\}/g, wsId)
     .replace(/\{\{members\}\}/g, members);
   if (skillText) {
