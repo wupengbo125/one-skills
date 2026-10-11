@@ -1,10 +1,10 @@
 ---
-name: one-audit-plan
+name: one-summarise-plan
 description: 读取平铺计划文档中记录的各版本计划，总结成一份覆盖式的全量真实需求。
 disable-model-invocation: true
 ---
 
-# one-audit-plan
+# one-summarise-plan
 
 ## 干什么
 

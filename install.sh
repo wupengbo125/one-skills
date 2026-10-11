@@ -140,7 +140,8 @@ select_menu() {
 }
 
 # 候选表：一行一个候选，格式 "kind|key|菜单名|路径"
-#   kind: rule 宪法规则文件 / gitignore 忽略规则配置 / hooks 记忆钩子 / skill 技能目录
+#   kind: rule 宪法规则文件 / gitignore 忽略规则配置 / skill 技能目录
+#记忆钩子不在此表：钩子属one-memory 技能，须手动跑其hooks/install-hook.sh，全选不代装
 ITEMS=()
 
 if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
@@ -148,7 +149,6 @@ if [ -f "$SCRIPT_DIR/one-agents.md" ]; then
 fi
 
 ITEMS+=("gitignore|gitignore|[配置项] 忽略规则 (.gitignore 忽略 .agents .claude .ua .pi)|-")
-ITEMS+=("hooks|hooks|[记忆钩子] 安装到所有同级仓库 (pre-commit + post-commit)|-")
 
 for d in "$SKILLS_ROOT"/*; do
     if [ -d "$d" ]; then
@@ -165,36 +165,6 @@ ITEM_LABELS=()
 OPS_LABELS=()
 for it in "${ITEMS[@]}"; do IFS='|' read -r _ _ label _ <<< "$it"; ITEM_LABELS+=("$label"); done
 for op in "${OPS[@]}"; do OPS_LABELS+=("${op%%|*}"); done
-
-# 安装记忆钩子：pre-commit 门禁装给所有项目仓（跳过记录型），post-commit 索引同步专属 one-hippocampus
-install_memory_hooks() {
-    local hooks_dir="$SCRIPT_DIR/one-memory/hooks"
-    [ -d "$hooks_dir" ] || { echo "错误: 未找到 $hooks_dir"; return 1; }
-    local n=0 name
-    for repo in "$HOME"/onespace/github/*; do
-        [ -d "$repo/.git" ] || continue
-        name="$(basename "$repo")"
-        # 记录型仓库自身即记忆载体，不装门禁
-        case "$name" in
-            one-hippocampus|one-life|one-llmwiki|lorebloom)
-                echo "  跳过: $name"
-                continue
-                ;;
-        esac
-        mkdir -p "$repo/.git/hooks"
-        cp -f "$hooks_dir/pre-commit" "$repo/.git/hooks/pre-commit" && chmod +x "$repo/.git/hooks/pre-commit"
-        echo "  已安装 pre-commit 门禁: $name"
-        n=$((n + 1))
-    done
-    # 记忆中枢专属：post-commit 同步 FTS 检索索引
-    local hippo="$HOME/onespace/github/one-hippocampus"
-    if [ -d "$hippo/.git/hooks" ]; then
-        cp -f "$hooks_dir/post-commit" "$hippo/.git/hooks/post-commit" && chmod +x "$hippo/.git/hooks/post-commit"
-        cp -f "$SCRIPT_DIR/one-memory/scripts/fts.py" "$hippo/.git/hooks/fts.py"
-        echo "  已安装 post-commit 索引同步: one-hippocampus"
-    fi
-    echo "✅ 记忆钩子安装完成：$n 个项目仓装 pre-commit，one-hippocampus 装 post-commit"
-}
 
 if [ -z "$DIRECT_AGENT" ]; then
     # 第一步：选择要安装/卸载的技能 (Skills)
@@ -347,10 +317,6 @@ apply_selection() {
                 fi
                 processed=$((processed + 1))
                 ;;
-            hooks)
-                # 记忆钩子：勾选后在主流程外单独执行
-                HOOKS_WANTED=1
-                ;;
             skill)
                 for g in "${USER_GLOBAL_DIRS[@]}"; do
                     [ "$direction" == "link" ] && mkdir -p "$g"
@@ -379,8 +345,5 @@ apply_selection "$OP_DIR"
 # 对账：不管装还是卸，收尾都清一遍断链（技能改名/删除留下的旧名）
 prune_stale_links "${USER_GLOBAL_DIRS[@]}"
 [ "$PRUNED" -gt 0 ] && echo "🧹 已清理 $PRUNED 条断链"
-
-# 勾选了记忆钩子：单独执行安装
-[ "${HOOKS_WANTED:-0}" == "1" ] && { install_memory_hooks; processed=$((processed + 1)); }
 
 echo -e "\n完成！共处理了 $processed 项。"

@@ -14,7 +14,8 @@ one-skills/one-memory/
 ├── hooks/ 【通用 Git 钩子层】
 │   ├── pre-commit 代码改动与 onememory/ 原子提交门禁 + 海马摘要等号校验
 │   ├── post-commit 海马记忆仓提交自动同步索引
-│   └── install-hook.sh 钩子分发脚本
+│   ├── install-hook.sh 钩子分发脚本（唯一安装源）
+│   └── uninstall-hook.sh 钩子卸载脚本
 ├── scripts/                 # 【脚本目录】
 │   └── memory.py           # BM25 检索、增量/全量建库、流水与自清洁
 ├── references/              # 【按需执行指南】
@@ -31,11 +32,17 @@ one-skills/one-memory/
 ### 通用 Git 钩子 (Universal Git Hooks)
 - **适用**：任何终端 Git、任何 Agent（Claude Code, Cursor, Aider, Pi, OMP 等）。
 - **机制**：提交代码时检测 `onememory/` 随身记忆，并校验海马记忆仓当日摘要与 `timeline.md` 末行一致；海马记忆仓提交后自动同步检索索引。
+- **装卸只走手动脚本**（钩子属one-memory 技能，`install.sh` 菜单不管它，全选不会代装）：
 - **安装**：
   ```bash
   bash one-skills/one-memory/hooks/install-hook.sh
   ```
-- **卸载**：删除对应仓库 `.git/hooks/pre-commit` 或 `.git/hooks/post-commit`。
+- **卸载**（可反复来回，只删本仓装的钩子，别人的 post-checkout 等一律不动）：
+  ```bash
+  bash one-skills/one-memory/hooks/uninstall-hook.sh            # 卸所有仓库
+  bash one-skills/one-memory/hooks/uninstall-hook.sh --dry-run  # 先看要删什么
+  bash one-skills/one-memory/hooks/uninstall-hook.sh one-skills # 只卸指定仓库
+  ```
 
 ---
 

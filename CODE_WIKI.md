@@ -37,7 +37,8 @@ one-skills/
 ├── one-book-notes/          # 读书笔记路由
 ├── one-awesome-design/      # UI 设计规范：SKILL.md + reference/apple-design.md
 ├── onememory/               # 本仓自己的项目随身记忆（timeline.md + tasks/<会话ID>.md）
-└── .pi/skills/caveman/      # vendored 第三方技能
+├── .pi/skills/caveman/      # vendored 第三方技能
+└── one-paseo-review-lite/   # 轻型代码审查（Matt 纯粹 Spec 单核快审）：SKILL.md + references/lite-prompt.md
 ```
 
 外部数据仓（不在本仓）：
@@ -58,7 +59,8 @@ one-skills/
 | one-context | 自动：init/update | 生成/更新根目录 `CONTEXT.md`，绝不覆盖人工背景 | 模板 CONTEXT-TEMPLATE.md |
 | one-harness | 仅显式调用 | 重型流程：主 Agent 只架构，Worker 写码+同步蓝图，双轴审查（Standards/Spec），交付闸门写记忆 | 引用 one-blueprint、one-memory、code-review |
 | one-harness-lite | 自动（改文件即触发；已用重型则跳过） | 主 Agent 自己改，改完不 commit，派无记忆 Sub-agent 拿原话+`git diff HEAD`等号审查 | Pi 扩展自动注入 |
-| one-implement | 自动（改文件即触发） | 平铺计划，最小化实现，严防多改，改完不 commit，对照需求做等号审查 | 扩展自动注入 |
+| one-implement | 自动（改文件即触发） | 平铺计划，最小化实现，严防多改，改完执行 git add -N 暂存并派发 Matt 代码审查与自动闭环修复 | 引用 one-summarise-plan、one-paseo-review-lite |
+| one-paseo-review-lite | 仅显式调用 | 轻型代码审查：单 Agent 极简快审，聚焦 Matt Spec 轴单核（改多了/改少了/改偏了） | references/lite-prompt.md |
 | one-refactor-implement-cp | 仅显式调用 | 重构禁凭记忆重打代码：`cp`/`sed` 物理复制，5 步法 | 前置遵循 one-harness |
 | one-handoff | 仅显式调用 | 生成覆盖式 `handoff.md`，脱敏 | 引用 BLUEPRINT/git diff |
 | one-ebbiii | 自动："艾宾浩斯" | 闪卡 CRUD：`Bearer $EBBIII_API_TOKEN`，答案 ≤200 字，先查重 | HTTP `${EBBIII_BASE_URL:-http://localhost:3000}/api/v1/cards` |

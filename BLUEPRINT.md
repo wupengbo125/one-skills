@@ -51,6 +51,8 @@
   - 只派一个 Agent 时标题与分支不带 🐎 前缀，多人赛马才带
   - 支持 -sda/--set-default-agent 记住默认 Agent，之后不带 -a 直接用它
   - CodeBuddy 走终端模式：等终端起来后以 codebuddy --model <模型> "<Issue链接> <提示词>" 启动
+- [one-paseo-review-lite/](one-paseo-review-lite/)
+  - 轻型代码审查：单 Agent 极简快审，聚焦需求等号核验（改多了/改少了/改偏了）
 - [paseo-plugins/one-todo/](paseo-plugins/one-todo/)
   - 在 Paseo 中管理待办任务与 GitHub Issue，支持本地执行与多马独立 Worktree 并发开跑
   - 支持会话跳转、待办继承与白盒开场向导词模板自定义（开场词按普通/赛马/委员会分三份，各存各的）
