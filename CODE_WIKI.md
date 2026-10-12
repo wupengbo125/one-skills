@@ -4,7 +4,7 @@
 
 ## 1. 项目事实
 
-- 个人 Agent 技能库 + 全局 Agent 规则源仓库。12 个自研技能，每个技能 = 一个 `one-*` 目录 + 标准 `SKILL.md`（agentskills.io 规范）。
+- 个人 Agent 技能库 + 全局 Agent 规则源仓库。20 个自研技能，每个技能 = 一个 `one-*` 目录 + 标准 `SKILL.md`（agentskills.io 规范）。
 - 本仓库是唯一源。严禁修改安装目标目录（`./.agents/skills/`、`~/.agents/skills/`、各宿主配置文件）；改技能只改本仓库源目录。
 - [one-agents.md](file:///home/ctyun/onespace/github/one-skills/one-agents.md) 是全局宪法唯一源，由 install.sh 分发软链到各宿主；改规则只改它。
 - 检索栈：Python 标准库 + SQLite FTS5（WAL + `porter unicode61` + BM25，中文逐字入索引、查询期转 phrase），索引文件统一为 `<数据仓>/.fts.db`（git 忽略）。
@@ -43,8 +43,7 @@ one-skills/
 ├── one-ghfile/              # GitHub 远端仓库文件操作（走 gh api）
 ├── one-paseo-race/          # Paseo 多 Agent 赛马调度器（禁自动触发）
 ├── paseo-plugins/           # Paseo 插件（one-todo 待办/赛马面板）
-├── onememory/               # 本仓自己的项目随身记忆（timeline.md + tasks/<会话ID>.md）
-└── .pi/skills/caveman/      # vendored 第三方技能
+└── onememory/               # 本仓自己的项目随身记忆（timeline.md + tasks/<会话ID>.md）
 ```
 
 外部数据仓（不在本仓）：
