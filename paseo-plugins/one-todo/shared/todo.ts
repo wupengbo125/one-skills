@@ -66,6 +66,8 @@ export const todoSchema = z.object({
   baseBranch: z.string().optional(),
   newBranch: z.string().optional(),
   status: todoStatusSchema,
+  // 进 Review 之前的原状态：取消 Review 时回去用它（done 的菜单里没有 Review 项，不会出现 done）
+  preReviewStatus: z.enum(["pending", "running", "failed"]).optional(),
   // 赛马模式：第一次派马时定下来，之后不能改
   raceMode: z.boolean().optional(),
   // 委员会模式：同样第一次派马时定死；只一匹马，另指定两个派生成员

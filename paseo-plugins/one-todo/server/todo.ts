@@ -222,6 +222,15 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
     if (p.status === "failed") {
       next.finishedAt = new Date().toISOString();
     }
+    // 进 Review 时记下来路：取消 Review 时回去用它（done 走不到这，防类型兜个底）
+    if (p.status === "review" && existing.status !== "review") {
+      next.preReviewStatus =
+        existing.status === "done" ? "pending" : existing.status;
+    }
+    // 离开 Review（含取消）：清掉来路，防脏数据残留
+    if (p.status !== "review") {
+      next.preReviewStatus = undefined;
+    }
   }
   return { todo: saveTodo(next) };
 }

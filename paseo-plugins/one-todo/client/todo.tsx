@@ -1583,7 +1583,21 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             />
           </TipHost>
         )}
-        {!isDone && t.status !== "review" ? (
+        {isDone ? null : t.status === "review" ? (
+          // 取消 Review 也是纯挪栏：回到进 Review 之前的状态，不危险不用长按
+          <Pressable
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              closeMenu();
+              statusM.mutate({ id: t.id, status: t.preReviewStatus ?? "pending" });
+            }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+              取消 Review
+            </Text>
+          </Pressable>
+        ) : (
           // Review 是纯挪栏：点一下就挪，不关工作区不清痕迹，不危险不用长按
           <Pressable
             style={{ paddingHorizontal: 12, paddingVertical: 10 }}
@@ -1597,7 +1611,7 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
               Review
             </Text>
           </Pressable>
-        ) : null}
+        )}
         <View style={{ height: 1, backgroundColor: theme.colors.border }} />
         <TipHost
           tipKey="pin"
