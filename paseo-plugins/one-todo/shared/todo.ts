@@ -6,6 +6,8 @@ export const todoStatusSchema = z.enum([
   "running",
   "done",
   "failed",
+  // Review：纯挪栏状态，不关工作区、不清痕迹
+  "review",
 ]);
 export type TodoStatus = z.infer<typeof todoStatusSchema>;
 
@@ -190,7 +192,8 @@ export const updateTodoRpc = defineRpc({
       // 发到几号了：整单搬马时也要搬，别让新单子从 1 重发
       nextNo: z.number().int().optional(),
       // 完成不走这里：标完成会关掉任务名下的工作区，只能走 todo.finish
-      status: z.enum(["pending", "running", "failed"]).optional(),
+      // review 是纯挪栏：只挪不动其他，可以走这里
+      status: z.enum(["pending", "running", "failed", "review"]).optional(),
       pinned: z.boolean().optional(),
       branchTag: z.string().optional(),
       autoReview: autoReviewSchema.optional(),

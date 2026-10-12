@@ -123,6 +123,7 @@ export function metaLine(t: Todo): string {
   if (t.status === "running") parts.push("运行中");
   if (t.status === "done") parts.push("完成");
   if (t.status === "failed") parts.push("失败");
+  if (t.status === "review") parts.push("Review");
   return parts.join("  ·  ");
 }
 

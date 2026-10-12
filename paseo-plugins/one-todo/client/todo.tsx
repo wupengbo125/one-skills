@@ -720,8 +720,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
       status,
     }: {
       id: string;
-      // 完成不走这里：只有 todo.finish 能标完成
-      status: "pending" | "running" | "failed";
+      // 完成不走这里：只有 todo.finish 能标完成；review 是纯挪栏，走这里
+      status: "pending" | "running" | "failed" | "review";
     }) => updateTodo({ id, patch: { status } }),
     onSuccess: () => invalidate(),
     onError: (e: Error) => toast.error(e.message || "更新失败"),
@@ -1583,6 +1583,21 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             />
           </TipHost>
         )}
+        {!isDone && t.status !== "review" ? (
+          // Review 是纯挪栏：点一下就挪，不关工作区不清痕迹，不危险不用长按
+          <Pressable
+            style={{ paddingHorizontal: 12, paddingVertical: 10 }}
+            onPress={(e) => {
+              e.stopPropagation();
+              closeMenu();
+              statusM.mutate({ id: t.id, status: "review" });
+            }}
+          >
+            <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>
+              Review
+            </Text>
+          </Pressable>
+        ) : null}
         <View style={{ height: 1, backgroundColor: theme.colors.border }} />
         <TipHost
           tipKey="pin"
@@ -1961,6 +1976,8 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
   const doneTodos = filteredTodos.filter(
     (t) => t.status === "done" && isToday(t.finishedAt || t.startedAt),
   );
+  // Review 栏：纯挪栏状态，单独一栏，跟在待办后面、已完成前面
+  const reviewTodos = filteredTodos.filter((t) => t.status === "review");
 
   const renderReviewConfig = (mode: "multi" | "single") => {
     if (!arb || !arbTodo) return null;
@@ -2687,6 +2704,12 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             ) : (
               pendingTodos.map(renderTodoCard)
             )}
+            {reviewTodos.length > 0 ? (
+              <>
+                <Text style={s.section}>Review ({reviewTodos.length})</Text>
+                {reviewTodos.map(renderTodoCard)}
+              </>
+            ) : null}
             {doneTodos.length > 0 ? (
               <>
                 <Text style={s.section}>已完成 ({doneTodos.length})</Text>
