@@ -1,9 +1,9 @@
 ---
-name: one-paseoagent-driven
+name: one-paseoagent-implement
 description: "把一份定好的计划派给别的 paseo 会话来干：一个任务一个干净 subagent（provider/model 由你指定）+ 每任务审查 + 修复循环。只在 paseo 下能用，要执行计划、想省自己上下文时用它。"
 ---
 
-# One Paseoagent-Driven（拿别的会话干活）
+# One Paseoagent-Implement（拿别的会话干活）
 
 主会话只做协调：派活、审查、记账。代码由**别的会话**写。
 
