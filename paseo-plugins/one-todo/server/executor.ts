@@ -110,7 +110,11 @@ export async function launchAgentOrTerminal(
   }
   const config = await resolveProviderField(paseo, ref.provider, ref.model);
   const handle = await ws.agents.create({
-    config: { provider: config },
+    // omp 不传档位就兜底挑模型最高档，显式给 auto 让它每轮自己挑
+    config: {
+      provider: config,
+      ...(ref.provider === "omp" ? { thinkingOptionId: "auto" } : {}),
+    },
     title,
     prompt,
   });
