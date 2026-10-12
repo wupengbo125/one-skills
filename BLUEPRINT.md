@@ -7,6 +7,8 @@
   - 交互式将技能与全局宪法规则一键软链接或分发至各类 Agent 编辑器，并支持卸载
 - [install-others.sh](install-others.sh)
   - 一键批量安装与拉取精选的第三方开源技能与开发工具链
+- [install-doubao-skill/](install-doubao-skill/)
+  - 仅在豆包环境手动安装、更新与删除专属豆包技能
 - [one-memory/](one-memory/)
   - 自动向本地代码仓库批量安装 Git 记忆门禁与索引同步钩子，防止漏记工作流水
   - 跨项目自动记录会话级工作流水与任务案卷，保持项目内与全局中枢双轨同步
@@ -21,38 +23,42 @@
   - 将实操排坑经验与配置手册封装封存为标准卷轴以便后续复用
 - [one-blueprint/](one-blueprint/)
   - 建立并增量维护项目一句话人类视角的产品业务功能活蓝图
+- [one-writing-skill/](one-writing-skill/)
+  - 写或改 skill 的规矩
 - [one-code-wiki/](one-code-wiki/)
   - 逆向分析项目代码库并生成结构化的高纯度代码地图供快速导航
-- [one-harness-lite/](one-harness-lite/)
-  - 在编辑代码时自动唤起无记忆独立审查员进行等号级代码核验与交付防护
+- [one-plan/](one-plan/)
+  - 写文件前必须列出平铺计划，等用户暗号后方可动手
+- [one-summarise-plan/](one-summarise-plan/)
+  - 读取平铺计划文档，把各版本计划融合总结为一份覆盖式全量真实需求
 - [one-implement/](one-implement/)
-  平铺开发计划并以最小化最简代码实现需求，杜绝发散与多余改动
-- [one-harness/](one-harness/)
-  - 提供规范化的重型研发协作流程，涵盖架构设计、编码实现、多维审查与交付闸门
+  - 平铺开发计划并以最小化最简代码实现需求，杜绝发散与多余改动
+- [one-implement-paseoagent/](one-implement-paseoagent/)
+  - 把计划派给别的 paseo 会话干：一个任务一个干净 agent，派活、审查、记账，代码由别的会话写
+- [one-implement-subagent/](one-implement-subagent/)
+  - 同上，但派给 subagent；没有 paseo 的环境用这个
+- [one-implement-refactor-cp/](one-implement-refactor-cp/)
+  - 采用物理代码拷贝而非凭空重写的防御式重构流程，杜绝幻觉破坏
+- [one-code-review/](one-code-review/)
+  - 审查细则：等号审查（多了/少了/需求本身有 bug）+ 4 条坏味道，供上面几个 implement 技能引用
 - [one-python-structure/](one-python-structure/)
   - 初始化与约束标准 Python 工具项目三件套（脚本、自适应配置、全小写 readme）
-- [one-refactor-implement-cp/](one-refactor-implement-cp/)
-  - 采用物理代码拷贝而非凭空重写的防御式重构流程，杜绝幻觉破坏
 - [one-handoff/](one-handoff/)
   - 一键生成跨会话或跨模型切换时的结构化任务交接清单
 - [one-ebbiii/](one-ebbiii/)
   - 自动根据学习与记录内容生成艾宾浩斯复习闪卡并与记忆平台同步
-- [one-life/](one-life/)
-  - 以对话触发词随手记录个人生活日记，并按月年蒸馏回顾自己的生活轨迹
 - [one-book-notes/](one-book-notes/)
   - 快速将读书心得与高光摘录追加整理至专属书籍笔记中
 - [one-awesome-design/](one-awesome-design/)
   - 提供符合主流设计规范（如 Apple Design）的前端与界面实现指导
 - [one-ghfile/](one-ghfile/)
   - 直接通过 GitHub API 对远端仓库文件进行读取、创建、编辑、删除与追加（免本地 clone 与 git）
-- [one-orca-race/](one-orca-race/)
+- [one-paseo-race/](one-paseo-race/)
   - 并发将 GitHub Issue 或提示词分派给多个指定模型的 Agent 在独立 Worktree 中赛马比对
   - 不指定 Issue 时自动取最新一条 open issue 作为任务源
   - 只派一个 Agent 时标题与分支不带 🐎 前缀，多人赛马才带
   - 支持 -sda/--set-default-agent 记住默认 Agent，之后不带 -a 直接用它
   - CodeBuddy 走终端模式：等终端起来后以 codebuddy --model <模型> "<Issue链接> <提示词>" 启动
-- [one-paseo-review-lite/](one-paseo-review-lite/)
-  - 轻型代码审查：单 Agent 极简快审，聚焦需求等号核验（改多了/改少了/改偏了）
 - [paseo-plugins/one-todo/](paseo-plugins/one-todo/)
   - 在 Paseo 中管理待办任务与 GitHub Issue，支持本地执行与多马独立 Worktree 并发开跑
   - 支持会话跳转、待办继承与白盒开场向导词模板自定义（开场词按普通/赛马/委员会分三份，各存各的）

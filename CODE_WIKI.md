@@ -15,30 +15,36 @@
 
 ```
 one-skills/
-├── one-agents.md            # 全局宪法源（分发目标见 §8）
+├── one-agents.md            # 全局宪法源（分发目标见 §7）
 ├── BLUEPRINT.md             # 本仓业务活蓝图
 ├── one-context.md           # 本仓给 AI 的规则（源规范声明）
 ├── skills-lock.json         # npx skills 锁文件（含已删除技能的残留记录）
 ├── install.sh               # 交互式分发：软链技能/宪法、卸载、装记忆钩子
 ├── install-others.sh        # 第三方技能/工具批量安装
+├── install-doubao-skill/    # 豆包环境专属技能安装/更新/删除（禁自动触发）：SKILL.md
 ├── one-wiki/                # 个人知识库：SKILL.md + references/{note,ingest,query,lint}.md + scripts/wiki.py
 ├── one-memory/     海马记忆仓记忆：SKILL.md references/{read-memory,write-memory,rules-memory}.md scripts/memory.py hooks/
-├── one-life/                # 生活日记：SKILL.md + references/{write,search,distill,boundary}.md（脚本在 one-life 仓 scripts/life.py）
 ├── one-scrolls/             # 卷轴库：SKILL.md + references/{search,create}.md + scripts/scrolls.py + scrolls/（自带数据）
-├── one-harness/             # 重型开发流程（禁自动触发）：SKILL.md + references/{review,worker-brief}.md
 ├── one-python-structure/    # Python 三件套规范（禁自动触发）：SKILL.md
-├── one-harness-lite/      轻量开发流程：SKILL.md + pi-extension/index.ts + package.json（Pi 扩展）
-├── one-implement/ 极简实现流程：SKILL.md pi-extension/index.ts package.json（Pi 扩展）
+├── one-plan/                # 写文件前列平铺计划等暗号（禁自动触发）：SKILL.md
+├── one-summarise-plan/      # 平铺计划融合总结为覆盖式全量需求（禁自动触发）：SKILL.md
+├── one-implement/           # 极简实现流程（禁自动触发）：SKILL.md
+├── one-implement-paseoagent/ # 派 paseo 会话干活（禁自动触发）：SKILL.md
+├── one-implement-subagent/  # 派 subagent 干活（禁自动触发）：SKILL.md
+├── one-implement-refactor-cp/ # 物理剪贴重构（禁自动触发）：SKILL.md
+├── one-code-review/         # 审查细则（禁自动触发）：SKILL.md
 ├── one-blueprint/           # 业务蓝图：SKILL.md + BLUEPRINT-TEMPLATE.md
-├── one-context/             # 项目上下文：SKILL.md + CONTEXT-TEMPLATE.md
-├── one-refactor-implement-cp/  # 物理剪贴重构（禁自动触发）
+├── one-code-wiki/           # 生成 CODE_WIKI.md 代码地图（禁自动触发）：SKILL.md
+├── one-writing-skill/       # 写/改 skill 的规矩（禁自动触发）：SKILL.md + references/{authoring,mechanics}.md
 ├── one-handoff/             # 会话交接（禁自动触发）
 ├── one-ebbiii/              # 艾宾浩斯闪卡 API
 ├── one-book-notes/          # 读书笔记路由
 ├── one-awesome-design/      # UI 设计规范：SKILL.md + reference/apple-design.md
+├── one-ghfile/              # GitHub 远端仓库文件操作（走 gh api）
+├── one-paseo-race/          # Paseo 多 Agent 赛马调度器（禁自动触发）
+├── paseo-plugins/           # Paseo 插件（one-todo 待办/赛马面板）
 ├── onememory/               # 本仓自己的项目随身记忆（timeline.md + tasks/<会话ID>.md）
-├── .pi/skills/caveman/      # vendored 第三方技能
-└── one-paseo-review-lite/   # 轻型代码审查（Matt 纯粹 Spec 单核快审）：SKILL.md + references/lite-prompt.md
+└── .pi/skills/caveman/      # vendored 第三方技能
 ```
 
 外部数据仓（不在本仓）：
@@ -51,22 +57,27 @@ one-skills/
 
 | 技能 | 触发方式 | 职责 | 数据/依赖 |
 | :-- | :-- | :-- | :-- |
+| install-doubao-skill | 仅显式调用 | 豆包环境专属技能安装/更新/删除：物理复制到 `/runtime/user_skills/` | 源仓库 `~/onespace/github/one-skills` |
 | one-wiki | 自动："记笔记/记到大本子/ingest/lint" | raw 记录、ingest 编译、query 检索、lint 巡检 | one-llmwiki 仓；"记笔记"禁用 one-memory |
 | one-memory | 自动："查记忆/查偏好" | 双轨记忆读写与检索 | one-hippocampus 仓 + 各项目 `onememory/` |
-| one-life | 自动："记日记/记录生活/我上次去…/最近干了啥" | 个人生活日记（情景记忆）写入、检索、月年蒸馏 | one-life 私有仓（diary/ summary/ entities/） |
 | one-scrolls | 自动："查卷轴/避坑指南/封存卷轴" | 低频实操手册封存与检索 | 自带 scrolls/；个人笔记/记忆禁存这里 |
-| one-blueprint | 自动：蓝图维护/核对 | 维护项目唯一 `BLUEPRINT.md`（只写业务逻辑，不写 UI） | 被 one-harness 作基准 |
-| one-context | 自动：init/update | 生成/更新根目录 `CONTEXT.md`，绝不覆盖人工背景 | 模板 CONTEXT-TEMPLATE.md |
-| one-harness | 仅显式调用 | 重型流程：主 Agent 只架构，Worker 写码+同步蓝图，双轴审查（Standards/Spec），交付闸门写记忆 | 引用 one-blueprint、one-memory、code-review |
-| one-harness-lite | 自动（改文件即触发；已用重型则跳过） | 主 Agent 自己改，改完不 commit，派无记忆 Sub-agent 拿原话+`git diff HEAD`等号审查 | Pi 扩展自动注入 |
-| one-implement | 自动（改文件即触发） | 平铺计划，最小化实现，严防多改，改完执行 git add -N 暂存并派发 Matt 代码审查与自动闭环修复 | 引用 one-summarise-plan、one-paseo-review-lite |
-| one-paseo-review-lite | 仅显式调用 | 轻型代码审查：单 Agent 极简快审，聚焦 Matt Spec 轴单核（改多了/改少了/改偏了） | references/lite-prompt.md |
-| one-refactor-implement-cp | 仅显式调用 | 重构禁凭记忆重打代码：`cp`/`sed` 物理复制，5 步法 | 前置遵循 one-harness |
+| one-blueprint | 自动：蓝图维护/核对 | 维护项目唯一 `BLUEPRINT.md`（只写业务逻辑，不写 UI） | — |
+| one-code-wiki | 仅显式调用 | 分析仓库生成结构化完整 `CODE_WIKI.md`（架构/模块/依赖/运行方式） | — |
+| one-writing-skill | 仅显式调用 | 写或改 skill 的规矩（先答作者四问，再写正文，跑真实 prompt 验证） | references/{authoring,mechanics}.md |
+| one-plan | 自动：写文件前 | 动手写文件前必须先列平铺计划，等用户暗号后方可动手 | — |
+| one-summarise-plan | 仅显式调用 | 读取平铺计划文档，融合总结为一份覆盖式全量真实需求 | — |
+| one-implement | 仅显式调用 | 平铺计划，最小化实现，严防多改，等号自查 | 引用 one-plan |
+| one-implement-paseoagent | 仅显式调用 | 把计划派给别的 paseo 会话：一个任务一个干净 agent，派活/审查/记账/修复循环 | 引用 one-code-review、paseo |
+| one-implement-subagent | 仅显式调用 | 同上，派给 subagent | 引用 one-code-review |
+| one-implement-refactor-cp | 仅显式调用 | 重构禁凭记忆重打代码：`cp`/`sed` 物理复制，5 步法 | 前置遵循 one-implement |
+| one-code-review | 仅显式调用 | 审查细则：等号审查 + 4 条坏味道 | — |
 | one-handoff | 仅显式调用 | 生成覆盖式 `handoff.md`，脱敏 | 引用 BLUEPRINT/git diff |
 | one-ebbiii | 自动："艾宾浩斯" | 闪卡 CRUD：`Bearer $EBBIII_API_TOKEN`，答案 ≤200 字，先查重 | HTTP `${EBBIII_BASE_URL:-http://localhost:3000}/api/v1/cards` |
 | one-book-notes | 自动："记到《书名》" | 追加 `## YYYY-MM-DD` 到固定文件并 git push | one-llmwiki/raw |
 | one-awesome-design | 自动：UI 设计 | 按 reference/ 规范实现（现仅 apple-design.md） | — |
 | one-python-structure | 仅显式调用 | Python 工具项目标准三件套规范与初始化流程（script.py + .env/config.yaml + readme.md） | — |
+| one-ghfile | 自动：远端仓库文件操作 | GitHub 远端仓库文件 list/read/write/delete/edit/append，走 `gh api`，不写本地文件 | gh CLI |
+| one-paseo-race | 仅显式调用 | Paseo 多 Agent 赛马调度：同一 Issue/提示词并发派多个 Agent，各独立 worktree，跑完回收比对 | paseo |
 
 意图分流模式：SKILL.md 只做路由表，命中后 Agent 只读对应的一个 `references/*.md` 再执行。
 
@@ -110,13 +121,7 @@ python3 <脚本> rebuild             # 全量重建（先删 db/-wal/-shm）
 - query：先 BM25，再沿双链精读，回答标注出处。
 - lint：查死链/孤儿页/矛盾/概念缺口，确认后修复并记 log。
 
-## 7. 扩展接口（两个 index.ts 文件同构）
-仅用 `node:fs/promises`、`node:path`、`node:url`，TS 由 Pi 宿主直接加载，无构建步骤。API：`pi.on(event, handler)`、`pi.registerCommand(name, {description, handler})`、`pi.sendUserMessage(msg, {deliverAs})`、`pi.exec(cmd, args)`；事件：`before_agent_start`（改 systemPrompt）、`tool_call`、`tool_result`（可追加 content 文本）。
-
-- one-harness-lite：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加审查提醒（禁止直接 commit，强制 Sub-agent 等号审查）；`/harness` 状态命令。
-- one-implement：注入去 Frontmatter SKILL.md；edit/write tool_call 通知、tool_result 追加极简实现提醒（平铺计划、最小化实现、严防多改、强制等号审查）；`/implement` 状态命令。
-
-## 8. 分发与安装
+## 7. 分发与安装
 
 ```bash
 # 远程（无需克隆）
@@ -131,7 +136,7 @@ bash install-others.sh   # 第三方生态
 - 宪法 one-agents.md 全局分发 11 处：`~/.pi/agent/`、`~/.gemini/config/`、`~/.gemini/GEMINI.md`、`~/.claude/CLAUDE.md`、`~/.cursor/`、`~/.config/opencode/`、`~/.copilot/`、`~/.agents/`、`~/.trae-cn/user_rules/`、`~/.codebuddy/rules/AGENTS.md`、`~/.qoder-cn/AGENTS.md`；项目级分发为 `./AGENTS.md`、`./CLAUDE.md`。
 - 装记忆钩子时跳过 one-hippocampus（其记忆目录是 memory/ 不是 onememory/，门禁会拦死自身提交）。
 
-## 9. 环境变量
+## 8. 环境变量
 
 | 变量 | 默认 | 消费者 |
 | :-- | :-- | :-- |
@@ -141,7 +146,7 @@ bash install-others.sh   # 第三方生态
 | `EBBIII_API_TOKEN` | 必填 | one-ebbiii |
 | `EBBIII_BASE_URL` | `http://localhost:3000` | one-ebbiii |
 
-## 10. 事实陷阱（AI 必读）
+## 9. 事实陷阱（AI 必读）
 
 1. one-memory/README.md 过期：其中 `memory.py clean` 命令不存在；`commit-msg` 哈希校验钩子已废弃（install.sh 会删除它）；hippocampus 的 scrolls/ 层已独立为 one-scrolls。
 2. skills-lock.json 残留 4 个已删除技能：one-code-wiki、one-summarize-chat、one-take-notes、one-update-notes。
