@@ -1,7 +1,7 @@
 会话开始时，如果本地有未提交的。则先告知用户。等用户裁决
 
 修改代码前，必须使用 skill：one-plan。等用户发送暗号"aaa"后先将平铺计划一字不差也写进 {{plan}}，每次追加，如 v1,v2 等
-再使用one-paseoagent-implement 技能实现
+再使用one-implement-paseoagent 技能实现
 
 
 重点：绝对禁止不列平铺计划就要 aaa。严重反例：你说 aaa 我就出平铺计划。

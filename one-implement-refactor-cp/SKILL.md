@@ -1,5 +1,5 @@
 ---
-name: one-refactor-implement-cp
+name: one-implement-refactor-cp
 description: 专门用于已有代码的重构、合并、迁移与拆分，严格执行剪贴板优先与物理复制 5 步规范。
 argument-hint: "重构/合并/迁移的目标与涉及文件"
 disable-model-invocation: true
@@ -7,7 +7,7 @@ disable-model-invocation: true
 
 # Faithful Refactor
 
-根据用户指定的当前会话、需求文档或直接指令实施代码修改。前置遵循 `/one-harness` 贯穿极简交付与范围控制。完整实现全部需求，绝不增加范围外功能。遇歧义先询问。
+根据用户指定的当前会话、需求文档或直接指令实施代码修改。前置遵循 `/one-implement` 贯穿极简交付与范围控制。完整实现全部需求，绝不增加范围外功能。遇歧义先询问。
 
 ## 零脑补重写与剪贴板优先原则 (Clipboard-First Rule)
 
@@ -18,7 +18,7 @@ disable-model-invocation: true
 - **片段抽取与粘贴**：必须用行号物理截取代码片段再插入目标位置（例如 `sed -n '10,20p' src.py` 截取，`sed -i '5r /dev/stdin' target.py` 插入），**严禁凭记忆手敲重写**。
 
 ### 物理合并 5 步规范
-1. **前置准则**：遵循 `/one-harness` 规范，在重构与合并全过程中贯穿极简代码与精准交付规范。
+1. **前置准则**：遵循 `/one-implement` 规范，在重构与合并全过程中贯穿极简代码与精准交付规范。
 2. **物理基准复制 (`cp`)**：选择主体文件直接复制作为唯一基准。
 3. **定位插入点**：精确定位需嵌入片段的目标文件及具体行号/插入位置。
 4. **精准抽取粘贴**：从源文件中原封不动提取目标代码块，精准物理插入，**严禁凭大脑记忆重新打字大段内容**。
