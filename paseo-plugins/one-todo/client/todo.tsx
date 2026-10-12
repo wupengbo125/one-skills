@@ -1590,7 +1590,17 @@ export function TodoSurface({ theme, layout, navigation }: PluginSurfaceProps) {
             onPress={(e) => {
               e.stopPropagation();
               closeMenu();
-              statusM.mutate({ id: t.id, status: t.preReviewStatus ?? "pending" });
+              statusM.mutate({
+                id: t.id,
+                // 没记来路的老数据按痕迹推断：error=跑砸的回 failed，跑过（startedAt 或马带分支）回 running，别清它的标签
+                status:
+                  t.preReviewStatus ??
+                  (t.error
+                    ? "failed"
+                    : t.startedAt || (t.agents ?? []).some((a) => a.branch)
+                      ? "running"
+                      : "pending"),
+              });
             }}
           >
             <Text style={{ fontSize: 13, color: theme.colors.foreground, fontWeight: "500" }}>

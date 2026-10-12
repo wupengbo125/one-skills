@@ -204,32 +204,34 @@ export function handleUpdateTodo(input: RpcInput<typeof updateTodoRpc>): {
   if (p.extraPrompt !== undefined) next.extraPrompt = p.extraPrompt.trim() || undefined;
   if (p.branchTag !== undefined) next.branchTag = p.branchTag.trim() || undefined;
   if (p.status !== undefined) {
-    // 手动点成"进行中"、或点重连：开始时间只在本来没有的时候记一次，不覆盖已有的
-    next.status = p.status;
-    if (p.status === "running") {
+    if (existing.status === "review" && p.status !== "review") {
+      // 从 review 出来（取消 Review）是纯挪栏还原：只换状态，不跑清痕迹/盖时间戳的流转分支
+      next.status = p.status;
+      next.preReviewStatus = undefined;
+    } else if (p.status === "review" && existing.status !== "review") {
+      // 进 review 记来路：取消 Review 时回去用它（done 走不到这，防类型兜个底）
+      next.status = p.status;
+      next.preReviewStatus =
+        existing.status === "done" ? "pending" : existing.status;
+    } else if (p.status === "running") {
+      // 手动点成"进行中"、或点重连：开始时间只在本来没有的时候记一次，不覆盖已有的
+      next.status = p.status;
       next.error = undefined;
       next.finishedAt = undefined;
       if (!next.startedAt) {
         next.startedAt = new Date().toISOString();
       }
-    }
-    if (p.status === "pending") {
+    } else if (p.status === "pending") {
+      next.status = p.status;
       next.startedAt = undefined;
       next.finishedAt = undefined;
       next.error = undefined;
       next.branchTag = undefined;
-    }
-    if (p.status === "failed") {
+    } else if (p.status === "failed") {
+      next.status = p.status;
       next.finishedAt = new Date().toISOString();
-    }
-    // 进 Review 时记下来路：取消 Review 时回去用它（done 走不到这，防类型兜个底）
-    if (p.status === "review" && existing.status !== "review") {
-      next.preReviewStatus =
-        existing.status === "done" ? "pending" : existing.status;
-    }
-    // 离开 Review（含取消）：清掉来路，防脏数据残留
-    if (p.status !== "review") {
-      next.preReviewStatus = undefined;
+    } else {
+      next.status = p.status;
     }
   }
   return { todo: saveTodo(next) };
