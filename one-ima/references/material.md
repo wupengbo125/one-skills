@@ -21,7 +21,7 @@ node "$IMA_DIR/ima_api.cjs" "openapi/wiki/v1/get_addable_knowledge_base_list" '{
 2. `check_repeated_names` 重名检查 → `is_repeated=true` 问用户保留两者（追加 `_YYYYMMDDHHmmss`）还是取消
 3. `create_media` 拿 `media_id` + 临时 COS 凭证 → `code≠0` 终止
 4. `cos-upload.cjs` 上传原始字节，不转码 → 非零退出立即停止，**不得**再调 `add_knowledge`
-5. `add_knowledge`：`title` = 文件名，`knowledge_base_id` 用上一步确认的库，根目录省略 `folder_id`
+5. `add_knowledge`：`title` = 文件名，`knowledge_base_id` 用上一步确认的库，根目录 `folder_id` 传 `knowledge_base_id` 的值
 
 凭证只用于本次上传，用完即弃。
 
@@ -29,10 +29,10 @@ node "$IMA_DIR/ima_api.cjs" "openapi/wiki/v1/get_addable_knowledge_base_list" '{
 
 ```bash
 node "$IMA_DIR/ima_api.cjs" "openapi/wiki/v1/import_urls" \
-  '{"knowledge_base_id":"<id>","folder_id":"","urls":["<url>"]}'
+  '{"knowledge_base_id":"<kb_id>","folder_id":"<kb_id>","urls":["<url>"]}'
 ```
 
-- 一次 1~10 个 URL，`folder_id` 必填，根目录传空串
+- 一次 1~10 个 URL；`folder_id` 必填，**根目录不是空串，传 `knowledge_base_id` 的值**
 - 读 `results[url].ret_code` 判断逐条结果，失败的那条直接报给用户
 
 ## 反馈

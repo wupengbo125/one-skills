@@ -56,3 +56,19 @@ node "$IMA_DIR/ima_api.cjs" "<api_path>" '<json_body>'
 ## 反馈
 
 一句话即可：记到哪儿 + 标题或 note_id。不贴大段回显。
+
+## 归档到知识库目录
+
+笔记是扁平的，目录只在知识库侧；**建目录只能在 IMA App 里手动做，API 只能写入不能建目录**。
+
+- 读目录：`openapi/wiki/v1/get_knowledge_list`（`folder_id` 传 KB id 看根，传 folder id 看子目录）
+- 笔记归位（把已有笔记挂进某个目录）：
+
+```bash
+node "$IMA_DIR/ima_api.cjs" "openapi/wiki/v1/add_knowledge" \
+  '{"media_type":11,"title":"<笔记标题>","knowledge_base_id":"<kb_id>","folder_id":"<folder_id>","note_info":{"content_id":"<note_id>"}}'
+```
+
+- 文件归档走 `references/material.md`，带 `folder_id` 写入即可
+- 现有目录（`Pengbo的知识库`）：01 炒股交易 / 02 AI与知识系统 / 03 技术运维 / 04 修心 / 05 做饭
+- 归位前先用 `search_knowledge` 或目录列表确认该笔记尚未在目标目录，避免重复条目
