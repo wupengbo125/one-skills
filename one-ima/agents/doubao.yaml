@@ -1,0 +1,7 @@
+interface:
+  display_name: "IMA笔记"
+  short_description: "笔记与资料统一存进 IMA"
+  default_prompt: "使用 $one-ima 帮我把这段内容记到 IMA"
+
+policy:
+  allow_implicit_invocation: true
